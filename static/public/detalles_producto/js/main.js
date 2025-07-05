@@ -212,41 +212,42 @@ btnAddCart.addEventListener('click', async () => {
   let total = 0;
 
   for (const item of seleccion) {
-    try {
-      const headers = {
-        'Content-Type': 'application/json'
-      };
+  try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
 
-      let endpoint = '';
-      if (cliId) {
-        headers['X-CSRFToken'] = getCSRF();
-        endpoint = `/api/carrito/create/${cliId}/`;
-      } else {
-        headers['X-Session-Key'] = window.SESSION_KEY || '';
-        endpoint = `/api/carrito/guest/`;
-      }
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          producto_id: prodId,
-          talla: item.talla,
-          cantidad: item.cantidad
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
-
-      total += item.cantidad;
-
-    } catch (e) {
-      msg.style.color = 'red';
-      msg.textContent = '❌ ' + e.message;
-      return;
+    let endpoint = '';
+    if (cliId) {
+      headers['X-CSRFToken'] = getCSRF();
+      endpoint = `/api/carrito/create/${cliId}/`;
+    } else {
+      endpoint = `/api/carrito/create/0/`;  // ✅ ESTA es la ruta correcta
     }
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers,
+      body: JSON.stringify({
+        producto_id: prodId,
+        talla: item.talla,
+        cantidad: item.cantidad
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
+
+    total += item.cantidad;
+
+  } catch (e) {
+    msg.style.color = 'red';
+    msg.textContent = '❌ ' + e.message;
+    return;
   }
+}
+
 
   msg.style.color = 'green';
   msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;

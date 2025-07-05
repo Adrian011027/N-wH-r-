@@ -3,7 +3,7 @@
    ------------------------------------------------------------- */
 
 import { setupScrollRestoration }  from './scroll-behavior.js';
-import { setupHeaderScroll }       from './header.js';
+import { setupHeaderScroll, setupHeaderPanels } from './header.js';
 import { setupBurgerMenu }         from './burger-menu.js';
 import { setupZoomEffect }         from './zoom-effect.js';
 import { setupAccordion }          from './accordion.js';
@@ -63,6 +63,7 @@ document.addEventListener('submit', async e => {
 /* —— Módulos de interfaz —— */
 setupScrollRestoration();
 setupHeaderScroll();
+setupHeaderPanels()
 setupBurgerMenu();
 setupZoomEffect();
 setupAccordion();

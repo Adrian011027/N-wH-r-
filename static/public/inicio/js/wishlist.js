@@ -92,20 +92,29 @@ const updateHeaderUI = l=>{
 };
 
 /* ────────── 4. hydrate inicial (pull servidor si login) ─────────────── */
-const hydrateDone = (async ()=>{
+let hydrateDoneResolve;
+const hydrateDone = new Promise(resolve => hydrateDoneResolve = resolve);
+
+(async () => {
   if (isAuthenticated && clienteId){
-    try{
+    try {
       const r = await fetch(`${backendURL}${clienteId}/`);
-      if(r.ok){
-        const {productos=[]}=await r.json();
-        setList([...new Set([...getList(),...productos.map(String)])]);
+      if (r.ok) {
+        const { productos = [] } = await r.json();
+        setList([...new Set([...getList(), ...productos.map(String)])]);
       }
-    }catch(err){ console.error('[Wishlist] pull',err); }
+    } catch (err) {
+      console.error('[Wishlist] pull', err);
+    }
   }
+
   const idsSet = new Set(getList());
   document.querySelectorAll(selector)
-          .forEach(btn=>toggleBtn(btn,idsSet.has(btn.dataset.productId)));
+          .forEach(btn => toggleBtn(btn, idsSet.has(btn.dataset.productId)));
+
+  hydrateDoneResolve(); // ✅ Finaliza correctamente
 })();
+
 
 /* ───────────────────────── 5. show / hide panel ─────────────────────── */
 const showWishlist = async ()=>{

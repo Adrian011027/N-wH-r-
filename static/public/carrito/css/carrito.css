@@ -166,6 +166,13 @@
   animation: fadeOutIcon 0.2s ease-out;
 }
 
+.fade-in-icon {
+  animation: fadeInIcon 0.2s ease-in;
+}
+.fade-out-icon {
+  animation: fadeOutIcon 0.2s ease-out;
+}
+
 @keyframes fadeInIcon {
   from { opacity: 0; transform: scale(0.8); }
   to   { opacity: 1; transform: scale(1); }
@@ -174,6 +181,8 @@
   from { opacity: 1; transform: scale(1); }
   to   { opacity: 0; transform: scale(0.8); }
 }
+
+
 
 /* ========== 7. Eliminación clásica (no usada, oculto) ========== */
 .item-remove {
@@ -336,4 +345,46 @@
   .item-cantidad .btn-plus {
     font-size: 18px;
   }
+}
+
+/* Animación fade-in cuando se agrega (de arriba hacia abajo) */
+.carrito-item.fade-in {
+  animation: fadeInItem 0.3s ease-out forwards;
+}
+
+/* Animación fade-out cuando se elimina (de abajo hacia arriba) */
+.carrito-item.fade-out {
+  animation: fadeOutItem 0.3s ease-in forwards;
+}
+
+@keyframes fadeInItem {
+  from {
+    opacity: 0;
+    transform: translateY(-10px); /* Desde arriba */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutItem {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px); /* Hacia arriba */
+  }
+}
+
+/* Fade-in para subtotal y botones */
+.fade-in-extra {
+  animation: fadeInExtra 0.4s ease-out;
+}
+
+@keyframes fadeInExtra {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
 }
