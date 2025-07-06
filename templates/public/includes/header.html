@@ -21,46 +21,51 @@
 
     <!-- ❤️ Wishlist (SIEMPRE visible) -->
     <button id="btn-wishlist-panel" class="user-icon" aria-label="Ver wishlist">
-      <i class="fa-regular fa-heart user-icon-icon"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+          fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+      </svg>
       <span id="wishlist-count" class="wishlist-count" hidden>0</span>
     </button>
 
-    <!-- 🛒 Carrito (SIEMPRE visible) -->
-    <a id="btn-cart-panel"
-        href="{% url 'ver_carrito' %}"
-       class="user-icon"
-       aria-label="Ver carrito">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-           viewBox="0 0 24 24" fill="none"
-           stroke="black" stroke-width="1.2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 6h14l-1.4 7.2a1 1 0 0 1-1 .8H8.5a1 1 0 0 1-1-.8L6 6z" />
-        <circle cx="9" cy="20" r="1.3" />
-        <circle cx="17" cy="20" r="1.3" />
-        <path d="M6 6L4.5 3H2" />
-      </svg>
-    </a>
 
-    {% if request.session.cliente_username %}
-      <!-- ▼ Menú de usuario (logueado) -->
-      <div class="usuario-dropdown">
-        <svg id="btn-user-menu" class="user-icon" xmlns="http://www.w3.org/2000/svg"
-             width="25" height="25" fill="none"
-             stroke="#1D1D1D" stroke-width="1" stroke-linecap="round"
-             stroke-linejoin="round" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-        </svg>
-      </div>
-    {% else %}
-      <!-- ▼ Icono login (invitado) -->
-      <svg id="btn-login" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-           fill="none" stroke="#1D1D1D" stroke-width="1" stroke-linecap="round"
-           stroke-linejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-      </svg>
-    {% endif %}
+    <!-- 🛒 Carrito (SIEMPRE visible) -->
+    <button id="btn-cart-panel" class="user-icon" aria-label="Ver carrito"onclick="window.location.href='{% url 'ver_carrito' %}'">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+       fill="none" stroke="currentColor" stroke-width="1.5"
+       stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <path d="M6 2l1 4h10l1-4"/>
+    <path d="M3 6h18l-1.5 12.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5L3 6z"/>
+    <path d="M9 10v2"/>
+    <path d="M15 10v2"/>
+  </svg>
+</button>
+
+
+
+   {% if request.session.cliente_username %}
+  <!-- ▼ Menú de usuario (logueado) -->
+  <button id="btn-user-menu" class="user-icon" aria-label="Menú de usuario">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+    </svg>
+  </button>
+{% else %}
+  <!-- ▼ Icono login (invitado) -->
+  <button id="btn-login" class="user-icon" aria-label="Iniciar sesión">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+         fill="none" stroke="currentColor" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+    </svg>
+  </button>
+{% endif %}
+
   </div>
 </header>
 
@@ -209,6 +214,8 @@
     if (overlay) overlay.classList.add('active');
     document.body.classList.add('no-scroll');
   };
+
+  
 </script>
 
 

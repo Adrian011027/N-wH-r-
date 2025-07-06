@@ -151,7 +151,8 @@ urlpatterns = [
    
     #-------------------- Orden ---------------------
     #path('orden/<int:id_producto>/', orden, name='orden'),
-    path('ordenar/<int:carrito_id>/', finalizar_compra, name='producto_tallas'),
+    path('ordenar/<int:carrito_id>/', finalizar_compra, name='finalizar_compra'),
+
     
 ]
 

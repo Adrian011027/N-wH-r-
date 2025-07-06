@@ -417,6 +417,10 @@ header.scrolled {
 /* Celulares pequeños (≤ 480px) */
 @media (max-width: 480px) {
 
+   #btn-contacto {
+    display: none !important;
+  }
+
   header {
     position: fixed; /* Para que el logo centrado funcione */
     display: flex;
@@ -464,27 +468,6 @@ header.scrolled {
   #Logo {
     width: 100px;
   }
-
-  .user-icon i {
-    font-size: 15px; /* ajusta según lo que necesites */
-  }
-
-  .user-icon {
-    padding: 6px;
-  }
-
-  #btn-login,
-  #btn-user-menu {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .user-icon svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  
 
   /* Contact panel */
   .contact-panel {
@@ -536,19 +519,45 @@ header.scrolled {
 .user-icon {
   background: none;
   border: none;
+  width: 32px;
+  height: 32px;
+  margin: 0;
   padding: 0;
-  margin: 0 0.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-.user-icon-icon {
-  font-size: 20px;  /* o 24px *//* más delgado */
+.user-icon svg,
+.user-icon i {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  stroke: currentColor;
+  fill: none;
 }
 
+.user-icon:focus,
+.user-icon:active,
+a.user-icon:focus,
+a.user-icon:active {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
 
+/* 🔥 Solución definitiva para quitar color azul en Chrome/Opera */
+a.user-icon {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Reforzar color correcto */
+a.user-icon svg {
+  fill: none !important;
+  stroke: currentColor !important;
+}
 
 
 .login-panel {
@@ -759,11 +768,11 @@ font-size: 14px;
 /* Contador de wishlist en el header */
 .wishlist-count {
   position: absolute;
-  top: -6px;
-  right: -10px;
+  top: -4px;
+  right: -4px;
   background: #ff4d6d;
   color: #fff;
-  font-size: 0.5rem;
+  font-size: 10px;
   font-weight: 600;
   border-radius: 50%;
   padding: 1px 4px;

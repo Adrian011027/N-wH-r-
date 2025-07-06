@@ -327,13 +327,9 @@ def carrito_cliente(request):
     return carrito_publico(request)
 
 
-# -----------------------------------------------------------------
-# 7. Vista pública (invitados y logueados)
-# -----------------------------------------------------------------
-# -----------------------------------------------------------------
 # 7. Vista pública (invitado / logueado)
 # -----------------------------------------------------------------
-# 7. Vista pública
+
 def carrito_publico(request):
     # 🔐 Forzar la creación de la session_key (clave para carritos de invitados)
     if not request.session.session_key:
@@ -356,7 +352,8 @@ def carrito_publico(request):
         {
             "productos": datos["items"],
             "mayoreo": datos["mayoreo"],
-            "session_key": session_key  # Puedes usarlo en el HTML si quieres
+            "session_key": session_key,  # Puedes usarlo en el HTML si quieres
+            "carrito": carrito,
         }
     )
 

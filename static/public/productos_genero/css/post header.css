@@ -128,122 +128,12 @@
 
 /* ——— Media Queries Unificadas ——— */
 @media (max-width: 768px) {
-  .header-left {
-    width: auto;
-  }
-
-  #Logo {
-    width: 120px;
-    margin-top: 10px;
-  }
-
-  .nav-menu {
-    width: 70vw;
-    padding: 60px 15px;
-  }
-
-  .info-footer {
-    flex-direction: column;
-    padding: 40px 20px;
-    gap: 30px;
-  }
-
-  .info-col {
-    flex: 1 1 100%;
-    min-width: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 5px 0;
-    border-top: 1px solid #ddd;
-  }
-
-  .info-col:last-child {
-    border-bottom: 1px solid #ddd;
-  }
-
-  .info-col h4 {
-    font-size: 12px;
-    margin-bottom: 10px;
-  }
-
-  .info-col p {
-    font-size: 13px;
-    line-height: 1.6;
-    margin-bottom: 8px;
-  }
-
-  .accordion-toggle {
-    display: block;
-    font-size: 12px;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 1px;
-    cursor: pointer;
-    position: relative;
-    padding: 8px 0;
-  }
-
-  .accordion-toggle::after {
-    content: '+';
-    position: absolute;
-    right: 0;
-    top: 8px;
-    font-size: 14px;
-  }
-
-  .accordion-toggle.active::after {
-    content: '−';
-  }
-
-  .accordion-content {
-    display: none;
-    font-size: 11px;
-    margin-top: 8px;
-  }
-
-  .accordion-content.open {
-    display: block;
-  }
-
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 480px) {
-  header {
-    flex-wrap: nowrap;
-    padding: 10px 15px;
-  }
-
-  .header-left,
-  .header-center,
-  .header-right {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 0;
-  }
-
-  .header-left {
-    justify-content: flex-start;
-  }
-
-  .header-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    justify-content: center;
-    flex: none;
-  }
-
-  .header-right {
-    justify-content: flex-end;
-  }
-
-  #Logo {
-    width: 100px;
-    margin-left: 50px;
-  }
 
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
