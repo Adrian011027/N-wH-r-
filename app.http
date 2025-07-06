@@ -171,8 +171,8 @@ POST http://127.0.0.1:8000/api/carrito/create/1/ HTTP/1.1
 Content-Type: application/json
 
 {
-  "producto_id": 1,
-  "talla": "28",
+  "producto_id": 22,
+  "talla": "25",
   "cantidad": 1
 }
 
@@ -186,3 +186,7 @@ Accept: application/json
 ### Eliminar la variante (producto) con ID 5 del carrito del cliente 1 hacer get products para verificar el id de la variante
 DELETE http://127.0.0.1:8000/api/carrito/1/item/5/ HTTP/1.1
 Accept: application/json
+
+###
+POST http://127.0.0.1:8000/ordenar/1/
+Content-Type: application/json

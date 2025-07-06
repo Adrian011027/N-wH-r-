@@ -60,6 +60,9 @@ from .views.wishlist import (
     get_cliente_id, producto_tallas, productos_por_ids,
 )
 
+"""from .views.orden import{
+    orden
+}"""
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -68,6 +71,7 @@ urlpatterns = [
     path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,   name="cliente_reset_password_submit"),
 
     # ---------- Front-end ----------
+
     path("",                           index,          name="index"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
@@ -81,7 +85,7 @@ urlpatterns = [
 
     path("carrito/",             carrito_publico,  name="ver_carrito"),      # pública
     path("carrito/cliente/",     carrito_cliente,  name="carrito_cliente"),  # protegida opcional
-    path("carrito/finalizar/",   finalizar_compra, name="finalizar_compra"),
+    #path("carrito/finalizar/",   finalizar_compra, name="finalizar_compra"),
 
     # ---------- Carrito API ----------
     path('api/carrito/guest/',            detalle_carrito_session, name='detalle_carrito_session'),  # 
@@ -94,6 +98,8 @@ urlpatterns = [
     path("api/carrito/<int:cliente_id>/empty/",                                    vaciar_carrito,            name="vaciar_carrito"),
     path("api/carrito/<int:cliente_id>/item/<int:variante_id>/actualizar/",        actualizar_cantidad_producto, name="actualizar_cantidad_producto"),
     path("api/carrito/<int:cliente_id>/item/<int:variante_id>/eliminar/",          delete_producto_carrito,      name="delete_producto_carrito"),
+
+    path('create-client/', create_client, name='create_client'),
 
     # ---------- Dashboard ----------
     path("dashboard/login/",   login_user,            name="login_user"),
@@ -133,6 +139,7 @@ urlpatterns = [
     path("user/delete/<int:id>/", delete_user, name="delete_user"),
 
     # ---------- Wishlist ----------
+
     path("wishlist/<int:id_cliente>/",       wishlist_detail, name="wishlist_detail"),
     path("wishlist/all/<int:id_cliente>/",   wishlist_all,    name="wishlist_all"),
     path("api/productos/<int:id_producto>/", producto_tallas, name="producto_tallas"),
@@ -140,6 +147,12 @@ urlpatterns = [
 
     # ---------- Alias antiguo ----------
     path("registro/", alta, name="alta"),
+
+   
+    #-------------------- Orden ---------------------
+    #path('orden/<int:id_producto>/', orden, name='orden'),
+    path('ordenar/<int:carrito_id>/', finalizar_compra, name='producto_tallas'),
+    
 ]
 
 if settings.DEBUG:
