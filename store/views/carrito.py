@@ -1,20 +1,24 @@
 # store/views/carrito.py
 # ==============================================================
+from venv import logger
+from django.forms import model_to_dict
 from django.shortcuts            import get_object_or_404, render
-from django.http                 import JsonResponse
 from django.db                   import models, transaction
 from django.db.models            import Sum
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 
 from store.views.decorators      import login_required_client
+from store.views.orden import crear_orden_desde_payload
 from ..models import (
     Cliente, Carrito, Producto, AtributoValor,
     Variante, CarritoProducto
 )
 
 import json
-
+from decimal import Decimal
+from django.http import JsonResponse, HttpResponseBadRequest
+from twilio.rest import Client
 
 # ───────────────────────────────────────────────────────────────
 # Helpers de carrito
@@ -45,10 +49,7 @@ def get_carrito_activo_cliente(cliente):
             status      = "activo",
             session_key = None
         )
-
     return carrito
-
-
 
 def get_carrito_by_session(session_key):
     """Carrito de invitado (puede ser None)."""
@@ -57,7 +58,6 @@ def get_carrito_by_session(session_key):
         .filter(cliente__isnull=True, session_key=session_key)
         .first()
     )
-
 
 # -----------------------------------------------------------------
 # 0. Detalle de carrito para invitados (session_key)
@@ -68,7 +68,6 @@ def detalle_carrito_session(request):
     if not carrito:
         return JsonResponse({"items": [], "mayoreo": False}, status=200)
     return _build_detalle_response(carrito)
-
 
 # -----------------------------------------------------------------
 # 1. Crear / actualizar carrito  (cliente_id == 0 → invitado)
@@ -451,17 +450,6 @@ def eliminar_item_guest(request, variante_id):
 
 # views.py
 
-import json
-from decimal import Decimal
-
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest
-from django.views.decorators.http import require_http_methods
-
-from twilio.rest import Client
-
-from ..models import Carrito, CarritoProducto
-
 # ---- Configuración Twilio (mejor si lo pones en settings.py) ----
 TWILIO_ACCOUNT_SID = ""
 TWILIO_AUTH_TOKEN  = ""
@@ -527,7 +515,19 @@ def finalizar_compra(request, carrito_id):
 
     # 5) Debug: imprimo en consola
     print(json.dumps(payload, indent=2, ensure_ascii=False))
+    print(payload["cliente"]["nombre"])
+    print(payload["items"])
 
+
+    try:
+        orden = crear_orden_desde_payload(payload)
+        # opcional: hacer algo con la orden, p.ej. imprimir el ID
+        print(f"Orden creada con ID: {orden.id}")
+    except Exception as e:
+        # aquí controlas errores (fallos de validación, variantes no encontradas, etc)
+        logger.error("Error creando la orden: %s", e)
+        # devolver un error HTTP, lanzar una excepción, etc.
+        raise
     # … arriba queda todo igual …
 
     # 6) Envío por WhatsApp
@@ -535,8 +535,8 @@ def finalizar_compra(request, carrito_id):
         # Validar teléfono (si no lo tienes hardcodeado)
         
         # Usar número fijo o dinámico:
-        to_whatsapp = "whatsapp:+5213322118360"  # <- temporalmente fijo
-
+        to_whatsapp = "whatsapp:+5213340511109"  # <- temporalmente fijo
+        #to_whatsapp = "whatsapp:+5213322118360"
         # Construcción del cuerpo del mensaje con talla incluida
         body_lines = [
             f"Hola {cliente.nombre}, gracias por tu compra.",

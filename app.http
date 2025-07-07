@@ -190,3 +190,7 @@ Accept: application/json
 ###
 POST http://127.0.0.1:8000/ordenar/1/
 Content-Type: application/json
+
+
+###
+GET http://127.0.0.1:8000/orden/1/
