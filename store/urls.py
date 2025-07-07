@@ -60,9 +60,9 @@ from .views.wishlist import (
     get_cliente_id, producto_tallas, productos_por_ids,
 )
 
-"""from .views.orden import{
-    orden
-}"""
+
+# ─────────── Orden ─────────── 
+from .views.orden import get_orden
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -148,12 +148,10 @@ urlpatterns = [
     # ---------- Alias antiguo ----------
     path("registro/", alta, name="alta"),
 
-   
     #-------------------- Orden ---------------------
     #path('orden/<int:id_producto>/', orden, name='orden'),
     path('ordenar/<int:carrito_id>/', finalizar_compra, name='finalizar_compra'),
-
-    
+    path('orden/<int:id>/', get_orden, name='get_orden'),
 ]
 
 if settings.DEBUG:

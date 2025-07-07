@@ -48,7 +48,6 @@ class Cliente(AbstractBaseUser):
     nombre     = models.CharField(max_length=255, null=True)
     telefono   = models.CharField(max_length=20, blank=True, null=True)
     direccion  = models.CharField(max_length=500, blank=True, null=True)
-
     is_active  = models.BooleanField(default=True)
     is_admin   = models.BooleanField(default=False)
 
