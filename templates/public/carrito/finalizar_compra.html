@@ -1,8 +1,84 @@
 {% extends "public/base.html" %}
-{% block title %}Finalizar Compra{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}">
+{% endblock %}
+
+{% block title %}
+  {% if pedido_exitoso %}
+    Pedido Confirmado - NöwHėrē
+  {% else %}
+    Confirmar Pedido - NöwHėrē
+  {% endif %}
+{% endblock %}
 
 {% block content %}
-<section class="carrito-finalizar">
-  <h1>Finalizar Compra</h1>
-  <p>🛍️ Aquí pronto podrás cerrar tu compra.</p>
+<div class="carrito-container" id="carrito-container">
+  <h1 class="carrito-titulo {% if pedido_exitoso %}centrado{% endif %}">
+    {% if pedido_exitoso %}
+      Pedido Confirmado
+    {% else %}
+      Confirmar Pedido
+    {% endif %}
+  </h1>
+
+  {% if pedido_exitoso %}
+    <div class="pedido-exitoso">
+      ✅ Gracias por tu compra.<br>
+      En breve nos comunicaremos vía <strong>WhatsApp</strong> para confirmar el pago y envío de tus productos.
+    </div>
+
+    <div class="carrito-botones centrada" style="margin-top: 32px;">
+      <a href="{% url 'index' %}" class="btn-finalizar">
+        Volver a la tienda
+      </a>
+    </div>
+
+  {% else %}
+    {% if cliente %}
+      <p><strong>Cliente:</strong> {{ cliente.nombre }} | {{ cliente.correo }}</p>
+    {% endif %}
+
+    <div class="carrito-items">
+      {% for item in items %}
+        <div class="carrito-item">
+          <div class="item-imagen">
+            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
+          </div>
+          <div class="item-detalles">
+            <h4>{{ item.nombre }}</h4>
+            <span>{{ item.talla }}</span>
+            <div class="item-precio-cantidad">
+              <div class="item-precio">
+                <span class="precio-unitario-wrapper">
+                  <span class="precio-unitario">${{ item.precio_unitario|floatformat:2 }}</span>
+                </span>
+              </div>
+              <div class="item-cantidad">
+                <span>x{{ item.cantidad }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="carrito-resumen">
+      <p>Total: <strong>{{ total_piezas }} piezas – ${{ total|floatformat:2 }}</strong></p>
+
+      <div class="carrito-botones">
+        <a href="{% url 'ver_carrito' %}" class="btn-seguir">Regresar al carrito</a>
+        <form method="post" action="{% url 'finalizar_compra' carrito.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-finalizar">Confirmar pedido</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Scripts -->
+<script src="{% static 'public/carrito/js/finalizar_compra.js' %}"></script>
+<script type="module" src="{% static 'public/inicio/js/main.js' %}" defer></script>
 {% endblock %}

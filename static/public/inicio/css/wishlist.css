@@ -38,6 +38,7 @@
   overflow-y: auto;
   z-index: 9999;
   transition: right .3s ease;
+  scrollbar-gutter: stable;
 }
 #wishlist-panel.open { right: 0; }
 

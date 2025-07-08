@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gp@8q$g&$pzfl!-t80*m72pitbub9c2ydnny1qosx2^7=b@(%y'
+SECRET_KEY = 'SECRET_KEY'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -182,6 +182,13 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 #Autenticacion para poder recuperar contrase;as
 AUTH_USER_MODEL = 'store.Cliente'
+
+# ───────── Configuración Twilio ──────────
+TWILIO_ACCOUNT_SID    = config("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN     = config("TWILIO_AUTH_TOKEN")
+TWILIO_WHATSAPP_FROM  = config("TWILIO_WHATSAPP_FROM")
+TWILIO_ADMIN_PHONE    = config("TWILIO_ADMIN_PHONE")  # ← agrega esta variable al .env también
+
 
 
 

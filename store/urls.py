@@ -32,6 +32,8 @@ from .views.carrito import (
     vaciar_carrito_guest,
     actualizar_cantidad_guest,
     eliminar_item_guest,
+    mostrar_confirmacion_compra,
+    mostrar_formulario_confirmacion
 )
 
 # ─────────── Clientes ───────────
@@ -150,7 +152,19 @@ urlpatterns = [
 
     #-------------------- Orden ---------------------
     #path('orden/<int:id_producto>/', orden, name='orden'),
-    path('ordenar/<int:carrito_id>/', finalizar_compra, name='finalizar_compra'),
+
+    
+    # Vista GET: para mostrar la confirmación del pedido
+    # Muestra el formulario con botón de confirmación (GET)
+    path('ordenar/<int:carrito_id>/', mostrar_formulario_confirmacion, name='mostrar_formulario_confirmacion'),
+
+    # Procesa el pedido y redirige (POST)
+    path('ordenar/<int:carrito_id>/enviar/', finalizar_compra, name='finalizar_compra'),
+
+    # Muestra mensaje de éxito (GET)
+    path('ordenar/<int:carrito_id>/exito/', mostrar_confirmacion_compra, name='mostrar_confirmacion_compra'),
+    path('ordenar/<int:carrito_id>/', mostrar_confirmacion_compra, name='confirmar_compra'),
+
     path('orden/<int:id>/', get_orden, name='get_orden'),
 ]
 

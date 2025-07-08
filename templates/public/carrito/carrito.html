@@ -40,10 +40,6 @@
       <div class="carrito-botones">
         <button class="btn-vaciar">Vaciar Carrito</button>
 
-        {% if carrito and productos and carrito.id %}
-          <a href="{% url 'finalizar_compra' carrito.id %}" class="btn-finalizar">Finalizar compra</a>
-        {% endif %}
-
         <a href="{% url 'index' %}" class="btn-seguir">Seguir comprando</a>
       </div>
     </div>

@@ -110,6 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return acc + precio * item.cantidad;
     }, 0);
     document.getElementById('carrito-subtotal').textContent = `$${total.toFixed(2)}`;
+    
+    if (data.items.length > 0) {
+      ensureConfirmButtonVisible(data.carrito_id);
+    }
+
   }
 
   async function updateTotals() {
@@ -299,4 +304,29 @@ if (await patchCantidad(varId, val)) {
   updateTotals();
 
   document.getElementById('carrito-container')?.classList.add('fade-in-carrito');
+
+
+function ensureConfirmButtonVisible(carritoId) {
+  const botonesWrapper = document.querySelector('.carrito-botones');
+  if (!botonesWrapper) return;
+
+  // Elimina botón anterior si existe
+  const existente = botonesWrapper.querySelector('.btn-finalizar');
+  if (existente) existente.remove();
+
+  const seguirBtn = botonesWrapper.querySelector('.btn-seguir');
+
+  if (IS_LOGGED) {
+    const enlace = document.createElement('a');
+    enlace.className = 'btn-finalizar';
+    enlace.textContent = 'Finalizar compra';
+    enlace.href = `/ordenar/${carritoId}/`; // 👈 redirección con GET
+
+    botonesWrapper.insertBefore(enlace, seguirBtn);
+  }
+}
+
+
+
+
 });

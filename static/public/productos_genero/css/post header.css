@@ -26,20 +26,25 @@
   padding: 0 20px;
   flex-wrap: wrap;
   gap: 10px;
+  
 }
 
 .caballero-header h2,
 .dama-header h2 {
-  font: 500 .6rem/1 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  font-family: 'Helvetica Neue', sans-serif;
   text-transform: uppercase;
   color: #1D1D1D;
 }
+
 
 /* ——— Dropdown personalizado ——— */
 .custom-select {
   position: relative;
   width: 100px;
-  font-size: 12px;
+  font-size: 13px;
   user-select: none;
 }
 
@@ -92,7 +97,7 @@
 }
 
 .option {
-  font-size: 12px;
+  font-size: 13px;
   color: #555;
   display: flex;
   justify-content: space-between;
