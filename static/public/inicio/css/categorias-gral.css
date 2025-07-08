@@ -3,16 +3,85 @@
    Sección principal y títulos
    ============================================================ */
 .categorias {
-  padding: 30px 20px;
+  padding: 10px 60px 80px;
   background: #fff;
   text-align: center;
 }
 
-.categorias h2 {
-  font-size: 1em;
-  margin-bottom: 30px;
-  color: #1D1D1D;
+.promo-intro {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  /* ↓ menos espacio arriba/abajo */
+  padding: 1rem 1rem;
 }
+
+/* ────── Ajustamos márgenes para que queden más pegados ────── */
+.promo-intro__title {
+  font-family: 'InstrumentSerif', serif;
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 1.2;
+  /* ↓ ojo: margin-bottom muy pequeño */
+}
+
+.promo-intro__divider {
+  width: 220px;
+  height: 1px;
+  background: #1D1D1D;
+  border: none;
+  /* ↓ reduce el gap vertical */
+  margin: 0.25rem auto;
+}
+
+.promo-intro__subtitle {
+  font-family: 'InstrumentSerif', serif;
+  font-size: 1.2rem;
+  font-weight: 300;
+  /* ↓ quita margin-top o déjalo mínimo */
+  margin: 0.25rem 0 0 0;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Animaciones ─── */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(10%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ─── TÍTULO: ahora entra desde la izquierda ─── */
+.promo-intro__title {
+  opacity: 0;
+  transform: translateX(-100%);        /* off-screen a la izquierda */
+  animation: slideInFromLeft 1.5s ease-out forwards;
+}
+
+/* ─── SUBTÍTULO: ahora entra desde la derecha ─── */
+.promo-intro__subtitle {
+  opacity: 0;
+  transform: translateX(100%);         /* off-screen a la derecha */
+  animation: slideInFromRight 1.5s ease-out 1s forwards;
+}
+
+
+
 
 /* =============================================================
    CUADRÍCULA DE TARJETAS – ESTADO INICIAL (3 × 2)
@@ -87,6 +156,8 @@
   pointer-events: none;
   text-align: center;
   padding: 8px 16px;
+  font-family: 'librebaskerville-regular', serif;
+  
 }
 
 .categoria-card.visible .overlay-text {
@@ -102,15 +173,32 @@
   grid-template-rows: 1fr 1fr;
 }
 
-.categoria-grid-generales.split .categoria-card:nth-child(1) { grid-column: 1; grid-row: 1 / span 2; }
-.categoria-grid-generales.split .categoria-card:nth-child(2) { grid-column: 2; grid-row: 1; }
-.categoria-grid-generales.split .categoria-card:nth-child(3) { grid-column: 3; grid-row: 1; }
-.categoria-grid-generales.split .categoria-card:nth-child(4) { grid-column: 4; grid-row: 1 / span 2; }
+.categoria-grid-generales.split .categoria-card:nth-child(1) { 
+  grid-column: 1; 
+  grid-row: 1 / span 2; 
+}
+
+.categoria-grid-generales.split .categoria-card:nth-child(2) { 
+  grid-column: 2; 
+  grid-row: 1; 
+}
+.categoria-grid-generales.split .categoria-card:nth-child(3) { 
+  grid-column: 3; 
+  grid-row: 1; 
+}
+.categoria-grid-generales.split .categoria-card:nth-child(4) { 
+  grid-column: 4; 
+  grid-row: 1 / span 2; 
+}
 
 /* =============================================================
    RESPONSIVE (≤ 600 px)
    ============================================================ */
 @media (max-width: 600px) {
+  
+  .categorias {
+  padding: 10px 60px 70px;
+}
   .categorias-generales .categoria-grid-generales,
   .categorias-generales .categoria-grid-generales.split {
     grid-template-columns: repeat(2, 1fr);
@@ -134,4 +222,20 @@
   .categoria-card .overlay-text {
     font-size: 1em;
   }
+
+  .promo-intro {
+    max-width: 95%;
+    padding: 0.5rem;
+  }
+  .promo-intro__title {
+    font-size: 2rem;    /* aún más pequeño */
+  }
+  .promo-intro__divider {
+    width: 50px;
+  }
+  .promo-intro__subtitle {
+    font-size: 1rem;
+  }
+
+  
 }

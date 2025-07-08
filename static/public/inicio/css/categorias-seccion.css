@@ -28,6 +28,7 @@
   margin-bottom: 5px;
   color: #1D1D1D;
   text-align: left;
+  font-family: 'librebaskerville-regular', serif;
 }
 
 .categorias-dama h5,
@@ -37,13 +38,15 @@
   color: #1d1d1d4c;
   text-align: left;
   font-weight: bold;
+  font-family: 'librebaskerville-regular', serif;
 }
 
 .categorias-dama p,
 .categorias-hombre p {
   text-align: center;
-  font-size: 12px;
+  font-size: 14px;
   margin-bottom: 15px;
+  font-family: 'librebaskerville-regular', serif;
 }
 
 
@@ -71,6 +74,7 @@
   transition: transform .3s ease, opacity .3s ease;
   opacity: 0;
   transform: translateY(20px);
+
 }
 
 .categorias-dama .categoria-card img,
@@ -136,7 +140,7 @@
 .boton-dama,
 .boton-hombre {
   text-align: center;
-  margin-top: 80px;
+  margin-top: 25px;
   margin-bottom: 0px;
 
 }
