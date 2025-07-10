@@ -816,15 +816,39 @@ font-size: 14px;
   animation: fadeOutDown 0.3s ease forwards;
 }
 
-
-
-
-
-
 #btn-wishlist-panel {
   position: relative;
 }
 
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .password-wrapper input {
+    flex: 1;
+    padding-right: 2.5rem;           /* deja espacio para el botón */
+  }
+  .toggle-password {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;                 /* ajusta el tamaño del ícono */
+  }
 
+/* Oculta el botón de revelar contraseña propio de Edge/IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {   /* la “x” para borrar */
+  display: none;
+}
+
+/* (Opcional) Algunos navegadores WebKit recientes han empezado
+   a exponer un control parecido; si te da problemas, añade:      */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
 
 

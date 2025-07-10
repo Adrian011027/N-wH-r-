@@ -328,7 +328,7 @@ const buildCards=(arr,set=new Set())=>arr.map(p=>`
     </div>
     <div class="wishlist-actions">
       ${set.has(String(p.id))?'<span class="in-cart-note">Ya en carrito</span>':''}
-      <button class="btn-carrito-mini" data-id="${p.id}">Agregar</button>
+      <button class="btn-carrito-mini" data-id="${p.id}">Agregar al carrito</button>
     </div>
   </div>`).join('');
 

@@ -22,7 +22,9 @@
   font-size: 2.5rem;
   font-weight: 400;
   line-height: 1.2;
-  /* ↓ ojo: margin-bottom muy pequeño */
+  margin: 0;               /* reset de márgenes */
+  opacity: 0;              /* estado inicial: invisible */
+  transform: translateX(-100%); /* off-screen izquierda */
 }
 
 .promo-intro__divider {
@@ -30,7 +32,6 @@
   height: 1px;
   background: #1D1D1D;
   border: none;
-  /* ↓ reduce el gap vertical */
   margin: 0.25rem auto;
 }
 
@@ -38,16 +39,17 @@
   font-family: 'InstrumentSerif', serif;
   font-size: 1.2rem;
   font-weight: 300;
-  /* ↓ quita margin-top o déjalo mínimo */
   margin: 0.25rem 0 0 0;
   letter-spacing: 0.5px;
+  opacity: 0;               /* estado inicial: invisible */
+  transform: translateX(100%); /* off-screen derecha */
 }
 
 /* ─── Animaciones ─── */
 @keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(10%);
+    transform: translateX(20%);
   }
   to {
     opacity: 1;
@@ -66,21 +68,14 @@
   }
 }
 
-/* ─── TÍTULO: ahora entra desde la izquierda ─── */
-.promo-intro__title {
-  opacity: 0;
-  transform: translateX(-100%);        /* off-screen a la izquierda */
-  animation: slideInFromLeft 1.5s ease-out forwards;
+/* ─── CLASES PARA DISPARAR ANIMACIÓN VIA JS ─── */
+.promo-intro__title.in-view {
+  animation: slideInFromLeft 2.5s ease-out forwards;
 }
 
-/* ─── SUBTÍTULO: ahora entra desde la derecha ─── */
-.promo-intro__subtitle {
-  opacity: 0;
-  transform: translateX(100%);         /* off-screen a la derecha */
-  animation: slideInFromRight 1.5s ease-out 1s forwards;
+.promo-intro__subtitle.in-view {
+  animation: slideInFromRight 2.5s ease-out 1s forwards;
 }
-
-
 
 
 /* =============================================================
@@ -96,10 +91,10 @@
               grid-template-rows 0.6s ease;
 }
 
-.categorias-generales .categoria-card:nth-child(1) { grid-column: 1; grid-row: 1 / span 2; }
-.categorias-generales .categoria-card:nth-child(2) { grid-column: 2; grid-row: 1; }
-.categorias-generales .categoria-card:nth-child(3) { grid-column: 2; grid-row: 2; }
-.categorias-generales .categoria-card:nth-child(4) { grid-column: 3; grid-row: 1 / span 2; }
+.categorias-generales .categoria-card:nth-child(1) { grid-column: 1;           grid-row: 1 / span 2; }
+.categorias-generales .categoria-card:nth-child(2) { grid-column: 2;           grid-row: 1; }
+.categorias-generales .categoria-card:nth-child(3) { grid-column: 2;           grid-row: 2; }
+.categorias-generales .categoria-card:nth-child(4) { grid-column: 3;           grid-row: 1 / span 2; }
 
 /* =============================================================
    TARJETA INDIVIDUAL CON EFECTO
@@ -116,7 +111,7 @@
   text-align: center;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 2.2s ease, transform 2.2s ease;
+  transition: opacity 4s ease, transform 4s ease;
 }
 
 .categorias-generales .categoria-card.visible {
@@ -157,7 +152,6 @@
   text-align: center;
   padding: 8px 16px;
   font-family: 'librebaskerville-regular', serif;
-  
 }
 
 .categoria-card.visible .overlay-text {
@@ -169,36 +163,23 @@
    ESTADO “SPLIT”
    ============================================================ */
 .categorias-generales .categoria-grid-generales.split {
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: 1fr 1fr;
 }
 
-.categoria-grid-generales.split .categoria-card:nth-child(1) { 
-  grid-column: 1; 
-  grid-row: 1 / span 2; 
-}
-
-.categoria-grid-generales.split .categoria-card:nth-child(2) { 
-  grid-column: 2; 
-  grid-row: 1; 
-}
-.categoria-grid-generales.split .categoria-card:nth-child(3) { 
-  grid-column: 3; 
-  grid-row: 1; 
-}
-.categoria-grid-generales.split .categoria-card:nth-child(4) { 
-  grid-column: 4; 
-  grid-row: 1 / span 2; 
-}
+.categoria-grid-generales.split .categoria-card:nth-child(1) { grid-column: 1;           grid-row: 1 / span 2; }
+.categoria-grid-generales.split .categoria-card:nth-child(2) { grid-column: 2;           grid-row: 1; }
+.categoria-grid-generales.split .categoria-card:nth-child(3) { grid-column: 3;           grid-row: 1; }
+.categoria-grid-generales.split .categoria-card:nth-child(4) { grid-column: 4;           grid-row: 1 / span 2; }
 
 /* =============================================================
-   RESPONSIVE (≤ 600 px)
+   RESPONSIVE (≤ 600px)
    ============================================================ */
 @media (max-width: 600px) {
-  
   .categorias {
-  padding: 10px 60px 70px;
-}
+    padding: 10px 60px 70px;
+  }
+
   .categorias-generales .categoria-grid-generales,
   .categorias-generales .categoria-grid-generales.split {
     grid-template-columns: repeat(2, 1fr);
@@ -219,23 +200,50 @@
     grid-row: auto;
   }
 
+  
+
   .categoria-card .overlay-text {
     font-size: 1em;
+    
   }
 
   .promo-intro {
     max-width: 95%;
     padding: 0.5rem;
   }
+
   .promo-intro__title {
-    font-size: 2rem;    /* aún más pequeño */
+    font-size: 2rem;
   }
+
   .promo-intro__divider {
     width: 50px;
   }
+
   .promo-intro__subtitle {
     font-size: 1rem;
   }
+}
 
-  
+@media (min-width: 601px) and (max-width: 1024px) {
+
+ /* ==============================
+   Pantallas MEDIAS (601-1024 px)
+   ==============================*/
+@media (min-width: 601px) and (max-width: 1024px) {
+
+  /* Tarjetas 1 y 4 → texto fijo a 20 px del borde superior */
+  .categoria-grid-generales .categoria-card:nth-child(1) .overlay-text,
+  .categoria-grid-generales .categoria-card:nth-child(4) .overlay-text {
+    top: 170px;                     /* la misma altura que el resto   */
+    transform: translateX(-50%);   /* solo centrado horizontal       */
+  }
+
+  /* Misma posición cuando la tarjeta entra en escena (.visible) */
+  .categoria-grid-generales .categoria-card:nth-child(1).visible .overlay-text,
+  .categoria-grid-generales .categoria-card:nth-child(4).visible .overlay-text {
+    transform: translateX(-50%);   /* nada de desplazamiento Y       */
+  }
+}
+
 }

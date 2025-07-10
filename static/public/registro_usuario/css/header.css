@@ -59,9 +59,15 @@ header {
     width: 120px;
   }
 
-  .header-left h2 {
-    font-size: 15px;
+  /* Añade esto después de tu CSS actual  */
+  .header-left h2{
+    flex: 1 1 auto;      /* ocupa el hueco disponible  */
+    min-width: 0;        /* permite encogerse          */
+    white-space: nowrap; /* todo en una línea          */
+    overflow: hidden;    /* que no desborde            */
+    text-overflow: ellipsis; /* “…” si aún falta espacio */
   }
+
 }
 
 /* Celulares pequeños (≤ 480px) */

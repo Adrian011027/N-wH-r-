@@ -18,6 +18,7 @@
   font-size: 1em;
   margin-bottom: 20px;
   color: #1D1D1D;
+  font-family: 'librebaskerville-regular', serif;
 }
 
 .categorias-dama h3,
@@ -35,7 +36,7 @@
 .categorias-hombre h5 {
   font-size: 14px;
   margin-bottom: 5px;
-  color: #1d1d1d4c;
+  color:#1d1d1dcc;
   text-align: left;
   font-weight: bold;
   font-family: 'librebaskerville-regular', serif;

@@ -34,7 +34,7 @@
 
 .banner-text {
   position: absolute;
-  bottom: 60%;
+  bottom: 50%;
   text-align: center;
   color: #1D1D1D;
   z-index: 10;
@@ -54,12 +54,12 @@
 }
 
 .banner-text .linea-1 {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 400;
   margin-bottom: 0.5em;
   margin-right: 1em;
   letter-spacing: 1px;
-  font-family: 'Tempting', sans-serif;
+   font-family: 'InstrumentSerif', serif;
 }
 
 .banner-text .linea-2 {
@@ -71,28 +71,12 @@
 }
 
 .banner-text .linea-3 {
-  font-size: 1.3rem;
+  font-size: 2.3rem;
   font-weight: 300;
   letter-spacing: 1px;
   font-family: 'InstrumentSerif', serif;
 }
 
-@media (max-width: 768px) {
-  .banner-text .linea-2 {
-    font-size: 1.8rem;
-    
-  }
-
-  .banner-text .linea-3 {
-    font-size: 1rem;
-  }
-
-  .banner-text .linea-1 {
-    margin-left: 1em;
-    font-size: 0.85rem;
-    font-family: 'Tempting', sans-serif;
-  }
-}
 
 /*---Banners secundarios (1 y 2)*/
 .banner2-section,
@@ -151,7 +135,7 @@
     padding: 0 10px;
   }
   .banner-text .linea-1 {
-    font-family: 'Tempting', sans-serif;
+    font-family: 'InstrumentSerif', serif;
     font-size: 20px; 
   }
 

@@ -112,6 +112,15 @@
         margin-top:.3rem;
     }
 
+/* --- quita el “ojo nativo” de Edge / IE y variantes WebKit --- */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+
     /* =========  RESPONSIVE  (una columna) ========= */
     @media(max-width:600px){
       form{
@@ -122,12 +131,4 @@
         display:block;
         margin-top:.5rem;
     }
-
-      header img{
-        width:100px;
-    }
-
-      header h2{
-        display:none;
-    }
-    }
+  }

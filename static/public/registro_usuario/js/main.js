@@ -4,10 +4,32 @@ function getCSRFToken() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("registroForm");
+  /* ----------  A. MOSTRAR / OCULTAR CONTRASEÑA  ---------- */
+  const pwdInput  = document.getElementById('pwd');
+  const toggleBtn = pwdInput?.nextElementSibling;      // tu <button>
+  if (toggleBtn) {
+    const icon = toggleBtn.querySelector('i');
+
+    toggleBtn.addEventListener('click', () => {
+      const oculto = pwdInput.type === 'password';
+      pwdInput.type = oculto ? 'text' : 'password';
+
+      // alterna SOLO estas dos clases, sin duplicar <i>
+      icon.classList.toggle('fa-eye');
+      icon.classList.toggle('fa-eye-slash');
+
+      toggleBtn.setAttribute(
+        'aria-label',
+        oculto ? 'Ocultar contraseña' : 'Mostrar contraseña'
+      );
+    });
+  }
+
+  /* ----------  B. ENVÍO DEL FORMULARIO  ---------- */
+  const form = document.getElementById('registroForm');
   if (!form) return;
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const email     = form.email.value.trim();
@@ -18,32 +40,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const direccion = form.direccion.value.trim();
 
     if (!email || !email2 || !pwd) {
-      alert("❌ Los campos de correo, confirmación y contraseña son obligatorios.");
+      alert('❌ Los campos de correo, confirmación y contraseña son obligatorios.');
       return;
     }
-
     if (email !== email2) {
-      alert("❌ Los correos no coinciden.");
+      alert('❌ Los correos no coinciden.');
       return;
     }
 
     const datos = {
       username: email,
       password: pwd,
-      correo: email,
+      correo  : email,
     };
-
-    if (nombre) datos.nombre = nombre;
-    if (telefono) datos.telefono = telefono;
+    if (nombre)    datos.nombre    = nombre;
+    if (telefono)  datos.telefono  = telefono;
     if (direccion) datos.direccion = direccion;
 
     try {
-      const res = await fetch("/create-client/", {
-        method: "POST",
-        credentials: "same-origin",
+      const res = await fetch('/create-client/', {
+        method: 'POST',
+        credentials: 'same-origin',
         headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken(),
+          'Content-Type': 'application/json',
+          'X-CSRFToken' : getCSRFToken(),
         },
         body: JSON.stringify(datos),
       });
@@ -51,13 +71,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        // redirige sin alert
-        window.location.href = "/";
+        window.location.href = '/';
       } else {
-        alert("❌ Error: " + (data.error || res.status));
+        alert('❌ Error: ' + (data.error || res.status));
       }
     } catch (err) {
-      alert("❌ Error inesperado: " + err);
+      alert('❌ Error inesperado: ' + err);
     }
   });
 });
