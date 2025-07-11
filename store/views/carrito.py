@@ -13,6 +13,8 @@ from ..models import (
     Cliente, Carrito, Producto, AtributoValor,
     Variante, CarritoProducto, Orden
 )
+from django.urls import reverse
+from django.core.signing import TimestampSigner
 
 import json
 from decimal import Decimal
@@ -22,7 +24,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
-
+signer = TimestampSigner()
 twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 # ───────────────────────────────────────────────────────────────
@@ -516,6 +518,12 @@ def finalizar_compra(request, carrito_id):
             logger.error("Error creando la orden: %s", e)
             return JsonResponse({"error": "Fallo al crear orden."}, status=500)
 
+    # ——> >>> AÑADIDO: Generar token y link para procesar la orden
+    token = signer.sign(str(orden.id))
+    link = request.build_absolute_uri(
+        reverse('procesar_por_link', args=[token])
+    )
+
     # Enviar WhatsApp
     try:
         import traceback
@@ -573,6 +581,13 @@ def finalizar_compra(request, carrito_id):
             f"🏠 Dirección: {cliente.direccion or 'No especificada'}"
         ])
 
+        # ——> >>> AÑADIDO: Insertar enlace de procesamiento al final del mensaje
+        body_lines.extend([
+            "",
+            "👉 Pulsa aquí para marcar tu orden como “procesando”:",
+            link,
+        ])
+
         body = "\n".join(body_lines)
 
         print("📋 Teléfono crudo:", raw_tel)
@@ -595,11 +610,12 @@ def finalizar_compra(request, carrito_id):
         request.session["pedido_exitoso"] = True
         return redirect(reverse("mostrar_confirmacion_compra", args=[carrito.id]))
 
-
     except Exception as e:
         print("❌ Error Twilio:", e)
         traceback.print_exc()
         return JsonResponse({"error": "Fallo al enviar WhatsApp."}, status=500)
+
+
 
 
 @require_http_methods(["GET"])

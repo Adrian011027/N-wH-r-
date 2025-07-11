@@ -188,9 +188,16 @@ DELETE http://127.0.0.1:8000/api/carrito/1/item/5/ HTTP/1.1
 Accept: application/json
 
 ###
-POST http://127.0.0.1:8000/ordenar/1/
-Content-Type: application/json
+POST http://127.0.0.1:8000/ordenar/1/enviar/
 
 
 ###
-GET http://127.0.0.1:8000/orden/1/
+GET http://127.0.0.1:8000/orden/3/
+
+
+###
+POST http://127.0.0.1:8000/orden/procesando/1/
+
+
+###
+DELETE http://127.0.0.1:8000/orden/delete/2/

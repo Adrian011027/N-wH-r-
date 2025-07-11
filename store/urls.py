@@ -62,9 +62,12 @@ from .views.wishlist import (
     get_cliente_id, producto_tallas, productos_por_ids,
 )
 
+from .views.orden import eliminar_orden  # ajusta el import si tu módulo se llama distinto
 
 # ─────────── Orden ─────────── 
-from .views.orden import get_orden
+from .views.orden import (
+    get_orden,
+    update_status, procesar_por_link) 
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -147,8 +150,10 @@ urlpatterns = [
     path("api/productos/<int:id_producto>/", producto_tallas, name="producto_tallas"),
     path("api/productos_por_ids/",           productos_por_ids, name="productos_por_ids"),
 
+
     # ---------- Alias antiguo ----------
     path("registro/", alta, name="alta"),
+    
 
     #-------------------- Orden ---------------------
     #path('orden/<int:id_producto>/', orden, name='orden'),
@@ -166,6 +171,20 @@ urlpatterns = [
     path('ordenar/<int:carrito_id>/', mostrar_confirmacion_compra, name='confirmar_compra'),
 
     path('orden/<int:id>/', get_orden, name='get_orden'),
+    path('orden/procesando/<int:id>/',update_status, name='update_status'),
+
+    path(
+   
+        'orden/procesando/link/<str:token>/',
+        procesar_por_link,
+        name='procesar_por_link'
+    
+    ),
+    path(
+        'orden/delete/<int:id>/',
+        eliminar_orden,
+        name='eliminar_orden'
+    ),
 ]
 
 if settings.DEBUG:
