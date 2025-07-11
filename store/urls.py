@@ -1,4 +1,3 @@
-# store/urls.py
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,46 +11,33 @@ from .views.reset_password import (
 from .views.views import (
     index, genero_view, registrarse,
     alta, lista_productos, editar_producto,
-    get_categorias,
+    get_categorias, create_categoria, update_categoria, delete_categoria,
     login_user, logout_user,
-    login_client, logout_client, create_categoria,
-    dashboard_clientes, editar_cliente, perfil_cliente,
+    login_client, logout_client, perfil_cliente,
+    dashboard_clientes, editar_cliente, dashboard_categorias,
 )
 
 # ─────────── Carrito ───────────
 from .views.carrito import (
-    create_carrito,
-    detalle_carrito_cliente,
-    delete_producto_carrito,
-    vaciar_carrito,
-    carrito_cliente,      # protegida (cliente logueado)
-    carrito_publico,      # pública (guest + logueado)
-    finalizar_compra,
-    actualizar_cantidad_producto, 
-    detalle_carrito_session, 
-    vaciar_carrito_guest,
-    actualizar_cantidad_guest,
-    eliminar_item_guest,
-    mostrar_confirmacion_compra,
-    mostrar_formulario_confirmacion
+    create_carrito, detalle_carrito_cliente, delete_producto_carrito,
+    vaciar_carrito, carrito_cliente, carrito_publico, finalizar_compra,
+    actualizar_cantidad_producto, detalle_carrito_session,
+    vaciar_carrito_guest, actualizar_cantidad_guest, eliminar_item_guest,
+    mostrar_confirmacion_compra, mostrar_formulario_confirmacion,
 )
 
 # ─────────── Clientes ───────────
 from .views.client import (
     detalle_client, get_all_clients,
-    create_client, update_client, delete_client,
-    send_contact,
+    create_client, update_client, delete_client, send_contact,
 )
 
 # ─────────── Usuarios ───────────
-from .views.users import (
-    create_user, get_user, update_user, delete_user,
-)
+from .views.users import create_user, get_user, update_user, delete_user
 
 # ─────────── Productos ───────────
 from .views.products import (
-    detalle_producto,
-    get_all_products, create_product,
+    detalle_producto, get_all_products, create_product,
     update_productos, update_variant,
     delete_productos, delete_all_productos,
 )
@@ -62,59 +48,61 @@ from .views.wishlist import (
     get_cliente_id, producto_tallas, productos_por_ids,
 )
 
-from .views.orden import eliminar_orden  # ajusta el import si tu módulo se llama distinto
-
-# ─────────── Orden ─────────── 
+# ─────────── Orden ───────────
 from .views.orden import (
-    get_orden,
-    update_status, procesar_por_link) 
+    eliminar_orden, get_orden, update_status, procesar_por_link,
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
     path("recuperar/",                         solicitar_reset,        name="cliente_solicitar_reset"),
-    path("recuperar/<uidb64>/<token>/",        reset_password_confirm,  name="cliente_reset_password_confirm"),
-    path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,   name="cliente_reset_password_submit"),
+    path("recuperar/<uidb64>/<token>/",        reset_password_confirm, name="cliente_reset_password_confirm"),
+    path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,  name="cliente_reset_password_submit"),
 
     # ---------- Front-end ----------
-
     path("",                           index,          name="index"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
 
-    # Sesión cliente
-    path("login-client/",   login_client,    name="login_client"),
-    path("logout-client/",  logout_client,   name="logout_client"),
-    path("perfil/",         perfil_cliente,  name="perfil_cliente"),
-
-    # ---------- Carrito páginas ----------
-
-    path("carrito/",             carrito_publico,  name="ver_carrito"),      # pública
-    path("carrito/cliente/",     carrito_cliente,  name="carrito_cliente"),  # protegida opcional
-    #path("carrito/finalizar/",   finalizar_compra, name="finalizar_compra"),
-
-    # ---------- Carrito API ----------
-    path('api/carrito/guest/',            detalle_carrito_session, name='detalle_carrito_session'),  # 
-    path('api/carrito/guest/empty/',     vaciar_carrito_guest,  name='vaciar_carrito_guest'),
-    path('api/carrito/guest/item/<int:variante_id>/actualizar/', actualizar_cantidad_guest, name='actualizar_cantidad_guest'),
-    path('api/carrito/guest/item/<int:variante_id>/eliminar/', eliminar_item_guest, name='eliminar_item_guest'),
-
-    path("api/carrito/create/<int:cliente_id>/",                                   create_carrito,            name="create_carrito"),
-    path("api/carrito/<int:cliente_id>/",                                          detalle_carrito_cliente,   name="detalle_carrito"),
-    path("api/carrito/<int:cliente_id>/empty/",                                    vaciar_carrito,            name="vaciar_carrito"),
-    path("api/carrito/<int:cliente_id>/item/<int:variante_id>/actualizar/",        actualizar_cantidad_producto, name="actualizar_cantidad_producto"),
-    path("api/carrito/<int:cliente_id>/item/<int:variante_id>/eliminar/",          delete_producto_carrito,      name="delete_producto_carrito"),
-
-    path('create-client/', create_client, name='create_client'),
+    # ---------- Cliente ----------
+    path("login-client/",  login_client,  name="login_client"),
+    path("logout-client/", logout_client, name="logout_client"),
+    path("perfil/",        perfil_cliente, name="perfil_cliente"),
 
     # ---------- Dashboard ----------
     path("dashboard/login/",   login_user,            name="login_user"),
     path("dashboard/logout/",  logout_user,           name="logout_user"),
-    path("dashboard/productos/",                 lista_productos,    name="dashboard_productos"),
-    path("dashboard/productos/crear/",           alta,               name="dashboard_alta"),
-    path("dashboard/productos/editar/<int:id>/", editar_producto,    name="editar_producto"),
+    path("dashboard/productos/",                 lista_productos,      name="dashboard_productos"),
+    path("dashboard/productos/crear/",           alta,                 name="dashboard_alta"),
+    path("dashboard/productos/editar/<int:id>/", editar_producto,      name="editar_producto"),
+    path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes"),
+    path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente"),
+    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),  # NUEVO PANEL
 
-    path("dashboard/clientes/",                  dashboard_clientes, name="dashboard_clientes"),
-    path("dashboard/clientes/editar/<int:id>/",  editar_cliente,     name="editar_cliente"),
+    # ---------- Categorías API ----------
+    path("api/categorias/",                     get_categorias,    name="get_categorias"),
+    path("api/categorias/crear/",               create_categoria,  name="create_categoria"),
+    path("api/categorias/actualizar/<int:id>/", update_categoria,  name="update_categoria"),
+    path("api/categorias/eliminar/<int:id>/",   delete_categoria,  name="delete_categoria"),
+
+    # ---------- Carrito (páginas) ----------
+    path("carrito/",         carrito_publico,  name="ver_carrito"),
+    path("carrito/cliente/", carrito_cliente,  name="carrito_cliente"),
+
+    # ---------- Carrito API ----------
+    path("api/carrito/guest/",                                  detalle_carrito_session,        name="detalle_carrito_session"),
+    path("api/carrito/guest/empty/",                            vaciar_carrito_guest,           name="vaciar_carrito_guest"),
+    path("api/carrito/guest/item/<int:variante_id>/actualizar/", actualizar_cantidad_guest,     name="actualizar_cantidad_guest"),
+    path("api/carrito/guest/item/<int:variante_id>/eliminar/",   eliminar_item_guest,           name="eliminar_item_guest"),
+    path("api/carrito/create/<int:cliente_id>/",                 create_carrito,                name="create_carrito"),
+    path("api/carrito/<int:cliente_id>/",                        detalle_carrito_cliente,       name="detalle_carrito"),
+    path("api/carrito/<int:cliente_id>/empty/",                  vaciar_carrito,                name="vaciar_carrito"),
+    path("api/carrito/<int:cliente_id>/item/<int:variante_id>/actualizar/", actualizar_cantidad_producto, name="actualizar_cantidad_producto"),
+    path("api/carrito/<int:cliente_id>/item/<int:variante_id>/eliminar/",   delete_producto_carrito,     name="delete_producto_carrito"),
+
+    # ---------- Alias rápido (lo tenías) ----------
+    path("create-client/", create_client, name="create_client"),  # ← REINTEGRADO
 
     # ---------- Productos ----------
     path("producto/<int:id>/",                      detalle_producto,  name="detalle_producto"),
@@ -124,9 +112,6 @@ urlpatterns = [
     path("api/productos/delete/<int:id>/",          delete_productos,  name="delete_product"),
     path("api/productos/delete/all/",               delete_all_productos, name="delete_all_productos"),
     path("api/variantes/update/<int:variante_id>/", update_variant,    name="update_variant"),
-
-    path("api/categorias/",       get_categorias,   name="get_categorias"),
-    path("api/categorias/crear/", create_categoria, name="create_categoria"),
 
     # ---------- Clientes ----------
     path("clientes/",                get_all_clients, name="get_all_clients"),
@@ -144,47 +129,23 @@ urlpatterns = [
     path("user/delete/<int:id>/", delete_user, name="delete_user"),
 
     # ---------- Wishlist ----------
-
     path("wishlist/<int:id_cliente>/",       wishlist_detail, name="wishlist_detail"),
     path("wishlist/all/<int:id_cliente>/",   wishlist_all,    name="wishlist_all"),
     path("api/productos/<int:id_producto>/", producto_tallas, name="producto_tallas"),
     path("api/productos_por_ids/",           productos_por_ids, name="productos_por_ids"),
 
-
     # ---------- Alias antiguo ----------
     path("registro/", alta, name="alta"),
-    
 
-    #-------------------- Orden ---------------------
-    #path('orden/<int:id_producto>/', orden, name='orden'),
-
-    
-    # Vista GET: para mostrar la confirmación del pedido
-    # Muestra el formulario con botón de confirmación (GET)
-    path('ordenar/<int:carrito_id>/', mostrar_formulario_confirmacion, name='mostrar_formulario_confirmacion'),
-
-    # Procesa el pedido y redirige (POST)
-    path('ordenar/<int:carrito_id>/enviar/', finalizar_compra, name='finalizar_compra'),
-
-    # Muestra mensaje de éxito (GET)
-    path('ordenar/<int:carrito_id>/exito/', mostrar_confirmacion_compra, name='mostrar_confirmacion_compra'),
-    path('ordenar/<int:carrito_id>/', mostrar_confirmacion_compra, name='confirmar_compra'),
-
-    path('orden/<int:id>/', get_orden, name='get_orden'),
-    path('orden/procesando/<int:id>/',update_status, name='update_status'),
-
-    path(
-   
-        'orden/procesando/link/<str:token>/',
-        procesar_por_link,
-        name='procesar_por_link'
-    
-    ),
-    path(
-        'orden/delete/<int:id>/',
-        eliminar_orden,
-        name='eliminar_orden'
-    ),
+    # ---------- Orden ----------
+    path("ordenar/<int:carrito_id>/",           mostrar_formulario_confirmacion, name="mostrar_formulario_confirmacion"),
+    path("ordenar/<int:carrito_id>/enviar/",    finalizar_compra,                name="finalizar_compra"),
+    path("ordenar/<int:carrito_id>/exito/",     mostrar_confirmacion_compra,     name="mostrar_confirmacion_compra"),
+    path("ordenar/<int:carrito_id>/",           mostrar_confirmacion_compra,     name="confirmar_compra"),
+    path("orden/<int:id>/",                     get_orden,                       name="get_orden"),
+    path("orden/procesando/<int:id>/",          update_status,                   name="update_status"),
+    path("orden/procesando/link/<str:token>/",  procesar_por_link,               name="procesar_por_link"),
+    path("orden/delete/<int:id>/",              eliminar_orden,                  name="eliminar_orden"),
 ]
 
 if settings.DEBUG:
