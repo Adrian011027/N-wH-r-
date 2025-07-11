@@ -460,32 +460,32 @@ def finalizar_compra(request, carrito_id):
     carrito = get_object_or_404(Carrito, id=carrito_id)
     cliente = carrito.cliente
 
-    # Obtener productos del carrito
+    # ───── Obtener productos del carrito ───────────────────────────
     qs = (
         CarritoProducto.objects
         .filter(carrito=carrito)
-        .select_related('variante__producto')
+        .select_related('variante__producto__categoria')
         .prefetch_related('variante__attrs__atributo_valor')
     )
 
-    # Construir payload
-    items = []
-    total_amount = Decimal('0.00')
-    total_piezas = 0
+    items         = []
+    total_amount  = Decimal('0.00')
+    total_piezas  = 0
 
     for cp in qs:
-        var = cp.variante
-        prod = var.producto
+        var   = cp.variante
+        prod  = var.producto
         precio_unit = var.precio if var.precio is not None else prod.precio
-        subtotal = precio_unit * cp.cantidad
+        subtotal    = precio_unit * cp.cantidad
 
         items.append({
-            "producto": prod.nombre,
+            "producto"   : prod.nombre,
+            "categoria"  : prod.categoria.nombre,          # ← NUEVO
             "variante_id": var.id,
-            "cantidad": cp.cantidad,
+            "cantidad"   : cp.cantidad,
             "precio_unitario": float(precio_unit),
-            "subtotal": float(subtotal),
-            "atributos": [str(av) for av in var.attrs.all()],
+            "subtotal"   : float(subtotal),
+            "atributos"  : [str(av) for av in var.attrs.all()],
         })
 
         total_amount += subtotal
@@ -494,127 +494,139 @@ def finalizar_compra(request, carrito_id):
     payload = {
         "cliente": {
             "username": cliente.username,
-            "nombre": cliente.nombre,
-            "correo": cliente.correo,
+            "nombre"  : cliente.nombre,
+            "correo"  : cliente.correo,
             "telefono": cliente.telefono,
         },
-        "carrito_id": carrito.id,
+        "carrito_id"  : carrito.id,
         "total_piezas": total_piezas,
         "total_amount": float(round(total_amount, 2)),
-        "items": items,
+        "items"       : items,
     }
-
     print(json.dumps(payload, indent=2, ensure_ascii=False))
 
-    # Evitar duplicación de órdenes
+    # ───── Evitar duplicación de órdenes ───────────────────────────
     orden = Orden.objects.filter(carrito=carrito).first()
-    if orden:
-        print(f"[⚠️] Orden ya existente con ID: {orden.id}")
-    else:
+    if not orden:
         try:
             orden = crear_orden_desde_payload(payload)
             print(f"[✅] Orden creada con ID: {orden.id}")
         except Exception as e:
             logger.error("Error creando la orden: %s", e)
             return JsonResponse({"error": "Fallo al crear orden."}, status=500)
+    else:
+        print(f"[⚠️] Orden ya existente con ID: {orden.id}")
 
-    # ——> >>> AÑADIDO: Generar token y link para procesar la orden
+    # ───── Generar token y link para cambiar estatus ───────────────
     token = signer.sign(str(orden.id))
-    link = request.build_absolute_uri(
+    link  = request.build_absolute_uri(
         reverse('procesar_por_link', args=[token])
     )
 
-    # Enviar WhatsApp
+    # ───── Enviar WhatsApp ─────────────────────────────────────────
     try:
-        import traceback
         from twilio.rest import Client
         twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
-        raw_tel = cliente.telefono or ""
-        cleaned = "".join(filter(str.isdigit, raw_tel))
-
+        raw_tel  = cliente.telefono or ""
+        cleaned  = "".join(filter(str.isdigit, raw_tel))
         if cleaned.startswith("1"):
             cleaned = f"+{cleaned}"
         elif len(cleaned) == 10:
             cleaned = f"+521{cleaned}"
         elif len(cleaned) == 12 and cleaned.startswith("52"):
             cleaned = f"+{cleaned}"
-        else:
+        else:  # fallback al admin
             cleaned = settings.TWILIO_ADMIN_PHONE or "+5213322118360"
 
-        to_whatsapp = settings.TWILIO_ADMIN_PHONE
+        to_whatsapp = settings.TWILIO_ADMIN_PHONE   # admin por ahora
 
+        # ----------  Cuerpo “detallado” para fallback ----------
         body_lines = [
             f"Hola {cliente.nombre}, gracias por tu compra.",
             "",
-            f"🧾 Resumen de tu pedido (#{carrito.id}):",
+            f"🧾 Pedido #{carrito.id}",
             f"🛍️ Artículos: {total_piezas}",
             f"💰 Total: ${payload['total_amount']}",
             "",
-            "📦 Detalles del pedido:"
+            "📦 Detalles:"
         ]
-
         for idx, it in enumerate(items, start=1):
-            talla = None
-            for attr in it['atributos']:
-                if attr.lower().startswith("talla"):
-                    _, valor = attr.split(":", 1)
-                    talla = valor.strip()
-                    break
-
-            talla_text = talla or "Única"
+            talla = next(
+                (a.split(":",1)[1].strip() for a in it["atributos"] if a.lower().startswith("talla")),
+                "Única"
+            )
             body_lines.extend([
                 f"{idx}️⃣ *{it['producto']}*",
-                f"  🔸 Talla: {talla_text}",
+                f"  🔸 Categoría: {it['categoria']}",     # ← NUEVO
+                f"  🔸 Talla: {talla}",
                 f"  🔸 Cantidad: {it['cantidad']}",
-                f"  🔸 Precio unitario: ${it['precio_unitario']}",
+                f"  🔸 Precio: ${it['precio_unitario']}",
                 f"  🔸 Subtotal: ${it['subtotal']}",
                 ""
             ])
-
         body_lines.append(f"💰 *Total: ${payload['total_amount']}*")
         body_lines.append("------------------------------------------")
         body_lines.extend([
             f"🙍 Cliente: {cliente.nombre}",
             f"📞 Teléfono: {cliente.telefono or 'No disponible'}",
             f"📧 Correo: {cliente.correo or 'No disponible'}",
-            f"🏠 Dirección: {cliente.direccion or 'No especificada'}"
-        ])
-
-        # ——> >>> AÑADIDO: Insertar enlace de procesamiento al final del mensaje
-        body_lines.extend([
+            f"🏠 Dirección: {cliente.direccion or 'No especificada'}",
             "",
-            "👉 Pulsa aquí para marcar tu orden como “procesando”:",
-            link,
+            "👉 Pulsa aquí para marcar tu pedido como 'procesando':",
+            link
         ])
+        fallback_body = "\n".join(body_lines)
 
-        body = "\n".join(body_lines)
+        # ----------  Mensaje interactivo con botón URL ----------
+        interactive_body = {
+            "type": "button",
+            "body": {
+                "text": f"Pedido #{carrito.id}\nTotal ${payload['total_amount']}\n¿Procesar ahora?"
+            },
+            "action": {
+                "buttons": [
+                    {
+                        "type": "url",
+                        "url" : link,
+                        "text": "Marcar procesando"
+                    }
+                ]
+            }
+        }
 
-        print("📋 Teléfono crudo:", raw_tel)
-        print("📲 Enviando mensaje a:", to_whatsapp)
-
-        msg = twilio_client.messages.create(
-            body=body,
-            from_=settings.TWILIO_WHATSAPP_FROM,
-            to=to_whatsapp
-        )
+        try:
+            # Enviar interactivo
+            msg = twilio_client.messages.create(
+                from_=settings.TWILIO_WHATSAPP_FROM,
+                to=to_whatsapp,
+                interactive=interactive_body
+            )
+        except Exception as e:
+            # Si falla (p.ej. plantilla no aprobada), usa texto plano
+            logger.warning("Interactive message falló, usando texto plano. Motivo: %s", e)
+            msg = twilio_client.messages.create(
+                from_=settings.TWILIO_WHATSAPP_FROM,
+                to=to_whatsapp,
+                body=fallback_body
+            )
 
         print("✅ WhatsApp enviado. SID:", msg.sid)
 
-        # Vaciar carrito y marcar como vacío
+        # Vaciar carrito
         carrito.items.all().delete()
-        carrito.status = 'vacio'
-        carrito.save(update_fields=['status'])
+        carrito.status = "vacio"
+        carrito.save(update_fields=["status"])
 
-        # Guardar bandera en sesión y redirigir a la URL de éxito
+        # Bandera de éxito y redirección
         request.session["pedido_exitoso"] = True
         return redirect(reverse("mostrar_confirmacion_compra", args=[carrito.id]))
 
     except Exception as e:
-        print("❌ Error Twilio:", e)
+        import traceback                      # ← importar aquí
+        logger.error("❌ Error Twilio: %s", e)
         traceback.print_exc()
         return JsonResponse({"error": "Fallo al enviar WhatsApp."}, status=500)
-
 
 
 

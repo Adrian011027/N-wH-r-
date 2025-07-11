@@ -1,0 +1,31 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="cat-wrapper">
+  <h1 class="cat-title">Categorías</h1>
+
+  <!-- Formulario de nueva categoría -->
+  <form id="form-categoria" class="cat-form">
+    <input type="text" id="nombre-categoria" placeholder="Nueva categoría" required>
+    <button type="submit" class="btn-primary">Agregar</button>
+  </form>
+
+  <!-- Tabla de categorías -->
+  <div class="table-wrapper">
+    <table id="tabla-categorias">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'dashboard/css/categorias.css' %}">
+<script src="{% static 'dashboard/js/categorias/categorias.js' %}"></script>
+{% endblock %}

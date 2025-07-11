@@ -1,0 +1,95 @@
+/* —— Wrapper general —— */
+.cat-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.cat-title {
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #222;
+}
+
+/* —— Form —— */
+.cat-form {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.25rem;
+}
+
+.cat-form input {
+  flex: 1;
+  padding: 0.55rem .8rem;
+  border: 1px solid #ccc;
+  border-radius: .375rem;
+}
+
+.btn-primary {
+  padding: 0.55rem 1.1rem;
+  background: #2563eb;            /* azul */
+  color: #fff;
+  border: none;
+  border-radius: .375rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.btn-primary:hover {
+  background: #1e4fcc;
+}
+
+/* —— Tabla —— */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+#tabla-categorias {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#tabla-categorias th,
+#tabla-categorias td {
+  padding: 0.65rem .8rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+#tabla-categorias th {
+  background: #f3f4f6;
+  font-weight: 600;
+}
+
+#tabla-categorias tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* —— Botones de acción —— */
+#tabla-categorias button {
+  font-size: 0.875rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: .35rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+#tabla-categorias button:first-child {         /* Editar */
+  background: #22c55e;
+  color: #fff;
+}
+
+#tabla-categorias button:last-child {          /* Eliminar */
+  background: #ef4444;
+  color: #fff;
+  margin-left: .35rem;
+}
+
+#tabla-categorias button:hover {
+  opacity: .9;
+}

@@ -163,6 +163,31 @@ def create_categoria(request):
     return JsonResponse({"id": categoria.id, "nombre": categoria.nombre},
                         status=201)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_categoria(request, id):
+    try:
+        data = json.loads(request.body)
+        categoria = get_object_or_404(Categoria, id=id)
+        categoria.nombre = data.get("nombre", categoria.nombre)
+        categoria.save()
+        return JsonResponse({"mensaje": "Categoría actualizada"}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_categoria(request, id):
+    try:
+        categoria = get_object_or_404(Categoria, id=id)
+        categoria.delete()
+        return JsonResponse({"mensaje": "Categoría eliminada"}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+@login_required_user
+def dashboard_categorias(request):
+    return render(request, "dashboard/categorias/lista.html")
 
 # ───────────────────────────────────────────────────────────────
 # Dashboard: productos
