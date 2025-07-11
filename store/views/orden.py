@@ -5,7 +5,11 @@ from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
 from ..models import  Carrito, Orden, OrdenDetalle, Variante
 from django.db import models, transaction
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
+@require_http_methods(["GET"])
 def get_orden(request, id):
     # 1. Recuperar la orden o devolver 404
     orden = get_object_or_404(Orden, id=id)
@@ -55,7 +59,7 @@ def get_orden(request, id):
         "indent": 2
     })
 
-
+@csrf_exempt
 def crear_orden_desde_payload(payload):
 
 
@@ -97,3 +101,45 @@ def crear_orden_desde_payload(payload):
         
     return orden
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_status(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    orden.status = 'proces'
+    orden.save(update_fields=["status"]) #Reducir tráfico SQL realizando el update solo a es epar de columnas
+    return JsonResponse({"mensaje":"en proceso"})
+
+
+from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
+from django.http import HttpResponse, HttpResponseForbidden
+
+signer = TimestampSigner()
+
+def procesar_por_link(request, token):
+    try:
+        id_orden = signer.unsign(token, max_age=86400)  # link válido 24 h
+    except SignatureExpired:
+        return HttpResponseForbidden("El enlace ha expirado.")
+    except BadSignature:
+        return HttpResponseForbidden("Enlace inválido.")
+
+    orden = get_object_or_404(Orden, id=id_orden)
+    orden.status = 'procesando'
+    orden.save(update_fields=['status'])
+    return HttpResponse("✅ ¡Tu orden ha sido actualizada a “procesando”!")
+
+
+@csrf_exempt
+def eliminar_orden(request, id):
+    """
+    Elimina la orden con el id dado y todos sus detalles asociados.
+    """
+    orden = get_object_or_404(Orden, id=id)
+    # Primero borramos los detalles (si tienes cascade no haría falta)
+    orden.detalles.all().delete()
+    # Luego borramos la orden
+    orden.delete()
+    return JsonResponse(
+        {"mensaje": f"Orden {id} eliminada correctamente."},
+        status=200
+    )
