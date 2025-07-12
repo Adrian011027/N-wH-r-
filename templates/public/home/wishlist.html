@@ -1,12 +1,7 @@
-{% extends "base.html" %}
 {% load static %}
 
-{# ───────────────────────── CONTENIDO ────────────────────────── #}
-{% block content %}
-<div class="wishlist-container">
-  <h2 class="wishlist-title">Mis Favoritos <span>❤️</span></h2>
-
-  {# ─── Grid de productos ─── #}
+<!-- ESTE ARCHIVO SE CARGA DINÁMICAMENTE EN #wishlist-panel -->
+<div class="wishlist-panel-inner">
   {% if productos %}
     <div class="wishlist-grid">
       {% for producto in productos %}
@@ -30,60 +25,34 @@
             <form method="POST"
                   action="{% url 'agregar_al_carrito' producto.id %}">
               {% csrf_token %}
-              <button type="submit" class="btn-carrito">
-                Agregar al carrito
-              </button>
+              <button type="submit" class="btn-carrito">Agregar al carrito</button>
             </form>
           </div>
         </div>
       {% endfor %}
     </div>
   {% else %}
-    <p class="wishlist-empty">
-      No tienes productos en tu wishlist aún.
-    </p>
-  {% endif %}
-
-  {# ───── Aviso solo para invitados ───── #}
-  {% if not request.session.cliente_id %}
-    <div class="wishlist-hint">
-      <p>
-        ¿Quieres conservar tus favoritos para tu próxima visita?
+    <div class="wishlist-empty-state">
+      <div class="wishlist-empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+      </div>
+      <h3>No tienes productos<br>en tu wishlist.</h3>
+      <p class="wishlist-sub">¿Quieres conservar tus favoritos?</p>
+      <p class="wishlist-links">
         <a href="#" id="open-login-hint">Inicia sesión</a> o
         <a href="{% url 'registrarse' %}">crea una cuenta</a>.
       </p>
     </div>
   {% endif %}
 </div>
-{% endblock %}
 
-{# ───────────────────────── ESTILOS extra ────────────────────── #}
-{% block extra_css %}
-<style>
-  .wishlist-hint{
-    margin-top:1.5rem;
-    padding:.75rem 1rem;
-    background:#fff8f8;
-    border:1px solid #ffd4d4;
-    border-radius:6px;
-    font-size:.875rem;
-    text-align:center;
-  }
-  .wishlist-hint a{
-    color:#c00;
-    font-weight:600;
-    text-decoration:underline;
-  }
-</style>
-{% endblock %}
-
-{# ───────────────────────── JS extra ─────────────────────────── #}
-{% block extra_js %}
 <script>
-  /* Solo abre el panel de login; el resto lo gestiona main.js */
-  document.getElementById('open-login-hint')?.addEventListener('click', e=>{
+  document.getElementById('open-login-hint')?.addEventListener('click', e => {
     e.preventDefault();
     window.mostrarLoginPanel?.();
   });
 </script>
-{% endblock %}

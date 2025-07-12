@@ -357,4 +357,61 @@
   .toast-message.show {
     transform: translateX(-50%) translateY(0);
   }
+
+  #wishlist-panel .login-header {
+    padding: 0.75rem 1rem;
+    min-height: 56px;
+  }
+
+  #wishlist-panel .login-header h2 {
+    font-size: 1rem;
+  }
+
+  #wishlist-panel .close-btn {
+    font-size: 20px;
+    top: -2px;
+  }
+
+  
 }
+
+
+.wishlist-empty-state {
+  text-align: center;
+  max-width: 360px;
+  margin: auto;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wishlist-empty-state svg {
+  width: 56px;
+  height: 56px;
+  stroke: #bbb;
+  margin-bottom: 1.5rem;
+}
+
+.wishlist-empty-state h3 {
+  font-size: 1.75rem;
+  font-family: Georgia, serif;
+  font-weight: 400;
+  margin: 1rem 0 0.75rem;
+}
+
+.wishlist-empty-state p {
+  font-size: .95rem;
+  color: #555;
+  margin-bottom: .5rem;
+}
+
+.wishlist-links a {
+  color: #2a2a8f;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+
+
+

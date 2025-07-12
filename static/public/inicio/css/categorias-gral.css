@@ -6,76 +6,54 @@
   padding: 10px 60px 80px;
   background: #fff;
   text-align: center;
+  box-sizing:border-box;
 }
 
-.promo-intro {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-  /* ↓ menos espacio arriba/abajo */
-  padding: 1rem 1rem;
+
+.promo-intro{
+  text-align:center;
+  max-width:600px;
+  margin:0 auto;
+  padding:1rem;
+  overflow:hidden;                 /* ← recorta cualquier desborde */
 }
 
-/* ────── Ajustamos márgenes para que queden más pegados ────── */
-.promo-intro__title {
-  font-family: 'InstrumentSerif', serif;
-  font-size: 2.5rem;
-  font-weight: 400;
-  line-height: 1.2;
-  margin: 0;               /* reset de márgenes */
-  opacity: 0;              /* estado inicial: invisible */
-  transform: translateX(-100%); /* off-screen izquierda */
+/* ── Texto principal ────────────────────────────────────────── */
+.promo-intro__title{
+  font-family:'InstrumentSerif',serif;
+  font-size:2.5rem;
+  font-weight:400;
+  line-height:1.2;
+  margin:0;
+  opacity:0;
+  transform:translateX(-20%);      /* antes -100 % → -20 % */
 }
 
-.promo-intro__divider {
-  width: 220px;
-  height: 1px;
-  background: #1D1D1D;
-  border: none;
-  margin: 0.25rem auto;
+.promo-intro__divider{
+  width:220px;height:1px;background:#1D1D1D;border:none;margin:.25rem auto;
 }
 
-.promo-intro__subtitle {
-  font-family: 'InstrumentSerif', serif;
-  font-size: 1.2rem;
-  font-weight: 300;
-  margin: 0.25rem 0 0 0;
-  letter-spacing: 0.5px;
-  opacity: 0;               /* estado inicial: invisible */
-  transform: translateX(100%); /* off-screen derecha */
+.promo-intro__subtitle{
+  font-family:'InstrumentSerif',serif;
+  font-size:1.2rem;
+  font-weight:300;
+  margin:.25rem 0 0;
+  letter-spacing:.5px;
+  opacity:0;
+  transform:translateX(20%);       /* antes 100 % → 20 % */
 }
 
-/* ─── Animaciones ─── */
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(20%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* ── Animaciones ────────────────────────────────────────────── */
+@keyframes slideInFromRight{
+  from{opacity:0;transform:translateX(20%);}
+  to  {opacity:1;transform:translateX(0);}
 }
-
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes slideInFromLeft{
+  from{opacity:0;transform:translateX(-20%);}
+  to  {opacity:1;transform:translateX(0);}
 }
-
-/* ─── CLASES PARA DISPARAR ANIMACIÓN VIA JS ─── */
-.promo-intro__title.in-view {
-  animation: slideInFromLeft 2.5s ease-out forwards;
-}
-
-.promo-intro__subtitle.in-view {
-  animation: slideInFromRight 2.5s ease-out 1s forwards;
-}
+.promo-intro__title.in-view   {animation:slideInFromLeft  2.5s ease-out forwards;}
+.promo-intro__subtitle.in-view{animation:slideInFromRight 2.5s ease-out 1s forwards;}
 
 
 /* =============================================================
@@ -177,7 +155,8 @@
    ============================================================ */
 @media (max-width: 600px) {
   .categorias {
-    padding: 10px 60px 70px;
+     padding:10px 24px 70px;
+     box-sizing:border-box;
   }
 
   .categorias-generales .categoria-grid-generales,
@@ -225,7 +204,7 @@
   }
 }
 
-@media (min-width: 601px) and (max-width: 1024px) {
+
 
  /* ==============================
    Pantallas MEDIAS (601-1024 px)
@@ -246,4 +225,3 @@
   }
 }
 
-}

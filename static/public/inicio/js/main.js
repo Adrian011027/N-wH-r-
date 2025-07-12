@@ -1,28 +1,35 @@
 /* -------------------------------------------------------------
    main.js – Home de NowHere
-   ------------------------------------------------------------- */
+------------------------------------------------------------- */
 
-import { setupScrollRestoration }  from './scroll-behavior.js';
+/* —— Imports de UI y lógica —— */
+import { setupScrollRestoration }        from './scroll-behavior.js';
 import { setupHeaderScroll, setupHeaderPanels } from './header.js';
-import { setupBurgerMenu }         from './burger-menu.js';
-import { setupZoomEffect }         from './zoom-effect.js';
-import { setupAccordion }          from './accordion.js';
-import { setupNavigationButtons }  from './navigation.js';
-import { setupContactPanel }       from './contact-panel.js';
-import { setupLoginPanel }         from './usuario.js';
-import { getCSRFToken }            from './login.js';
-import { setupClientePanel }       from './logged.js';
-import { initWishlist }            from './wishlist.js';
-import { setupCategoriaCards }     from './categorias-gral.js';
+import { setupBurgerMenu }               from './burger-menu.js';
+import { setupZoomEffect }               from './zoom-effect.js';
+import { setupAccordion }                from './accordion.js';
+import { setupNavigationButtons }        from './navigation.js';
+import { setupContactPanel }             from './contact-panel.js';
+import { setupLoginPanel }               from './usuario.js';
+import { getCSRFToken }                  from './login.js';
+import { setupClientePanel }             from './logged.js';
+import { initWishlist }                  from './wishlist.js';
 
-/* —— Datos globales —— */
+/* —— Animaciones de categorías e intro —— */
+import { setupCategoriaCards,
+         setupIntroAnimation }           from './categorias-gral.js';
+
+/* —— Datos globales ——————————— */
 const IS_AUTH = window.IS_AUTHENTICATED === true;
 const USER_ID = window.CLIENTE_ID ?? null;
-const CSRF    = window.CSRF_TOKEN ?? null;
+const CSRF    = window.CSRF_TOKEN  ?? null;
 
-/* —— Categorías + animaciones iniciales —— */
+/* —— Animaciones iniciales —— */
 document.addEventListener('DOMContentLoaded', () => {
   setupCategoriaCards();
+  setupIntroAnimation();
+
+  /* footer fade-in */
   setTimeout(() => {
     document.querySelectorAll('.info-footer, .site-footer')
             .forEach(el => el.classList.add('fade-in-footer'));
@@ -42,28 +49,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* —— Logout limpio (form cualquiera con "logout" en action) —— */
+/* —— Logout (cualquier formulario con “logout” en action) —— */
 document.addEventListener('submit', async e => {
   const form = e.target.closest('form[action*="logout"]');
   if (!form) return;
 
-  e.preventDefault();                       // detén recarga automática
-
+  e.preventDefault();
   try {
-    await fetch(form.action, {
-      method : 'POST',
-      headers: { 'X-CSRFToken': CSRF }
-    });
-  } catch {/* even on error, proceed */}
-
-  wishlistAPI?.nukeAllKeys?.();             // 🧹 borra guest + users
-  window.location.href = '/';               // refresca como invitado
+    await fetch(form.action, { method:'POST', headers:{ 'X-CSRFToken': CSRF }});
+  } catch {/* ignore */}
+  wishlistAPI?.nukeAllKeys?.();
+  window.location.href = '/';
 });
 
 /* —— Módulos de interfaz —— */
 setupScrollRestoration();
 setupHeaderScroll();
-setupHeaderPanels()
+setupHeaderPanels();
 setupBurgerMenu();
 setupZoomEffect();
 setupAccordion();
@@ -73,30 +75,27 @@ setupLoginPanel();
 setupClientePanel();
 getCSRFToken();
 
-
+/* —— Menú hamburguesa overlay —— */
 document.addEventListener('DOMContentLoaded', () => {
+  const burger   = document.getElementById('btn-burger');
+  const navMenu  = document.querySelector('.nav-menu');
+  const overlay  = document.querySelector('.page-overlay');
+  const closeBtn = document.getElementById('btn-close-menu');
 
-  const burger   = document.getElementById('btn-burger');      // ☰
-  const navMenu  = document.querySelector('.nav-menu');        // panel
-  const overlay  = document.querySelector('.page-overlay');    // vidrio
-  const closeBtn = document.getElementById('btn-close-menu');  // × dentro
-
-  function abrirMenu(){
+  const abrirMenu  = () => {
     navMenu.classList.add('open');
     overlay.classList.add('active');
     burger.classList.add('active');
     document.body.classList.add('no-scroll');
-  }
-
-  function cerrarMenu(){
+  };
+  const cerrarMenu = () => {
     navMenu.classList.remove('open');
     overlay.classList.remove('active');
     burger.classList.remove('active');
     document.body.classList.remove('no-scroll');
-  }
+  };
 
-  burger .addEventListener('click', abrirMenu);    // abre
-  overlay.addEventListener('click', cerrarMenu);   // clic fuera
-  closeBtn.addEventListener('click', cerrarMenu);  // clic ×
-
+  burger.addEventListener('click', abrirMenu);   // ← typo corregido
+  overlay.addEventListener('click', cerrarMenu);
+  closeBtn.addEventListener('click', cerrarMenu);
 });
