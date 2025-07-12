@@ -3,6 +3,7 @@
   color: #000000;
   padding: 40px 5%;
   font-size: 18px;
+  box-sizing:border-box;
 }
 
 .footer-container {

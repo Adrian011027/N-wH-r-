@@ -11,3 +11,7 @@ body {
   color: #1D1D1D;
   overflow-x: hidden;
 }
+
+html{
+  touch-action: manipulation;  /* evita gestos extraños y doble-tap-zoom */
+}

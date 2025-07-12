@@ -1,4 +1,6 @@
 /* ========== HEADER ========== */
+
+
 header {
   position: fixed;
   top: 0;
@@ -15,6 +17,8 @@ header {
     backdrop-filter 0.4s ease,
     box-shadow 0.4s ease;
 }
+
+
 
 header.scrolled {
   background: #fff;
@@ -91,17 +95,26 @@ header.scrolled {
    4. NAV MENU lateral
 ────────────────────────────────────────────────── */
 .nav-menu{
-  position:fixed; left:0; top:0;
-  height:100vh; width: 440px; max-width: 450px;;
-  background:#FFF;
-  transform:translateX(-100%);
-  transition:transform .4s ease;
-  display:flex; flex-direction:column;
-  padding:40px 16px;
-  z-index:700;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  /* ✅ Cambios clave */
+  width: 100vw;          /* nunca excede el ancho de pantalla           */
+  max-width: 450px;      /* sigue topado en escritorio                   */
+  height: 100vh;
+
+  background: #FFF;
+  transform: translateX(-100%);   /* oculto a la izquierda */
+  transition: transform .4s ease;
+
+  display: flex;
+  flex-direction: column;
+  padding: 40px 16px;
+  z-index: 700;
 }
-/* se desplaza dentro cuando añadimos .open desde JS */
-.nav-menu.open{transform:translateX(0);}
+/* visible cuando añadimos .open desde JS */
+.nav-menu.open{ transform: translateX(0); }
 
 /* Lista de enlaces (sin cambios) */
 .menu{
@@ -240,26 +253,33 @@ header.scrolled {
   padding: 4px 6px;
 }
 
-/* Panel lateral derecho */
-.contact-panel {
+/* Panel lateral derecho (CONTACTO) */
+.contact-panel{
   position: fixed;
   top: 0;
-  right: -100%;
-  width: 440px;
+  right: 0;                       /* ancla al borde derecho */
+  width: 100vw;        /* ← cabe siempre en móviles               */
+  max-width: 440px; 
   height: 100%;
-  background-color: #fff;
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
-  transition: right 0.4s ease;
-  z-index: 999;
+  box-sizing:border-box;   /* ✅ */
+  background: #fff;
+  box-shadow: -2px 0 12px rgba(0,0,0,.2);
   padding: 30px 60px;
+  z-index: 999;
 
   display: flex;
   flex-direction: column;
+
+  /* ⬇️  Nuevo: sale de pantalla con transform   */
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
 }
 
-.contact-panel.open {
-  right: 0;
+/* Cuando lo abras con JS añadiendo la clase .open */
+.contact-panel.open{
+  transform: none;                /* visible */
 }
+
 
 .contact-header {
   display: flex;
@@ -560,25 +580,31 @@ a.user-icon svg {
 }
 
 
-.login-panel {
+/* Panel LOGIN (derecha) */
+.login-panel{
   position: fixed;
   top: 0;
-  right: -100%;
-  width: 100%;
+  right: 0;                       /* ancla al borde derecho */
+  width:100vw;
   max-width: 450px;
+  box-sizing:border-box;
   height: 100%;
   background: #fff;
-  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 999;
-  transition: right 0.4s ease;
+  box-shadow: -2px 0 12px rgba(0,0,0,.15);
   padding: 60px;
   overflow-y: auto;
+  z-index: 999;
   font-family: 'Arial', sans-serif;
+
+  /* nuevo */
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
 }
 
-.login-panel.open {
-  right: 0;
+.login-panel.open{               /* visible */
+  transform: none;
 }
+
 
 .login-header {
   display: flex;
@@ -589,11 +615,6 @@ a.user-icon svg {
 
 .login-header h2 {
   font-size: 18px;
-}
-
-.close-btn {
-  font-size: 24px;
-  cursor: pointer;
 }
 
 .login-section h3 {
@@ -695,23 +716,30 @@ font-size: 14px;
 }
 
 /*Estilos para logged*/
-.cliente-panel {
+/* Panel CLIENTE (izquierda) */
+.cliente-panel{
   position: fixed;
   top: 0;
-  left: -100%;
-  width: 300px;
+  left: 0;                        /* ancla al borde izquierdo */
+  width:100vw;
+  max-width:300px;
+  box-sizing:border-box;
   height: 100%;
   background: #fff;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 998;
-  transition: left 0.4s ease;
+  box-shadow: 2px 0 12px rgba(0,0,0,.15);
   padding: 60px 20px;
   overflow-y: auto;
+  z-index: 998;
+
+  /* nuevo */
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
 }
 
-.cliente-panel.active {
-  left: 0;
+.cliente-panel.active{           /* visible */
+  transform: none;
 }
+
 
 .cliente-header {
   display: flex;

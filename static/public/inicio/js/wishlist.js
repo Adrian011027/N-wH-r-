@@ -298,11 +298,51 @@ async function getCartIds(){
 
 async function renderWishlistPanel(){
   const ids=getList();
-  if(!ids.length){
-    wishlistContent.textContent='No tienes productos en tu wishlist.';
-    if(!isAuthenticated) injectHint();       // 🟢 invitado, muestra hint
-    return;
-  }
+  const headerTitle = document.getElementById('wishlist-header-title');
+
+if (!ids.length) {
+  const headerTitle = document.getElementById('wishlist-header-title');
+  if (headerTitle) headerTitle.style.visibility = 'hidden';
+
+  wishlistContent.innerHTML = isAuthenticated
+    ? `
+      <div class="wishlist-empty-state">
+        <div class="wishlist-empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+          </svg>
+        </div>
+        <h3>No tienes productos<br>en tu wishlist.</h3>
+        <p class="wishlist-sub">Agrega productos para verlos aquí.</p>
+      </div>
+    `
+    : `
+      <div class="wishlist-empty-state">
+        <div class="wishlist-empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+          </svg>
+        </div>
+        <h3>No tienes productos<br>en tu wishlist.</h3>
+        <p class="wishlist-sub">¿Quieres conservar tus favoritos?</p>
+        <p class="wishlist-links">
+          <a href="#" id="open-login-hint">Inicia sesión</a> o
+          <a href="/registrarse/">crea una cuenta</a>.
+        </p>
+      </div>
+    `;
+
+  return;
+}
+ else {
+  if (headerTitle) headerTitle.style.visibility = 'visible';
+}
+
+
 
   try{
     wishlistContent.textContent='Cargando…';

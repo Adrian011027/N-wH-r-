@@ -7,6 +7,7 @@
   border-top: 1px solid #ddd;
   font-family: 'Arial', sans-serif;
   flex-direction: row; /* 👈 Asegura el modo horizontal */
+   box-sizing:border-box; 
 }
 
 .info-col {
@@ -41,6 +42,7 @@
   .info-footer {
     flex-direction: column;
     padding: 40px 20px;
+     box-sizing:border-box; 
     gap: 30px;
   }
 

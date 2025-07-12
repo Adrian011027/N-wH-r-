@@ -10,6 +10,7 @@
   text-align: center;
   position: relative;
   z-index: 2;
+  box-sizing:border-box;
 }
 
 /* 2. ENCABEZADOS ------------------------------------------------- */
@@ -167,6 +168,14 @@
 
 /* 6. RESPONSIVE (≤ 600 px) -------------------------------------- */
 @media (max-width: 600px) {
+
+  .categorias-dama,
+  .categorias-hombre{
+   /* padding lateral sigue en 20 px → 40 px totales */
+   padding:24px 12px;     /* o mantener 20 px pero con border-box ya no suma */
+   box-sizing:border-box; /* por si acaso */
+  }
+  
   .categorias-dama .categoria-grid,
   .categorias-hombre .categoria-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -187,12 +196,11 @@
     margin-top: 20px;
   }
 
-  @media (max-width: 600px) {
   .categorias-dama .thumb,
   .categorias-hombre .thumb {
     height: 300px;   /* o la altura que prefieras en móvil */
   }
-}
+
 }
 
 /* -------------------------------------------------------------
