@@ -201,3 +201,7 @@ POST http://127.0.0.1:8000/orden/procesando/1/
 
 ###
 DELETE http://127.0.0.1:8000/orden/delete/2/
+
+###
+
+DELETE http://127.0.0.1:8000/orden/delete/3/111

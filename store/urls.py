@@ -50,7 +50,7 @@ from .views.wishlist import (
 
 # ─────────── Orden ───────────
 from .views.orden import (
-    eliminar_orden, get_orden, update_status, procesar_por_link,
+    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto
 )
 
 # ───────────────────────── URLPATTERNS ─────────────────────────
@@ -146,6 +146,7 @@ urlpatterns = [
     path("orden/procesando/<int:id>/",          update_status,                   name="update_status"),
     path("orden/procesando/link/<str:token>/",  procesar_por_link,               name="procesar_por_link"),
     path("orden/delete/<int:id>/",              eliminar_orden,                  name="eliminar_orden"),
+    path("orden/delete/<int:orden_id>/<int:producto_id>", eliminar_producto,     name="eliminar_producto"),
 ]
 
 if settings.DEBUG:

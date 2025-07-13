@@ -143,3 +143,26 @@ def eliminar_orden(request, id):
         {"mensaje": f"Orden {id} eliminada correctamente."},
         status=200
     )
+@csrf_exempt
+def eliminar_producto(request, orden_id, producto_id):
+    """
+    Elimina de la orden con el id dado el producto id producto.
+    """
+    orden = get_object_or_404(Orden, id=orden_id)
+    # Primero borramos los detalles (si tienes cascade no haría falta)
+    
+
+    #Agarro todo el objeto filtrando el id de interes con variante id
+    qs = (orden.detalles.select_related("variante", "variante__producto").filter(variante_id=producto_id))
+    #print(f"qs: {qs[0].id}")
+    det = qs.first()
+    if det:
+        det.delete()
+        print(f"Eliminé el detalle de orden con id={det.id}.")
+        return JsonResponse(
+
+        {"mensaje": f"Orden {qs.first().variante_id} eliminada correctamente."},
+        status=200
+    )
+    else:
+        return JsonResponse({"mensaje": "No se pudo eliminar el producto"})
