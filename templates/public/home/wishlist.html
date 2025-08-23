@@ -1,58 +1,30 @@
 {% load static %}
 
-<!-- ESTE ARCHIVO SE CARGA DINÁMICAMENTE EN #wishlist-panel -->
-<div class="wishlist-panel-inner">
-  {% if productos %}
-    <div class="wishlist-grid">
-      {% for producto in productos %}
-        <div class="producto-card" data-id="{{ producto.id }}">
-          <figure class="producto-thumb">
-            <img src="{{ producto.imagen.url|default:'/static/img/no-image.jpg' }}"
-                 alt="{{ producto.nombre }}">
-          </figure>
+<!-- CONTENEDOR DEL PANEL WISHLIST -->
+<div id="wishlist-panel">
+  <div class="login-header">
+    <h2 id="wishlist-header-title">👜 Mis Favoritos</h2>
+    <button id="close-wishlist-panel" class="close-btn" aria-label="Cerrar panel">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
 
-          <h3 class="producto-nombre">{{ producto.nombre }}</h3>
-          <p class="producto-precio">${{ producto.precio }}</p>
-
-          <div class="producto-actions">
-            <!-- ❤️ quitar -->
-            <button class="wishlist-btn active"
-                    data-product-id="{{ producto.id }}">
-              <i class="fa-solid fa-heart"></i>
-            </button>
-
-            <!-- 🛒 agregar -->
-            <form method="POST"
-                  action="{% url 'agregar_al_carrito' producto.id %}">
-              {% csrf_token %}
-              <button type="submit" class="btn-carrito">Agregar al carrito</button>
-            </form>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="wishlist-empty-state">
-      <div class="wishlist-empty-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="1.2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-        </svg>
-      </div>
-      <h3>No tienes productos<br>en tu wishlist.</h3>
-      <p class="wishlist-sub">¿Quieres conservar tus favoritos?</p>
-      <p class="wishlist-links">
-        <a href="#" id="open-login-hint">Inicia sesión</a> o
-        <a href="{% url 'registrarse' %}">crea una cuenta</a>.
-      </p>
-    </div>
-  {% endif %}
+  <!-- CONTENIDO DINÁMICO RENDERIZADO POR wishlist.js -->
+  <div class="wishlist-content">
+    <!-- JS lo reemplazará por los productos -->
+  </div>
 </div>
 
+<!-- OVERLAY PARA FONDO OSCURO -->
+<div class="page-overlay"></div>
+
 <script>
-  document.getElementById('open-login-hint')?.addEventListener('click', e => {
-    e.preventDefault();
-    window.mostrarLoginPanel?.();
+  // Abre el login desde cualquier enlace de "Inicia sesión"
+  document.body.addEventListener('click', function (e) {
+    const link = e.target.closest('#open-login-hint');
+    if (link) {
+      e.preventDefault();
+      window.mostrarLoginPanel?.();
+    }
   });
 </script>

@@ -54,25 +54,4 @@ export function setupHeaderPanels() {
   }
 
   });
-
-  const pwd  = document.getElementById('password');
-  const btn  = document.querySelector('.toggle-password');
-  const icon = btn.querySelector('i');
-
-  btn.addEventListener('click', () => {
-    // Cambia el tipo del input
-    const oculto = pwd.type === 'password';
-    pwd.type = oculto ? 'text' : 'password';
-
-    /* Alterna SOLO las dos clases que diferencian los íconos.
-       No se crea ningún <i> nuevo:                            */
-    icon.classList.toggle('fa-eye'      ); // ojo abierto
-    icon.classList.toggle('fa-eye-slash'); // ojo tachado
-
-    // Accesibilidad
-    btn.setAttribute(
-      'aria-label',
-      oculto ? 'Ocultar contraseña' : 'Mostrar contraseña'
-    );
-  });
 }

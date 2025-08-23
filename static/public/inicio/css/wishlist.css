@@ -1,3 +1,5 @@
+
+
 /* 1. Tarjeta de producto (asegúrate de que sea posicionable) */
 .categoria-card {
   position: relative;
@@ -28,6 +30,7 @@
 .wishlist-btn.pop i { animation: clickPop .25s ease both; }
 
 /* 3. PANEL – se desliza desde la derecha */
+/* Wishlist panel lateral */
 #wishlist-panel {
   position: fixed;
   top: 0; right: -100%;
@@ -38,7 +41,6 @@
   overflow-y: auto;
   z-index: 9999;
   transition: right .3s ease;
-  scrollbar-gutter: stable;
 }
 #wishlist-panel.open { right: 0; }
 
@@ -48,7 +50,6 @@
   pointer-events: none;       /* evita clics sobre elementos borrosos */
   transition: filter 1s;    /* suave */
 }
-
 
 /* 4. Overlay común para todos los paneles */
 .page-overlay {
@@ -66,14 +67,13 @@
 }
 
 /* 5. Contenido de la wishlist (vista de catálogo) */
-.wishlist-item {
-  display: flex;
-  flex-direction: row;
-  gap: .75rem;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+.wishlist-img-col img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
 }
+
 .wishlist-item img {
   width: 200px;
   height: 200px;
@@ -83,6 +83,26 @@
 .wishlist-item h4 {
   margin: 0;
   font-size: 14px;
+}
+
+
+.wishlist-item .categoria {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.wishlist-actions .remove-item {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.wishlist-actions .remove-item:hover {
+  color: #e00;
 }
 
 /* Celulares (≤ 480 px) – wishlist a pantalla completa */
@@ -201,7 +221,6 @@
   #wishlist-panel .wishlist-actions .qty   { margin-right: 6px; }
 }
 
-
 /* ──────────────────────────────────────────────────────────────
    7. Selector de talla que se despliega sobre el botón AGREGAR
 ──────────────────────────────────────────────────────────────── */
@@ -254,7 +273,6 @@
 }
 
 /* ─── salida horizontal (con el panel) ─── */
-/* ——— salida horizontal (igual que el panel) ——— */
 .size-picker.fade-out-side{
   animation: pickerFadeSlideSide .1s ease forwards;   /* ← mismos .3s ease */
 }
@@ -263,11 +281,6 @@
   from { transform: translateX(0);    opacity:1; }
   to   { transform: translateX(100%); opacity:0; }   /* → hacia la derecha */
 }
-
-
-/* (Si tu panel se oculta a la izquierda, usa -100% en el to{}) */
-
-
 
 
 /* interior para maquetar título y tallas */
@@ -375,7 +388,6 @@
   
 }
 
-
 .wishlist-empty-state {
   text-align: center;
   max-width: 360px;
@@ -413,5 +425,228 @@
 }
 
 
+/* ============================
+   Contador de cantidad estilo detalles
+   ============================ */
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.qty input {
+  width: 48px;
+  text-align: center;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  outline: none;
+  pointer-events: none;
+}
+
+/* Quitar flechas del input */
+.qty input::-webkit-outer-spin-button,
+.qty input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.qty input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Botones + y - */
+.qty button {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+.qty button:hover {
+  opacity: 0.7;
+}
+
+/* Icono de basura si cantidad = 1 */
+.qty button.trash {
+  font-size: 14px;
+  color: #000;
+}
+.qty button.trash i {
+  animation: fadeInIcon 0.2s ease-in;
+}
+.qty button.fade-out i {
+  animation: fadeOutIcon 0.2s ease-out;
+}
+
+@keyframes fadeInIcon {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeOutIcon {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.8); }
+}
+
+/* ============================
+   Wishlist – Diseño Moderno
+   ============================ */
+
+/* Wishlist panel lateral */
+#wishlist-panel {
+  position: fixed;
+  top: 0; right: -100%;
+  width: 450px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0,0,0,.1);
+  overflow-y: auto;
+  z-index: 9999;
+  transition: right .3s ease;
+}
+#wishlist-panel.open { right: 0; }
 
 
+/* Tarjeta de producto */
+.wishlist-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+.wishlist-img-col img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* Info del producto */
+.wishlist-info-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.wishlist-info-col h4 {
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+.wishlist-info-col .precio {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Acciones: contador + botón */
+.wishlist-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.qty-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 30px;
+}
+.qty-wrap input.qty {
+  width: 38px;
+  text-align: center;
+  font-size: 14px;
+  border: none;
+  background: #f9f9f9;
+  pointer-events: none;
+}
+.qty-wrap button {
+  border: none;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.qty-wrap button:hover { opacity: 0.75; }
+
+/* Botón agregar */
+.btn-carrito-mini {
+  background: #000;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-carrito-mini:hover {
+  background: #333;
+}
+
+/* Ya en carrito */
+.in-cart-note {
+  font-size: 12px;
+  color: #0a0;
+}
+
+/* Eliminar item */
+.remove-item {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+}
+.remove-item:hover {
+  color: #e00;
+}
+
+.qty-wrap button.trash {
+  font-size: 14px;
+  color: #000;
+}
+
+.qty-wrap button.trash i {
+  pointer-events: none;
+  animation: fadeInIcon 0.2s ease-in;
+}
+
+.qty-wrap button.fade-out i {
+  animation: fadeOutIcon 0.2s ease-out;
+}
+
+@keyframes fadeInIcon {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOutIcon {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.8); }
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  #wishlist-panel {
+    width: 100vw;
+    padding: 20px;
+  }
+  .wishlist-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .wishlist-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

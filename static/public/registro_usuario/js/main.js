@@ -32,8 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const email     = form.email.value.trim();
-    const email2    = form.email2.value.trim();
+    const email     = form.email.value.trim().toLowerCase();
+    const email2    = form.email2.value.trim().toLowerCase();
     const pwd       = form.pwd.value;
     const nombre    = form.nombre.value.trim();
     const telefono  = form.telefono.value.trim();

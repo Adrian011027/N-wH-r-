@@ -529,192 +529,6 @@ header.scrolled {
   }
 }
 
-
-
-/*Todo lo relacionado al icono de usuario*/
-#btn-login {
-  cursor: pointer;
-}
-
-.user-icon {
-  background: none;
-  border: none;
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.user-icon svg,
-.user-icon i {
-  width: 20px;
-  height: 20px;
-  font-size: 20px;
-  stroke: currentColor;
-  fill: none;
-}
-
-.user-icon:focus,
-.user-icon:active,
-a.user-icon:focus,
-a.user-icon:active {
-  outline: none;
-  box-shadow: none;
-  background: transparent;
-}
-
-/* 🔥 Solución definitiva para quitar color azul en Chrome/Opera */
-a.user-icon {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Reforzar color correcto */
-a.user-icon svg {
-  fill: none !important;
-  stroke: currentColor !important;
-}
-
-
-/* Panel LOGIN (derecha) */
-.login-panel{
-  position: fixed;
-  top: 0;
-  right: 0;                       /* ancla al borde derecho */
-  width:100vw;
-  max-width: 450px;
-  box-sizing:border-box;
-  height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 12px rgba(0,0,0,.15);
-  padding: 60px;
-  overflow-y: auto;
-  z-index: 999;
-  font-family: 'Arial', sans-serif;
-
-  /* nuevo */
-  transform: translateX(100%);
-  transition: transform 0.4s ease;
-}
-
-.login-panel.open{               /* visible */
-  transform: none;
-}
-
-
-.login-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.login-header h2 {
-  font-size: 18px;
-}
-
-.login-section h3 {
-  font-size: 16px;
-  margin-bottom: 5px;
-}
-
-.required-note {
-  font-size: 12px;
-  color: gray;
-  margin-bottom: 10px;
-  display: inline-block;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-label {
-  font-size: 14px;
-}
-
-input[type="text"],
-input[type="password"] {
-  padding: 10px;
-  font-size: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
-}
-
-.password-wrapper {
-  position: relative;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.forgot-link {
-  font-size: 12px;
-  text-decoration: underline;
-  color: #000;
-  cursor: pointer;
-}
-
-.login-alt-text {
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.email-login-link {
-  text-decoration: underline;
-  color: #000;
-}
-
-.login-btn {
-  background: #000;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 30px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.register-btn {
-  display: block;              /* Para que ocupe el 100% del ancho si quieres */
-  margin: 0 auto;              /* Centra horizontalmente */
-  border: 1px solid #000;
-  color: #000;
-  background: none;
-  padding: 12px;
-  font-size: 14px;
-  border-radius: 30px;
-  cursor: pointer;
-  width: 100%;                 /* Puedes cambiarlo a otro valor si no lo quieres full width */
-  text-align: center;          /* Centra el texto dentro */
-  text-decoration: none;       /* Quita subrayado del <a> */
-}
-
-hr {
-  margin: 40px 0;
-  border: none;
-  border-top: 1px solid #ddd;
-}
-
-.login-section p{
-font-size: 14px;
-}
-
 /*Estilos para logged*/
 /* Panel CLIENTE (izquierda) */
 .cliente-panel{
@@ -848,35 +662,19 @@ font-size: 14px;
   position: relative;
 }
 
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  .password-wrapper input {
-    flex: 1;
-    padding-right: 2.5rem;           /* deja espacio para el botón */
-  }
-  .toggle-password {
-    position: absolute;
-    right: 0.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;                 /* ajusta el tamaño del ícono */
-  }
 
-/* Oculta el botón de revelar contraseña propio de Edge/IE */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear {   /* la “x” para borrar */
-  display: none;
+/*Color de iconos siempre en negro*/
+.user-icon, .password {
+  color: #000 !important;
 }
 
-/* (Opcional) Algunos navegadores WebKit recientes han empezado
-   a exponer un control parecido; si te da problemas, añade:      */
-input[type="password"]::-webkit-credentials-auto-fill-button,
-input[type="password"]::-webkit-textfield-decoration-container {
-  display: none !important;
+.toggle-password {
+  color: #000 !important; /* fuerza negro para el ícono */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-password i {
+  color: inherit !important; /* hereda de .toggle-password */
 }
 
 

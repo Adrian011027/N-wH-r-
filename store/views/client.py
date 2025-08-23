@@ -6,87 +6,72 @@ from .decorators import login_required_user, login_required_client
 from django.db.models import Prefetch
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password 
-import json
+import json, re
 from django.views.decorators.csrf import csrf_exempt
 
-"""
-get_all_clients devuelve la lista completa de clientes registrados
-"""
-#@login_required_user
+# Regex simple y seguro para validar correos
+EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
+
+# ========= GET ALL CLIENTS ========= #
 @require_GET
 def get_all_clients(request):
-    if request.method == 'GET':
+    try:
         clientes = Cliente.objects.all()
-        data = []
-
-        for cliente in clientes:
-            try:
-                data.append({
-                    'id': cliente.id,
-                    'username': cliente.username,
-                    'nombre': cliente.nombre,
-                    'email': cliente.correo,
-                })
-            except Exception as e:
-                return JsonResponse({"mensaje": str(e)})
-
+        data = [{
+            'id': c.id,
+            'username': c.username,
+            'nombre': c.nombre,
+            'email': c.correo,
+        } for c in clientes]
         return JsonResponse(data, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
-
-
-"""
--detalle_client devuelve la informacion de un cliente en especifico por id
-"""
+# ========= GET CLIENT BY ID ========= #
 def detalle_client(request, id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-    # Trae el cliente o devuelve 404
     cliente = get_object_or_404(Cliente, id=id)
-
-    # Intenta cargar el contacto asociado
-    try:
-        nombre  = cliente.nombre
-        email   = cliente.correo
-        telefono = cliente.telefono
-        direccion = cliente.direccion
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-    # Responde con JSON
     return JsonResponse({
-        'id'      : cliente.id,
+        'id': cliente.id,
         'username': cliente.username,
-        'nombre'  : nombre,
-        'email'   : email,
-        'telefono' : telefono,
-        'direccion': direccion
-    }, status=200)
+        'nombre': cliente.nombre,
+        'email': cliente.correo,
+        'telefono': cliente.telefono,
+        'direccion': cliente.direccion
+    })
 
-
-   
-
-"""
--create_client registra un nuevo cliente 
--campos obligatorios: username, password y correo
-"""
+# ========= CREATE CLIENT ========= #
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_client(request):
     try:
         data = json.loads(request.body)
-        print("📥 Datos recibidos:", data)
-
-        username  = data.get('username')
+        username  = data.get('username', '').strip().lower()
         password  = data.get('password')
-        correo    = data.get('correo')
-        nombre    = data.get('nombre')
-        telefono  = data.get('telefono')
-        direccion = data.get('direccion')
+        correo    = data.get('correo', '').strip().lower()
+        nombre    = data.get('nombre', '').strip()
+        telefono  = data.get('telefono', '').strip()
+        direccion = data.get('direccion', '').strip()
 
-        # Validación de campos obligatorios
         if not username or not password or not correo:
-            return JsonResponse({'error': 'Faltan campos obligatorios'}, status=400)
+            return JsonResponse({'error': 'Username, password y correo son obligatorios'}, status=400)
+
+        if not re.match(EMAIL_REGEX, correo):
+            return JsonResponse({'error': 'Correo inválido'}, status=400)
+
+        if len(password) < 8:
+            return JsonResponse({'error': 'La contraseña debe tener al menos 8 caracteres'}, status=400)
+
+        if Cliente.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'El nombre de usuario ya existe'}, status=409)
+
+        if Cliente.objects.filter(correo=correo).exists():
+            return JsonResponse({'error': 'El correo ya está registrado'}, status=409)
+
+        if telefono and not telefono.isdigit():
+            return JsonResponse({'error': 'El teléfono debe contener solo dígitos'}, status=400)
 
         cliente = Cliente.objects.create(
             username=username,
@@ -96,100 +81,108 @@ def create_client(request):
             telefono=telefono,
             direccion=direccion
         )
-
-        print("✅ Cliente creado con ID:", cliente.id)
         return JsonResponse({'username': cliente.username, 'message': 'Cliente creado con éxito'}, status=201)
 
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
     except Exception as e:
-        print("❌ Error al crear cliente:", str(e))
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
 
-
-
-
-"""
--update_client edita o actiualiza el registro del cliente.
--Ningun campo es obligatorio, puedes actualizar cualquier campo individualmente 
-"""
+# ========= UPDATE CLIENT ========= #
 @csrf_exempt
 @require_http_methods(["POST"])
 def update_client(request, id):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body) #Aqui si se puede parsear el json por que l cabezal es apication json no multipl    
-            username = data.get('username')
-            password = data.get('password')
-            correo = data.get('correo')
-            nombre = data.get('nombre')
-            telefono = data.get('telefono')
-            direccion = data.get('direccion')
-            cliente=Cliente.objects.get(id = id)
-            if username:
-                cliente.username = username
-            if password:
-                cliente.password = make_password(password)
-            if correo:
-                cliente.correo=correo
-            if nombre:
-                cliente.nombre=nombre
-            if telefono:
-                cliente.telefono=telefono
-            if direccion:
-                cliente.direccion=direccion
-            cliente.save()
-            return JsonResponse({'mensaje':f'Cliente {id} actualizado correctamente'},  status=200)
-        except Exception as err:
-            return JsonResponse({'error': str(err)})
+    try:
+        cliente = Cliente.objects.get(id=id)
+        data = json.loads(request.body)
 
-"""
--delete_client elimina un cliente en especifico por id
-"""
+        username  = data.get('username', '').strip().lower()
+        password  = data.get('password')
+        correo    = data.get('correo', '').strip().lower()
+        nombre    = data.get('nombre', '').strip()
+        telefono  = data.get('telefono', '').strip()
+        direccion = data.get('direccion', '').strip()
+
+        if username and username != cliente.username:
+            if Cliente.objects.filter(username=username).exists():
+                return JsonResponse({'error': 'El nuevo nombre de usuario ya está en uso'}, status=409)
+            cliente.username = username
+
+        if correo and correo != cliente.correo:
+            if not re.match(EMAIL_REGEX, correo):
+                return JsonResponse({'error': 'Correo inválido'}, status=400)
+            if Cliente.objects.filter(correo=correo).exists():
+                return JsonResponse({'error': 'El nuevo correo ya está registrado'}, status=409)
+            cliente.correo = correo
+
+        if password:
+            if len(password) < 8:
+                return JsonResponse({'error': 'La nueva contraseña debe tener al menos 8 caracteres'}, status=400)
+            cliente.password = make_password(password)
+
+        if nombre:
+            cliente.nombre = nombre
+
+        if telefono:
+            if not telefono.isdigit():
+                return JsonResponse({'error': 'El teléfono debe contener solo dígitos'}, status=400)
+            cliente.telefono = telefono
+
+        if direccion:
+            cliente.direccion = direccion
+
+        cliente.save()
+        return JsonResponse({'message': f'Cliente {id} actualizado correctamente'}, status=200)
+
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as err:
+        return JsonResponse({'error': str(err)}, status=500)
+
+# ========= DELETE CLIENT ========= #
 @require_http_methods(["POST", "DELETE"])
 def delete_client(request, id):
     try:
         cliente = Cliente.objects.get(id=id)
-        username = cliente.nombre
+        nombre = cliente.nombre
         cliente.delete()
 
-        # Si es un formulario HTML (POST), redirige al dashboard
         if request.method == "POST":
             return redirect('dashboard_clientes')
 
-        # Si es una llamada AJAX DELETE
-        return JsonResponse({'mensaje': f'Cliente {username} eliminado correctamente'}, status=200)
+        return JsonResponse({'message': f'Cliente {nombre} eliminado correctamente'}, status=200)
 
     except Cliente.DoesNotExist:
-        if request.method == "POST":
-            return redirect('dashboard_clientes')
         return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
-
     except Exception as e:
-        if request.method == "POST":
-            return redirect('dashboard_clientes')
-        return JsonResponse({'error': str(e)}, status=400)   
- 
+        return JsonResponse({'error': str(e)}, status=500)
 
-
-"""
-Funciones de contacto para que el cliente se comunique por correo con nosotros 
-Todos los campos obligatorios
-"""
+# ========= SEND CONTACT ========= #
 @require_http_methods(["POST"])
 def send_contact(request, id):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body) #Aqui si se puede parsear el json por que l cabezal es apication json no multipl    
-            cliente = Cliente.objects.get(id=id)  #asigna todo el objeto de clientes con id iual al id del argumento
-            email = data.get('email')
-            mensaje = data.get('mensaje')
-            
-            if not mensaje or not email :
-                return JsonResponse({'error': 'Faltan campos obligatorios'}, status=400)
-            contacto = ContactoCliente.objects.create(
-                cliente=cliente,
-                email=email,
-                mensaje=mensaje
-            )
-            return JsonResponse({'Contacto ': contacto.nombre, 'message': 'Creado con éxito'}, status=201)
-        except Exception as e:
-            return JsonResponse({'error': str(e)})
+    try:
+        data = json.loads(request.body)
+        cliente = Cliente.objects.get(id=id)
+        email   = data.get('email', '').strip()
+        mensaje = data.get('mensaje', '').strip()
+
+        if not email or not mensaje:
+            return JsonResponse({'error': 'Email y mensaje son obligatorios'}, status=400)
+        if not re.match(EMAIL_REGEX, email):
+            return JsonResponse({'error': 'Correo inválido'}, status=400)
+
+        contacto = ContactoCliente.objects.create(
+            cliente=cliente,
+            email=email,
+            mensaje=mensaje
+        )
+        return JsonResponse({'message': 'Mensaje enviado con éxito'}, status=201)
+
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

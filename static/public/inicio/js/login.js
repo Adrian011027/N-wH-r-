@@ -4,6 +4,29 @@ export function getCSRFToken() {
   return input ? input.value : '';
 }
 
+/* -------- Mostrar/Ocultar contraseña -------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const pwd = document.getElementById("password");
+  const btn = document.querySelector(".toggle-password");
+
+  if (pwd && btn) {
+    const icon = btn.querySelector("i");
+
+    btn.addEventListener("click", () => {
+      const oculto = pwd.type === "password";
+      pwd.type = oculto ? "text" : "password";
+
+      icon.classList.toggle("fa-eye");
+      icon.classList.toggle("fa-eye-slash");
+
+      btn.setAttribute(
+        "aria-label",
+        oculto ? "Ocultar contraseña" : "Mostrar contraseña"
+      );
+    });
+  }
+});
+
 /* -------- envío del formulario de login -------- */
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -20,30 +43,28 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   try {
     const res = await fetch("/login-client/", {
       method: "POST",
-      credentials: "same-origin",          // envía las cookies (csrftoken y sessionid)
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCSRFToken(),     // token correcto
+        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({ username, password }),
     });
 
-    const data = await res.json().catch(() => ({})); // por si la respuesta no es JSON
+    const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      // 1) Obtener el ID de cliente
       const idRes = await fetch(`/api/cliente_id/${username}/`, {
-        credentials: "same-origin"
+        credentials: "same-origin",
       });
       if (idRes.ok) {
         const { id } = await idRes.json();
-        localStorage.setItem('clienteId', id);
+        localStorage.setItem("clienteId", id);
       } else {
         console.warn("No pude recuperar el clienteId");
       }
 
-      // 2) Refrescar para que el resto de scripts vean el ID
-      window.location.reload();          // 🔁 recarga la página
+      window.location.reload();
     } else {
       errorBox.textContent = `❌ ${data.error || "Error desconocido"}`;
     }
