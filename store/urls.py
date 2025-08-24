@@ -7,16 +7,12 @@ from .views.reset_password import (
     solicitar_reset, reset_password_confirm, reset_password_submit,
 )
 
-# ─────────── Vistas públicas / dashboard ───────────
+# ─────────── Auth con JWT ───────────
 from .views.views import (
     index, genero_view, registrarse,
-    alta, lista_productos, editar_producto,
-    get_categorias, create_categoria, update_categoria, delete_categoria,
-    login_user, logout_user,
-    login_client, logout_client, perfil_cliente,
-    dashboard_clientes, editar_cliente, dashboard_categorias,
+    login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria   # 👈 ya devuelven JWT
 )
-
+from .utils.jwt_helpers import generate_access_token, decode_jwt, generate_refresh_token
 # ─────────── Carrito ───────────
 from .views.carrito import (
     create_carrito, detalle_carrito_cliente, delete_producto_carrito,
@@ -32,7 +28,7 @@ from .views.client import (
     create_client, update_client, delete_client, send_contact,
 )
 
-# ─────────── Usuarios ───────────
+# ─────────── Usuarios (admin) ───────────
 from .views.users import create_user, get_user, update_user, delete_user
 
 # ─────────── Productos ───────────
@@ -53,6 +49,12 @@ from .views.orden import (
     eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto
 )
 
+
+# ─────────── categorias ───────────
+from .views.orden import (
+    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -60,25 +62,15 @@ urlpatterns = [
     path("recuperar/<uidb64>/<token>/",        reset_password_confirm, name="cliente_reset_password_confirm"),
     path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,  name="cliente_reset_password_submit"),
 
-    # ---------- Front-end ----------
+    # ---------- Front-end público ----------
     path("",                           index,          name="index"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
 
-    # ---------- Cliente ----------
-    path("login-client/",  login_client,  name="login_client"),
-    path("logout-client/", logout_client, name="logout_client"),
-    path("perfil/",        perfil_cliente, name="perfil_cliente"),
-
-    # ---------- Dashboard ----------
-    path("dashboard/login/",   login_user,            name="login_user"),
-    path("dashboard/logout/",  logout_user,           name="logout_user"),
-    path("dashboard/productos/",                 lista_productos,      name="dashboard_productos"),
-    path("dashboard/productos/crear/",           alta,                 name="dashboard_alta"),
-    path("dashboard/productos/editar/<int:id>/", editar_producto,      name="editar_producto"),
-    path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes"),
-    path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente"),
-    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),  # NUEVO PANEL
+    # ---------- Auth (JWT) ----------
+    path("auth/login_user/",   login_user,    name="login_user"),
+    path("auth/login_client/", login_client,  name="login_client"),
+    path("auth/refresh/",      refresh_token, name="refresh_token"),
 
     # ---------- Categorías API ----------
     path("api/categorias/",                     get_categorias,    name="get_categorias"),
@@ -86,7 +78,7 @@ urlpatterns = [
     path("api/categorias/actualizar/<int:id>/", update_categoria,  name="update_categoria"),
     path("api/categorias/eliminar/<int:id>/",   delete_categoria,  name="delete_categoria"),
 
-    # ---------- Carrito (páginas) ----------
+    # ---------- Carrito (páginas públicas) ----------
     path("carrito/",         carrito_publico,  name="ver_carrito"),
     path("carrito/cliente/", carrito_cliente,  name="carrito_cliente"),
 
@@ -101,8 +93,20 @@ urlpatterns = [
     path("api/carrito/<int:cliente_id>/item/<int:variante_id>/actualizar/", actualizar_cantidad_producto, name="actualizar_cantidad_producto"),
     path("api/carrito/<int:cliente_id>/item/<int:variante_id>/eliminar/",   delete_producto_carrito,     name="delete_producto_carrito"),
 
-    # ---------- Alias rápido (lo tenías) ----------
-    path("create-client/", create_client, name="create_client"),  # ← REINTEGRADO
+    # ---------- Clientes ----------
+    path("clientes/",                 get_all_clients, name="get_all_clients"),
+    path("clientes/<int:id>/",        detalle_client,  name="detalle_client"),
+    path("clientes/crear/",           create_client,   name="create_client"),
+    path("clientes/update/<int:id>/", update_client,   name="update_client"),
+    path("clientes/delete/<int:id>/", delete_client,   name="delete_client"),
+    path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
+    path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
+
+    # ---------- Usuarios (solo admin JWT) ----------
+    path("user/get/",             get_user,    name="get_user"),
+    path("user/create/",          create_user, name="create_user"),
+    path("user/update/<int:id>/", update_user, name="update_user"),
+    path("user/delete/<int:id>/", delete_user, name="delete_user"),
 
     # ---------- Productos ----------
     path("producto/<int:id>/",                      detalle_producto,  name="detalle_producto"),
@@ -113,29 +117,11 @@ urlpatterns = [
     path("api/productos/delete/all/",               delete_all_productos, name="delete_all_productos"),
     path("api/variantes/update/<int:variante_id>/", update_variant,    name="update_variant"),
 
-    # ---------- Clientes ----------
-    path("clientes/",                get_all_clients, name="get_all_clients"),
-    path("clientes/<int:id>/",       detalle_client,  name="detalle_client"),
-    path("clientes/crear/",          create_client,   name="create_client"),
-    path("clientes/update/<int:id>/", update_client,  name="update_client"),
-    path("clientes/delete/<int:id>/", delete_client,  name="delete_client"),
-    path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
-    path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
-
-    # ---------- Usuarios ----------
-    path("user/get/",             get_user,    name="get_user"),
-    path("user/create/",          create_user, name="create_user"),
-    path("user/update/<int:id>/", update_user, name="update_user"),
-    path("user/delete/<int:id>/", delete_user, name="delete_user"),
-
     # ---------- Wishlist ----------
     path("wishlist/<int:id_cliente>/",       wishlist_detail, name="wishlist_detail"),
     path("wishlist/all/<int:id_cliente>/",   wishlist_all,    name="wishlist_all"),
     path("api/productos/<int:id_producto>/", producto_tallas, name="producto_tallas"),
     path("api/productos_por_ids/",           productos_por_ids, name="productos_por_ids"),
-
-    # ---------- Alias antiguo ----------
-    path("registro/", alta, name="alta"),
 
     # ---------- Orden ----------
     path("ordenar/<int:carrito_id>/",           mostrar_formulario_confirmacion, name="mostrar_formulario_confirmacion"),

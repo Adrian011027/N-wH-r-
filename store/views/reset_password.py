@@ -1,20 +1,22 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
-from django.core.mail import EmailMultiAlternatives  # ✅ mejor que send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from store.models import Cliente
+import threading
 
 
+# ───────────────────────────────────────────────
+# Solicitar reset
+# ───────────────────────────────────────────────
 def solicitar_reset(request):
-    """Muestra el formulario y envía el enlace de recuperación."""
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
 
-        # Ajusta el campo si tu modelo usa `email` en lugar de `username`
         cliente = Cliente.objects.filter(username=email).first()
         if not cliente:
             return render(
@@ -23,7 +25,6 @@ def solicitar_reset(request):
                 {"error": "❌ Correo no registrado."}
             )
 
-        # Generar token y enlace seguro
         uidb64 = urlsafe_base64_encode(force_bytes(cliente.pk))
         token  = default_token_generator.make_token(cliente)
         link   = request.build_absolute_uri(
@@ -31,20 +32,11 @@ def solicitar_reset(request):
                     kwargs={"uidb64": uidb64, "token": token})
         )
 
-        context = {
-            "nombre": getattr(cliente, "nombre", "Cliente"),
-            "link": link,
-        }
+        context = {"nombre": getattr(cliente, "nombre", "Cliente"), "link": link}
 
-        # Renderizar versiones TXT y HTML
-        text_body = render_to_string(
-            "public/emails/reset_password_email.txt", context
-        )
-        html_body = render_to_string(
-            "public/emails/reset_password_email.html", context
-        )
+        text_body = render_to_string("public/emails/reset_password_email.txt", context)
+        html_body = render_to_string("public/emails/reset_password_email.html", context)
 
-        # Construir y enviar el correo
         email_msg = EmailMultiAlternatives(
             subject="Recuperación de contraseña – NöwHėrē",
             body=text_body,
@@ -56,11 +48,12 @@ def solicitar_reset(request):
 
         return render(request, "public/password/confirmacion-envio-correo.html")
 
-    # GET: mostrar formulario
     return render(request, "public/password/recuperar-password.html")
 
 
-# 2. Confirmar enlace (muestra formulario si token válido)
+# ───────────────────────────────────────────────
+# Confirmar enlace
+# ───────────────────────────────────────────────
 def reset_password_confirm(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -77,6 +70,9 @@ def reset_password_confirm(request, uidb64, token):
         return render(request, "public/password/recuperar-invalid-token.html")
 
 
+# ───────────────────────────────────────────────
+# Guardar nueva contraseña
+# ───────────────────────────────────────────────
 def reset_password_submit(request, uidb64, token):
     if request.method == "POST":
         try:
@@ -101,15 +97,15 @@ def reset_password_submit(request, uidb64, token):
                               {"uidb64": uidb64, "token": token,
                                "error": "Las contraseñas no coinciden."})
 
-            # ¡Ahora sí!
-            cliente.set_password(pass1)   # <-- cifra de forma correcta
+            cliente.set_password(pass1)
             cliente.save()
             return render(request, "public/password/recuperar-exito.html")
 
     return render(request, "public/password/recuperar-invalid-token.html")
 
-# Al final del archivo reset_password.py (o en otro utils.py si prefieres)
-import threading
 
+# ───────────────────────────────────────────────
+# Helper: enviar correo en segundo plano
+# ───────────────────────────────────────────────
 def enviar_correo_async(email_msg):
     threading.Thread(target=email_msg.send, kwargs={"fail_silently": False}).start()
