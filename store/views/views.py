@@ -10,7 +10,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
-from .decorators import jwt_required
+from .decorators import jwt_role_required
 
 
 # ───────────────────────────────────────────────
@@ -102,7 +102,7 @@ def login_client(request):
 # ───────────────────────────────────────────────
 # CRUD Categorías (solo admin con JWT)
 # ───────────────────────────────────────────────
-@jwt_required
+@jwt_role_required
 @require_GET
 def get_categorias(request):
     return JsonResponse(
@@ -112,7 +112,7 @@ def get_categorias(request):
 
 
 @csrf_exempt
-@jwt_required
+@jwt_role_required
 @require_http_methods(["POST"])
 def create_categoria(request):
     if request.user_role != "admin":
@@ -127,7 +127,7 @@ def create_categoria(request):
 
 
 @csrf_exempt
-@jwt_required
+@jwt_role_required
 @require_http_methods(["POST"])
 def update_categoria(request, id):
     if request.user_role != "admin":
@@ -144,7 +144,7 @@ def update_categoria(request, id):
 
 
 @csrf_exempt
-@jwt_required
+@jwt_role_required
 @require_http_methods(["DELETE"])
 def delete_categoria(request, id):
     if request.user_role != "admin":
