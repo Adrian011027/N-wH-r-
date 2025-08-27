@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Usuario
-from .decorators import jwt_required
+from .decorators import jwt_role_required
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -10,7 +10,7 @@ import json
 # ───────────────────────────────────────────────
 # Obtener todos los usuarios (solo admin)
 # ───────────────────────────────────────────────
-@jwt_required
+@jwt_role_required()
 @require_GET
 def get_user(request):
     if request.user_role != "admin":
@@ -25,7 +25,7 @@ def get_user(request):
 # Crear usuario (solo admin)
 # ───────────────────────────────────────────────
 @csrf_exempt
-@jwt_required
+@jwt_role_required
 @require_http_methods(["POST"])
 def create_user(request):
     if request.user_role != "admin":
@@ -53,7 +53,7 @@ def create_user(request):
 # ───────────────────────────────────────────────
 # Actualizar usuario (solo admin)
 # ───────────────────────────────────────────────
-@jwt_required
+@jwt_role_required
 @require_http_methods(["POST"])
 def update_user(request, id):
     if request.user_role != "admin":
@@ -82,7 +82,7 @@ def update_user(request, id):
 # ───────────────────────────────────────────────
 # Eliminar usuario (solo admin)
 # ───────────────────────────────────────────────
-@jwt_required
+@jwt_role_required
 @require_http_methods(["DELETE"])
 def delete_user(request, id):
     if request.user_role != "admin":

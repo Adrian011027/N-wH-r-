@@ -2,7 +2,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Cliente, ContactoCliente
-from .decorators import login_required_user, login_required_client
+from .decorators import login_required_user, login_required_client, jwt_role_required
 from django.db.models import Prefetch
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password 
@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
 # ========= GET ALL CLIENTS ========= #
+jwt_role_required()
 @require_GET
 def get_all_clients(request):
     try:

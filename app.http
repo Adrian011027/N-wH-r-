@@ -7,6 +7,17 @@ Content-Type: application/json
   "password": "123456"
 }
 
+
+### LOGIN CLIENTE
+POST http://127.0.0.1:8000/auth/login_client/
+Content-Type: application/json
+
+{
+  "username": "cliente1",
+  "password": "mipassword"
+}
+
+###
 POST http://127.0.0.1:8000/api/categorias/crear/
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTU5ODg0NTcsImlhdCI6MTc1NTk4MTI1N30.f4uxrGiFfFjBt8taUjCiOIctPPPq7pVDwRK-khSen6w
@@ -61,7 +72,7 @@ DELETE http://127.0.0.1:8000/api/productos/delete/2/
 GET http://127.0.0.1:8000/user/get/
 
 ### GET clientes
-GET http://127.0.0.1:8000/clientes/1
+GET http://127.0.0.1:8000/clientes/
 
 ### Crear cliente
 
