@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
 # ========= GET ALL CLIENTS ========= #
-jwt_role_required()
+#@jwt_role_required()
 @require_GET
 def get_all_clients(request):
     try:

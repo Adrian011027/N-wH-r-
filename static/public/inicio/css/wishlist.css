@@ -1,5 +1,3 @@
-
-
 /* 1. Tarjeta de producto (asegúrate de que sea posicionable) */
 .categoria-card {
   position: relative;
@@ -30,7 +28,6 @@
 .wishlist-btn.pop i { animation: clickPop .25s ease both; }
 
 /* 3. PANEL – se desliza desde la derecha */
-/* Wishlist panel lateral */
 #wishlist-panel {
   position: fixed;
   top: 0; right: -100%;
@@ -46,12 +43,12 @@
 
 /* ——— Blur cuando el selector está abierto ——— */
 #wishlist-panel .wishlist-content.blurred{
-  filter: blur(2px);          /* elige la intensidad */
-  pointer-events: none;       /* evita clics sobre elementos borrosos */
-  transition: filter 1s;    /* suave */
+  filter: blur(2px);
+  pointer-events: none;
+  transition: filter 1s;
 }
 
-/* 4. Overlay común para todos los paneles */
+/* 4. Overlay común */
 .page-overlay {
   position: fixed;
   inset: 0;
@@ -66,14 +63,13 @@
   visibility: visible;
 }
 
-/* 5. Contenido de la wishlist (vista de catálogo) */
+/* 5. Contenido de la wishlist */
 .wishlist-img-col img {
   width: 100px;
   height: 100px;
   object-fit: cover;
   border-radius: 6px;
 }
-
 .wishlist-item img {
   width: 200px;
   height: 200px;
@@ -84,14 +80,11 @@
   margin: 0;
   font-size: 14px;
 }
-
-
 .wishlist-item .categoria {
   font-size: 12px;
   color: #666;
   margin: 0;
 }
-
 .wishlist-actions .remove-item {
   background: none;
   border: none;
@@ -100,13 +93,13 @@
   cursor: pointer;
   transition: color 0.2s ease;
 }
-
 .wishlist-actions .remove-item:hover {
   color: #e00;
 }
 
-/* Celulares (≤ 480 px) – wishlist a pantalla completa */
-@media (max-width: 480px) {
+/* Responsive panel completo */
+@media (max-width: 480px),
+       (max-width: 768px) {
   #wishlist-panel {
     width: 100vw;
     max-width: none;
@@ -116,29 +109,17 @@
   #wishlist-panel.open { right: 0; }
 }
 
-/* Celulares (≤ 768 px) – wishlist a pantalla completa */
-@media (max-width: 768px) {
-  #wishlist-panel {
-    width: 100vw;
-    max-width: none;
-    right: -100vw;
-    padding: 20px 24px;
-  }
-  #wishlist-panel.open { right: 0; }
-}
-
-/* ────────────────────────────────────────────────────────────────
-   6. NUEVA MAQUETACIÓN PARA LAS FILAS DENTRO DEL PANEL LATERAL
-      (imagen 1×1, texto abajo, cantidad y botón “Agregar”)
-────────────────────────────────────────────────────────────────── */
+/* 6. Maquetación de filas en panel lateral */
 #wishlist-panel .wishlist-item {
-  display: grid;                              /* Grid en lugar de flex    */
-  grid-template-columns: 90px 1fr 110px;      /* img | texto | acciones   */
+  display: grid;
+  grid-template-columns: 90px 1fr;
   gap: 12px;
-  align-items: end;                           /* alinea todo abajo        */
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding: 1rem 0;
 }
 
-/* Miniatura cuadrada */
+/* Miniatura */
 #wishlist-panel .wishlist-item img {
   width: 90px;
   height: 90px;
@@ -146,7 +127,7 @@
   border-radius: 6px;
 }
 
-/* Texto (nombre + precio) */
+/* Texto */
 #wishlist-panel .wishlist-details {
   display: flex;
   flex-direction: column;
@@ -161,141 +142,102 @@
   font-weight: 600;
 }
 
-/* Columna derecha: cantidad y botón */
+/* Acciones en fila */
 #wishlist-panel .wishlist-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
   align-items: center;
-}
-#wishlist-panel .qty {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  overflow: hidden;
-}
-#wishlist-panel .qty button {
-  background: none;
-  border: none;
-  width: 26px;
-  height: 26px;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-}
-#wishlist-panel .qty input {
-  width: 34px;
-  text-align: center;
-  border: none;
-  background: #f8f8f8;
-  font-size: 12px;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+  margin-top: 6px;
 }
 
+/* Botón agregar */
 #wishlist-panel .btn-carrito-mini {
   background: #000;
   color: #fff;
   border: none;
-  padding: 6px 8px;
+  padding: 6px 10px;
   font-size: 11px;
   border-radius: 4px;
   cursor: pointer;
-  width: 100%;
+  transition: background 0.25s ease, transform 0.25s ease;
 }
-#wishlist-panel .btn-carrito-mini:hover { background: #333; }
+#wishlist-panel .btn-carrito-mini:hover {
+  background: #333;
+  transform: scale(1.03);
+}
 
-/* Responsive para panel lateral (≤ 480 px) */
+/* Responsive para items */
 @media (max-width: 480px) {
   #wishlist-panel .wishlist-item {
     grid-template-columns: 80px 1fr;
     grid-template-areas:
       "img texto"
-      "img acciones";
+      "acciones acciones";
   }
-  #wishlist-panel .wishlist-item img       { grid-area: img; }
-  #wishlist-panel .wishlist-details        { grid-area: texto; }
-  #wishlist-panel .wishlist-actions        {
+  #wishlist-panel .wishlist-item img { grid-area: img; }
+  #wishlist-panel .wishlist-details { grid-area: texto; }
+  #wishlist-panel .wishlist-actions {
     grid-area: acciones;
     flex-direction: row;
+    justify-content: space-between;
   }
-  #wishlist-panel .wishlist-actions .qty   { margin-right: 6px; }
 }
 
-/* ──────────────────────────────────────────────────────────────
-   7. Selector de talla que se despliega sobre el botón AGREGAR
-──────────────────────────────────────────────────────────────── */
-/* Panel entero que cubre el interior del wishlist */
-/* Selector de talla pegado al panel */
-/* ───── Selector de talla con fade-in y slide-up ───── */
+/* 7. Selector de talla */
 :root { --wishlist-width: 450px; }
-
-.size-picker.slide-up-full{
+.size-picker.slide-up-full {
   position: fixed;
   bottom: 0;
-  left: 0;            /* el JS luego ajusta left + width */
+  left: 0;
   width: var(--wishlist-width);
   max-width: 100vw;
-
   height: 40%;
   background: #fff;
   box-shadow: 0 -4px 20px rgba(0,0,0,.15);
   z-index: 10000;
-
-  /* punto de partida: abajo + transparente */
   transform: translateY(100%);
   opacity: 0;
-
-  /* nueva animación: sube y se desvanece */
   animation: pickerFadeSlideUp .35s ease-out forwards;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
-@keyframes pickerFadeSlideUp{
+@keyframes pickerFadeSlideUp {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-
-/* en móviles el ancho ya lo haces 100 vw */
 @media (max-width: 768px){
-  .size-picker.slide-up-full{ width: 100vw; }
+  .size-picker.slide-up-full { width: 100vw; }
 }
-
-/* ─── salida vertical (default) ─── */
-.size-picker.fade-out-down{
+.size-picker.fade-out-down {
   animation: pickerFadeSlideDown .30s ease-in forwards;
 }
-@keyframes pickerFadeSlideDown{
-  from{ transform: translateY(0);    opacity:1; }
+@keyframes pickerFadeSlideDown {
+  from{ transform: translateY(0); opacity:1; }
   to  { transform: translateY(100%); opacity:0; }
 }
-
-/* ─── salida horizontal (con el panel) ─── */
-.size-picker.fade-out-side{
-  animation: pickerFadeSlideSide .1s ease forwards;   /* ← mismos .3s ease */
+.size-picker.fade-out-side {
+  animation: pickerFadeSlideSide .1s ease forwards;
+}
+@keyframes pickerFadeSlideSide {
+  from { transform: translateX(0); opacity:1; }
+  to   { transform: translateX(100%); opacity:0; }
 }
 
-@keyframes pickerFadeSlideSide{
-  from { transform: translateX(0);    opacity:1; }
-  to   { transform: translateX(100%); opacity:0; }   /* → hacia la derecha */
-}
-
-
-/* interior para maquetar título y tallas */
+/* Interior selector */
 .size-picker-inner {
   text-align: center;
   width: 100%;
   padding: 1rem 2rem;
 }
-
 .size-picker-inner h3 {
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
 }
-
 .size-options {
   display: flex;
   flex-wrap: wrap;
@@ -303,7 +245,6 @@
   justify-content: center;
   margin-bottom: 1rem;
 }
-
 .size-option {
   padding: .5rem 1.1rem;
   border: 1px solid #000;
@@ -313,7 +254,6 @@
 }
 .size-option:hover,
 .size-option.chosen { background: #000; color: #fff; }
-
 .close-size-picker {
   border: none;
   background: transparent;
@@ -321,13 +261,7 @@
   cursor: pointer;
 }
 
-/* Animación: sube desde abajo hasta ocupar solo su 40 % */
-@keyframes slideUp40 {
-  from { transform: translate(-50%, 100%); }
-  to   { transform: translate(-50%, 0);   }
-}
-
-.in-cart-note{
+.in-cart-note {
   display:block;
   font-size:11px;
   color:#0a0;
@@ -346,20 +280,14 @@
   pointer-events: none;
   z-index: 9999;
   transition: opacity 0.3s ease, transform 0.3s ease;
-
-  /* Modo escritorio – aparece dentro del wishlist */
   right: 110px;
   bottom: 40px;
   transform: translateY(20px);
 }
-
-/* Animación de aparición */
 .toast-message.show {
   opacity: 1;
   transform: translateY(0);
 }
-
-/* Pantallas pequeñas: vuelve al centro inferior */
 @media (max-width: 768px) {
   .toast-message {
     left: 50%;
@@ -370,22 +298,12 @@
   .toast-message.show {
     transform: translateX(-50%) translateY(0);
   }
-
   #wishlist-panel .login-header {
     padding: 0.75rem 1rem;
     min-height: 56px;
   }
-
-  #wishlist-panel .login-header h2 {
-    font-size: 1rem;
-  }
-
-  #wishlist-panel .close-btn {
-    font-size: 20px;
-    top: -2px;
-  }
-
-  
+  #wishlist-panel .login-header h2 { font-size: 1rem; }
+  #wishlist-panel .close-btn { font-size: 20px; top: -2px; }
 }
 
 .wishlist-empty-state {
@@ -397,256 +315,38 @@
   flex-direction: column;
   align-items: center;
 }
-
 .wishlist-empty-state svg {
   width: 56px;
   height: 56px;
   stroke: #bbb;
   margin-bottom: 1.5rem;
 }
-
 .wishlist-empty-state h3 {
   font-size: 1.75rem;
   font-family: Georgia, serif;
   font-weight: 400;
   margin: 1rem 0 0.75rem;
 }
-
 .wishlist-empty-state p {
   font-size: .95rem;
   color: #555;
   margin-bottom: .5rem;
 }
-
 .wishlist-links a {
   color: #2a2a8f;
   text-decoration: underline;
   font-weight: 500;
 }
 
-
-/* ============================
-   Contador de cantidad estilo detalles
-   ============================ */
-
-.qty {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
+/* ===============================
+   Animación para cambios de número
+   =============================== */
+@keyframes countChange {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
-.qty input {
-  width: 48px;
-  text-align: center;
-  font-size: 16px;
-  border: none;
-  background: transparent;
-  outline: none;
-  pointer-events: none;
-}
-
-/* Quitar flechas del input */
-.qty input::-webkit-outer-spin-button,
-.qty input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.qty input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-/* Botones + y - */
-.qty button {
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  width: 24px;
-  height: 24px;
-  line-height: 1;
-  padding: 0;
-  cursor: pointer;
-}
-.qty button:hover {
-  opacity: 0.7;
-}
-
-/* Icono de basura si cantidad = 1 */
-.qty button.trash {
-  font-size: 14px;
-  color: #000;
-}
-.qty button.trash i {
-  animation: fadeInIcon 0.2s ease-in;
-}
-.qty button.fade-out i {
-  animation: fadeOutIcon 0.2s ease-out;
-}
-
-@keyframes fadeInIcon {
-  from { opacity: 0; transform: scale(0.8); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes fadeOutIcon {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.8); }
-}
-
-/* ============================
-   Wishlist – Diseño Moderno
-   ============================ */
-
-/* Wishlist panel lateral */
-#wishlist-panel {
-  position: fixed;
-  top: 0; right: -100%;
-  width: 450px;
-  height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 8px rgba(0,0,0,.1);
-  overflow-y: auto;
-  z-index: 9999;
-  transition: right .3s ease;
-}
-#wishlist-panel.open { right: 0; }
-
-
-/* Tarjeta de producto */
-.wishlist-item {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-}
-.wishlist-img-col img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-/* Info del producto */
-.wishlist-info-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.wishlist-info-col h4 {
-  font-size: 14px;
-  margin: 0 0 4px;
-}
-.wishlist-info-col .precio {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-/* Acciones: contador + botón */
-.wishlist-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.qty-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  overflow: hidden;
-  height: 30px;
-}
-.qty-wrap input.qty {
-  width: 38px;
-  text-align: center;
-  font-size: 14px;
-  border: none;
-  background: #f9f9f9;
-  pointer-events: none;
-}
-.qty-wrap button {
-  border: none;
-  background: transparent;
-  width: 26px;
-  height: 26px;
-  font-size: 16px;
-  cursor: pointer;
-}
-.qty-wrap button:hover { opacity: 0.75; }
-
-/* Botón agregar */
-.btn-carrito-mini {
-  background: #000;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.btn-carrito-mini:hover {
-  background: #333;
-}
-
-/* Ya en carrito */
-.in-cart-note {
-  font-size: 12px;
-  color: #0a0;
-}
-
-/* Eliminar item */
-.remove-item {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #999;
-  cursor: pointer;
-}
-.remove-item:hover {
-  color: #e00;
-}
-
-.qty-wrap button.trash {
-  font-size: 14px;
-  color: #000;
-}
-
-.qty-wrap button.trash i {
-  pointer-events: none;
-  animation: fadeInIcon 0.2s ease-in;
-}
-
-.qty-wrap button.fade-out i {
-  animation: fadeOutIcon 0.2s ease-out;
-}
-
-@keyframes fadeInIcon {
-  from { opacity: 0; transform: scale(0.8); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fadeOutIcon {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.8); }
-}
-
-
-/* Responsive */
-@media (max-width: 768px) {
-  #wishlist-panel {
-    width: 100vw;
-    padding: 20px;
-  }
-  .wishlist-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .wishlist-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
+.wishlist-count.changed {
+  animation: countChange 0.25s ease;
 }

@@ -13,8 +13,8 @@ import json
 @jwt_role_required()
 @require_GET
 def get_user(request):
-    if request.user_role != "admin":
-        return JsonResponse({"error": "Solo administradores"}, status=403)
+    #if request.user_role != "admin":
+    #    return JsonResponse({"error": "Solo administradores"}, status=403)
 
     usuarios = Usuario.objects.all()
     data = [{"id": u.id, "username": u.username, "role": u.role} for u in usuarios]
@@ -25,7 +25,7 @@ def get_user(request):
 # Crear usuario (solo admin)
 # ───────────────────────────────────────────────
 @csrf_exempt
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["POST"])
 def create_user(request):
     if request.user_role != "admin":
@@ -53,7 +53,7 @@ def create_user(request):
 # ───────────────────────────────────────────────
 # Actualizar usuario (solo admin)
 # ───────────────────────────────────────────────
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["POST"])
 def update_user(request, id):
     if request.user_role != "admin":
@@ -82,7 +82,7 @@ def update_user(request, id):
 # ───────────────────────────────────────────────
 # Eliminar usuario (solo admin)
 # ───────────────────────────────────────────────
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["DELETE"])
 def delete_user(request, id):
     if request.user_role != "admin":

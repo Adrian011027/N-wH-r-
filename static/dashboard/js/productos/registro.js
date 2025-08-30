@@ -1,3 +1,4 @@
+// registro.js – dashboard alta producto con JWT
 document.addEventListener('DOMContentLoaded', () => {
   const form            = document.getElementById('productoForm');
   const mensaje         = document.getElementById('mensaje');
@@ -35,50 +36,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 🔃 Cargar categorías desde API
-  // 🔃 Cargar categorías desde API
-(async () => {
-  try {
-    const urlCategorias = form.dataset.catsUrl;
-    const res = await fetch(urlCategorias);
-    if (!res.ok) throw new Error('No se pudo obtener la lista de categorías');
-    const cats = await res.json();
-    categoriaSelect.innerHTML = '<option value="">— selecciona —</option>';
-    cats.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = c.nombre;
-      categoriaSelect.appendChild(opt);
-    });
+  // 🔃 Cargar categorías desde API con JWT
+  (async () => {
+    try {
+      const urlCategorias = form.dataset.catsUrl;
+      const token = localStorage.getItem('access'); // 🔑 token JWT
+      if (!token) throw new Error('No tienes sesión activa');
 
-    // Agrega una fila de talla por defecto
-    tallasContainer.innerHTML = '';
-    tallasContainer.appendChild(crearFilaTalla());
-  } catch (err) {
-    alert(err.message);
-  }
-})();
+      const res = await fetch(urlCategorias, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error('No se pudo obtener la lista de categorías');
+      const cats = await res.json();
 
+      categoriaSelect.innerHTML = '<option value="">— selecciona —</option>';
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        categoriaSelect.appendChild(opt);
+      });
 
-  // 🚀 Enviar formulario
+      // Agrega una fila de talla por defecto
+      tallasContainer.innerHTML = '';
+      tallasContainer.appendChild(crearFilaTalla());
+    } catch (err) {
+      alert(err.message);
+    }
+  })();
+
+  // 🚀 Enviar formulario con JWT
   form.addEventListener('submit', async e => {
     e.preventDefault();
     mensaje.textContent = '';
 
     const formData = new FormData(form);
+    const token = localStorage.getItem('access');
+    if (!token) {
+      mensaje.style.color = 'red';
+      mensaje.textContent = '❌ No tienes sesión iniciada.';
+      return;
+    }
 
     try {
       const resp = await fetch(form.getAttribute('action'), {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
 
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || 'Error desconocido');
-      }
-
       const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Error desconocido');
+
       mensaje.style.color = 'green';
       mensaje.textContent = `✅ Producto #${data.id} creado con éxito`;
 

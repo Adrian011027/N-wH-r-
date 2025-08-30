@@ -55,6 +55,12 @@ from .views.orden import (
     eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto
 )
 
+# ─────────── Dashboard ───────────
+from .views.views import (
+    lista_productos, alta, editar_producto,
+    dashboard_clientes, editar_cliente, dashboard_categorias, login_user_page,    
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -133,6 +139,15 @@ urlpatterns = [
     path("orden/procesando/link/<str:token>/",  procesar_por_link,               name="procesar_por_link"),
     path("orden/delete/<int:id>/",              eliminar_orden,                  name="eliminar_orden"),
     path("orden/delete/<int:orden_id>/<int:producto_id>", eliminar_producto,     name="eliminar_producto"),
+
+       # ---------- Dashboard ----------
+    path("dashboard/login/",                     login_user_page,           name="login_user"),
+    path("dashboard/productos/",                 lista_productos,      name="dashboard_productos"),
+    path("dashboard/productos/crear/",           alta,                 name="dashboard_alta"),
+    path("dashboard/productos/editar/<int:id>/", editar_producto,      name="editar_producto"),
+    path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes"),
+    path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente"),
+    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),  # NUEVO PANEL
 ]
 
 if settings.DEBUG:

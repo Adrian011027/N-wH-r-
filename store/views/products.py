@@ -5,6 +5,7 @@ from ..models import Atributo, AtributoValor, Producto, Categoria, Variante
 from .decorators import login_required_user, login_required_client
 from django.db.models import Prefetch
 from decimal import Decimal
+from .decorators import jwt_role_required
 import json
 
 from django.views.decorators.csrf import csrf_exempt

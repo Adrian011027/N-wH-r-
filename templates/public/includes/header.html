@@ -1,8 +1,6 @@
 {% load static %}
 <!-- HEADER -->
-{% load static %}
-<!-- HEADER -->
-<header data-auth="{{ request.session.cliente_username|yesno:'true,false' }}">
+<header>
   <div class="header-left fade-in">
     <button id="btn-burger" class="burger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -19,7 +17,7 @@
   <div class="header-right fade-in">
     <button id="btn-contacto" class="btn-contacto">Contáctanos</button>
 
-    <!-- ❤️ Wishlist (SIEMPRE visible) -->
+    <!-- ❤️ Wishlist -->
     <button id="btn-wishlist-panel" class="user-icon" aria-label="Ver wishlist">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
           fill="none" stroke="currentColor" stroke-width="1.5"
@@ -29,46 +27,41 @@
       <span id="wishlist-count" class="wishlist-count" hidden>0</span>
     </button>
 
+    <!-- 🛒 Carrito -->
+    <button id="btn-cart-panel" class="user-icon" aria-label="Ver carrito"
+            onclick="window.location.href='{% url 'ver_carrito' %}'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M6 2l1 4h10l1-4"/>
+        <path d="M3 6h18l-1.5 12.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5L3 6z"/>
+        <path d="M9 10v2"/>
+        <path d="M15 10v2"/>
+      </svg>
+    </button>
 
-    <!-- 🛒 Carrito (SIEMPRE visible) -->
-    <button id="btn-cart-panel" class="user-icon" aria-label="Ver carrito"onclick="window.location.href='{% url 'ver_carrito' %}'">
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-       fill="none" stroke="currentColor" stroke-width="1.5"
-       stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-    <path d="M6 2l1 4h10l1-4"/>
-    <path d="M3 6h18l-1.5 12.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5L3 6z"/>
-    <path d="M9 10v2"/>
-    <path d="M15 10v2"/>
-  </svg>
-</button>
+    <!-- ▼ Ambos botones, se muestran/ocultan con JS -->
+    <!-- Icono login (invitado) -->
+    <button id="btn-login" class="user-icon" aria-label="Iniciar sesión" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+    </button>
 
-
-
-   {% if request.session.cliente_username %}
-  <!-- ▼ Menú de usuario (logueado) -->
-  <button id="btn-user-menu" class="user-icon" aria-label="Menú de usuario">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-         fill="none" stroke="currentColor" stroke-width="1.5"
-         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-    </svg>
-  </button>
-{% else %}
-  <!-- ▼ Icono login (invitado) -->
-  <button id="btn-login" class="user-icon" aria-label="Iniciar sesión">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-         fill="none" stroke="currentColor" stroke-width="1.5"
-         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-    </svg>
-  </button>
-{% endif %}
-
+    <!-- Icono usuario (logueado) -->
+    <button id="btn-user-menu" class="user-icon" aria-label="Menú de usuario" style="display:none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+    </button>
   </div>
 </header>
-
 
 <!-- NAV MENU -->
 <nav class="nav-menu">
@@ -88,20 +81,10 @@
     <h2>Llámenos</h2>
     <span id="close-contact-panel" class="close-btn">×</span>
   </div>
-
   <div class="contact-content">
     <p>Donde sea que esté, nuestro equipo estará encantado de atenderle.</p>
-
-    <div class="contact-line">
-      <i class="fa-solid fa-phone"></i>
-      <span>+52 332 211 8360</span>
-    </div>
-
-    <div class="contact-line">
-      <i class="fa-brands fa-whatsapp"></i>
-      <a href="https://wa.me/3322118360" target="_blank">WhatsApp</a>
-    </div>
-
+    <div class="contact-line"><i class="fa-solid fa-phone"></i><span>+52 332 211 8360</span></div>
+    <div class="contact-line"><i class="fa-brands fa-whatsapp"></i><a href="https://wa.me/3322118360" target="_blank">WhatsApp</a></div>
     <hr>
     <p><strong>¿Necesita ayuda?</strong></p>
     <ul class="contact-list">
@@ -119,26 +102,23 @@
     <h2>Identificación</h2>
     <span id="close-login-panel" class="close-btn">×</span>
   </div>
-
   <div class="login-section">
     <h3>Ya Tengo una Cuenta</h3>
     <span class="required-note">Campos requeridos*</span>
 
     <form id="loginForm" method="POST" action="#">
-      {% csrf_token %}
-      <label for="username">Iniciar sesión*</label>
-      <input type="text" id="username" name="username" required>
+      <label for="username">Usuario*</label>
+      <input type="text" id="username" required>
 
       <label for="password">Contraseña*</label>
-        <div class="password-wrapper"> 
-          <input type="password" id="password" name="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" >
-          <button type="button" class="toggle-password" aria-label="Mostrar contraseña" >
-            <i class="fa-regular fa-eye"></i>
-          </button>
-        </div>
+      <div class="password-wrapper">
+        <input type="password" id="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+          <i class="fa-regular fa-eye"></i>
+        </button>
+      </div>
 
-
-      <a href="{% url 'cliente_solicitar_reset' %}"" class="forgot-link">¿Olvidó su contraseña?</a>
+      <a href="{% url 'cliente_solicitar_reset' %}" class="forgot-link">¿Olvidó su contraseña?</a>
 
       <p class="login-alt-text">O use un enlace de acceso único para iniciar sesión:<br>
         <a href="{% url 'cliente_solicitar_reset' %}" class="email-login-link">Enviarme el enlace por correo electrónico</a>
@@ -148,9 +128,7 @@
       <p id="login-error" class="error-msg"></p>
     </form>
   </div>
-
   <hr>
-
   <div class="login-section">
     <h3>No tengo cuenta</h3>
     <p>Disfrute de beneficios adicionales y de una experiencia más intensa creando una cuenta personal.</p>
@@ -158,21 +136,18 @@
   </div>
 </div>
 
-<!-- CLIENTE PANEL MEJORADO -->
+<!-- CLIENTE PANEL -->
 <div id="cliente-panel" class="login-panel">
   <div class="login-header">
     <h2>Mi Perfil</h2>
     <span id="close-cliente-panel" class="close-btn">×</span>
   </div>
-
   <div class="login-section">
     <h3>Información de la cuenta</h3>
-    <p><i class="fa-regular fa-user"></i> <strong>Usuario:</strong> {{ request.session.cliente_username }}</p>
+    <p><i class="fa-regular fa-user"></i> <strong>Usuario:</strong> <span id="cliente-username"></span></p>
     <p><i class="fa-regular fa-envelope"></i> <strong>Email:</strong> (pendiente)</p>
   </div>
-
   <hr>
-
   <div class="login-section quick-links">
     <a href="/perfil/"><i class="fa-regular fa-id-card"></i> Editar perfil</a>
     <a href="/pedidos/"><i class="fa-solid fa-box"></i> Mis pedidos</a>
@@ -180,14 +155,11 @@
     <a href="/direccion/"><i class="fa-solid fa-location-dot"></i> Dirección</a>
     <a href="/contacto/"><i class="fa-regular fa-paper-plane"></i> Contáctanos</a>
   </div>
-
   <hr>
-
   <div class="login-section">
-    <form method="POST" action="{% url 'logout_client' %}">
-      {% csrf_token %}
-      <button type="submit" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
-    </form>
+    <a href="#" id="link-logout" class="logout-btn">
+      <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+    </a>
   </div>
 </div>
 
@@ -195,10 +167,8 @@
 <div id="wishlist-panel" class="login-panel">
   <div class="login-header">
     <h2 id="wishlist-header-title">Mis Favoritos</h2>
-
     <span id="close-wishlist-panel" class="close-btn">×</span>
   </div>
-
   <div class="login-section wishlist-content">
     <p>Cargando tus productos favoritos...</p>
   </div>
@@ -209,14 +179,59 @@
 
 <script>
   window.mostrarLoginPanel = function () {
-    const loginPanel = document.getElementById('login-panel'); // ✅ este es el panel real
+    const loginPanel = document.getElementById('login-panel');
     const overlay = document.querySelector('.page-overlay');
     if (loginPanel) loginPanel.classList.add('open');
     if (overlay) overlay.classList.add('active');
     document.body.classList.add('no-scroll');
   };
-
-  
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const isLogged  = !!localStorage.getItem("access");
+  const userId    = localStorage.getItem("user_id");
+  const btnLogin  = document.getElementById("btn-login");
+  const btnUser   = document.getElementById("btn-user-menu");
+  const clientePanel = document.getElementById("cliente-panel");
+
+  if (isLogged && userId) {
+    // mostrar botón de usuario, ocultar login
+    if (btnUser)  btnUser.style.display = "inline-flex";
+    if (btnLogin) btnLogin.style.display = "none";
+
+    // opcional: mostrar nombre en panel
+    const username = localStorage.getItem("username") || "";
+    if (username) {
+      document.getElementById("cliente-username").textContent = username;
+    }
+
+    // acción al abrir panel de usuario
+    btnUser?.addEventListener("click", () => {
+      clientePanel.classList.add("open");
+      document.querySelector(".page-overlay").classList.add("active");
+    });
+
+    // logout
+    document.getElementById("link-logout")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("role");
+      localStorage.removeItem("username");
+      window.location.reload();
+    });
+
+  } else {
+    // mostrar botón de login, ocultar usuario
+    if (btnLogin) btnLogin.style.display = "inline-flex";
+    if (btnUser)  btnUser.style.display = "none";
+
+    btnLogin?.addEventListener("click", () => {
+      mostrarLoginPanel();
+    });
+  }
+});
+</script>
 

@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.db.models import Prefetch
 from django.http import HttpResponseNotFound, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -96,7 +96,7 @@ def login_client(request):
 
     access  = generate_access_token(cliente.id, "cliente")
     refresh = generate_refresh_token(cliente.id)
-    return JsonResponse({"access": access, "refresh": refresh}, status=200)
+    return JsonResponse({"access": access, "refresh": refresh, "username": username}, status=200)
 
 
 # ───────────────────────────────────────────────
@@ -180,3 +180,87 @@ def refresh_token(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+
+#@jwt_role_required()
+def dashboard_categorias(request):
+    return render(request, "dashboard/categorias/lista.html")
+
+# ───────────────────────────────────────────────────────────────
+# Dashboard: productos
+# ───────────────────────────────────────────────────────────────
+#@jwt_role_required()
+def lista_productos(request):
+    return render(request, "dashboard/productos/lista.html")
+
+
+#@jwt_role_required()
+def alta(request):
+    return render(request, "dashboard/productos/registro.html")
+
+
+#@jwt_role_required()
+def editar_producto(request, id):
+    producto   = get_object_or_404(Producto, id=id)
+    categorias = Categoria.objects.all()
+    variantes  = (
+        producto.variantes
+        .prefetch_related("attrs__atributo_valor")
+        .all()
+    )
+
+    variantes_data = []
+    for v in variantes:
+        talla = next(
+            (
+                av.atributo_valor.valor
+                for av in v.attrs.all()
+                if av.atributo_valor.atributo.nombre.lower() == "talla"
+            ),
+            "—",
+        )
+        variantes_data.append({
+            "id"    : v.id,
+            "talla" : talla,
+            "precio": v.precio,
+            "stock" : v.stock,
+        })
+
+    return render(request, "dashboard/productos/editar.html", {
+        "producto"  : producto,
+        "categorias": categorias,
+        "variantes" : variantes_data,
+    })
+
+
+# ───────────────────────────────────────────────────────────────
+# Dashboard: clientes
+# ───────────────────────────────────────────────────────────────
+
+def dashboard_clientes(request):
+    return render(request, "dashboard/clientes/lista.html",
+                  {"clientes": Cliente.objects.all()})
+
+
+#@jwt_role_required()
+def editar_cliente(request, id):
+    cliente = get_object_or_404(Cliente, id=id)
+
+    if request.method == "GET":
+        return render(request, "dashboard/clientes/editar.html",
+                      {"cliente": cliente})
+
+    # POST
+    cliente.username  = request.POST.get("username")
+    cliente.correo    = request.POST.get("correo")
+    cliente.nombre    = request.POST.get("nombre")
+    cliente.telefono  = request.POST.get("telefono")
+    cliente.direccion = request.POST.get("direccion")
+    cliente.save()
+    return redirect("dashboard_clientes")
+
+
+
+def login_user_page(request):
+    return render(request, "dashboard/auth/login.html")

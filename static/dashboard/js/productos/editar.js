@@ -1,4 +1,4 @@
-/* editar.js */
+/* editar.js – dashboard editar producto con JWT */
 document.getElementById('editarForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -9,12 +9,21 @@ document.getElementById('editarForm').addEventListener('submit', async (e) => {
   const formData   = new FormData(form);
   const productoId = formData.get('id');
 
+  const token = localStorage.getItem('access'); // 🔑 JWT access token
+  if (!token) {
+    mensaje.style.color = 'red';
+    mensaje.textContent = '❌ No tienes sesión iniciada.';
+    return;
+  }
+
   try {
     /* 1. Actualiza el producto principal ----------------------- */
     const resProd = await fetch(`/api/productos/update/${productoId}/`, {
       method: 'POST',
-      credentials: 'same-origin',
-      body: formData
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData // mantiene multipart/form-data
     });
 
     const dataProd = await resProd.json();
@@ -31,9 +40,8 @@ document.getElementById('editarForm').addEventListener('submit', async (e) => {
 
       await fetch(`/api/variantes/update/${vId}/`, {
         method: 'POST',
-        credentials: 'same-origin',
         headers: {
-          'X-CSRFToken': getCSRFToken(),
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: new URLSearchParams({ stock, precio, precio_mayorista })
@@ -50,8 +58,3 @@ document.getElementById('editarForm').addEventListener('submit', async (e) => {
     console.error(err);
   }
 });
-
-/* Obtiene el token CSRF del meta del <head> ------------------ */
-function getCSRFToken() {
-  return document.querySelector('meta[name="csrf-token"]')?.content || '';
-}
