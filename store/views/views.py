@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.db.models import Prefetch
 from django.http import HttpResponseNotFound, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -100,7 +100,7 @@ def login_client(request):
 
     access  = generate_access_token(cliente.id, "cliente")
     refresh = generate_refresh_token(cliente.id)
-    return JsonResponse({"access": access, "refresh": refresh}, status=200)
+    return JsonResponse({"access": access, "refresh": refresh, "username": username}, status=200)
 
 
 # ───────────────────────────────────────────────

@@ -63,6 +63,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       errorBox.textContent = `❌ ${data.error || "Credenciales inválidas"}`;
     }
   } catch (err) {
-    errorBox.textContent = `❌ Error inesperado: ${err}`;
+    errorBox.textContent = `❌ Error inesperado: ${err.message}`;
   }
 });

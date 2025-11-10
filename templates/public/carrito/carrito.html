@@ -39,7 +39,6 @@
       <p>Subtotal: <strong id="carrito-subtotal">$0.00</strong></p>
       <div class="carrito-botones">
         <button class="btn-vaciar">Vaciar Carrito</button>
-
         <a href="{% url 'index' %}" class="btn-seguir">Seguir comprando</a>
       </div>
     </div>
@@ -48,15 +47,9 @@
   <!-- 🪣 Vista carrito vacío -->
   <div id="carrito-vacio" style="display: none;">
     <section class="carrito-vacio-section">
-      {% if request.session.cliente_id %}
-        <h2>Tu carrito está vacío</h2>
-        <p>Añade productos para verlos aquí.</p>
-        <a href="{% url 'index' %}" class="btn">Ir a la tienda</a>
-      {% else %}
-        <h2>Tu carrito está vacío</h2>
-        <p>Inicia sesión para ver tu carrito de compra.</p>
-        <a href="#" onclick="mostrarLoginPanel()" class="btn">Iniciar sesión</a>
-      {% endif %}
+      <h2>Tu carrito está vacío</h2>
+      <p id="carrito-msg"></p>
+      <a href="#" id="carrito-cta" class="btn"></a>
     </section>
   </div>
 
@@ -65,8 +58,26 @@
 
 {% block extra_js %}
 <script>
-  const CLIENTE_ID   = {{ request.session.cliente_id|default:"0" }};
-  const SESSION_KEY  = "{{ request.session.session_key|default:'' }}";
+  // ✅ Ahora se controla desde localStorage y JWT
+  const CLIENTE_ID = localStorage.getItem("user_id") || 0;
+  const TOKEN      = localStorage.getItem("access");
+  const IS_LOGGED  = !!TOKEN;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const msg = document.getElementById("carrito-msg");
+    const cta = document.getElementById("carrito-cta");
+
+    if (IS_LOGGED) {
+      msg.textContent = "Añade productos para verlos aquí.";
+      cta.textContent = "Ir a la tienda";
+      cta.href = "{% url 'index' %}";
+    } else {
+      msg.textContent = "Inicia sesión para ver tu carrito de compra.";
+      cta.textContent = "Iniciar sesión";
+      cta.href = "#";
+      cta.onclick = () => mostrarLoginPanel();
+    }
+  });
 </script>
 
 <script src="{% static 'public/carrito/js/carrito.js' %}"></script>

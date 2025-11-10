@@ -3,7 +3,7 @@ POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
 {
-  "username": "angel",
+  "username": "jona.emir@hotmail.com",
   "password": "123456"
 }
 

@@ -1,10 +1,20 @@
-/* lista.js – dashboard de productos */
+/* lista.js – dashboard de productos (con JWT) */
 document.addEventListener('DOMContentLoaded', cargarProductos);
+
+/* ---------- Helpers JWT ---------- */
+function getAccessToken() {
+  return localStorage.getItem("access");
+}
 
 /* ---------- CARGA Y RENDER ---------- */
 async function cargarProductos() {
   try {
-    const res = await fetch('/api/productos/', { credentials: 'same-origin' });
+    const res = await fetch('/api/productos/', {
+      headers: {
+        "Authorization": `Bearer ${getAccessToken()}`,
+        "Content-Type": "application/json",
+      }
+    });
     if (!res.ok) throw new Error('Error al obtener productos');
     const productos = await res.json();
 
@@ -28,7 +38,7 @@ function crearCard(p) {
   card.className = 'producto-card';
 
   /* variantes detalladas */
-  const variantesHTML = p.variantes.length
+  const variantesHTML = p.variantes?.length
     ? '<ul>' + p.variantes.map(v => {
         const talla = v.atributos?.Talla ?? '—';
         return `<li><strong>Talla:</strong> ${talla} |
@@ -73,11 +83,10 @@ async function eliminarProducto(id, cardEl) {
 
   try {
     const res = await fetch(`/api/productos/delete/${id}/`, {
-      method: 'POST',                     // ← POST con CSRF
-      credentials: 'same-origin',
+      method: 'DELETE',
       headers: {
-        'X-CSRFToken': getCSRFToken(),
-        'Content-Type': 'application/json'
+        "Authorization": `Bearer ${getAccessToken()}`,
+        "Content-Type": "application/json",
       }
     });
 
@@ -92,18 +101,6 @@ async function eliminarProducto(id, cardEl) {
   } catch (err) {
     toast('No se pudo eliminar: ' + err.message, true);
   }
-}
-
-/* ---------- CSRF ---------- */
-function getCSRFToken() {
-  /* 1) cookie */
-  const cookie = document.cookie.split(';')
-    .map(c => c.trim())
-    .find(c => c.startsWith('csrftoken='));
-  if (cookie) return decodeURIComponent(cookie.split('=')[1]);
-
-  /* 2) meta tag (fallback) */
-  return document.querySelector('meta[name="csrf-token"]')?.content || '';
 }
 
 /* ---------- NOTIFICACIÓN PEQUEÑA ---------- */

@@ -8,18 +8,44 @@
 </head>
 <body>
   <h2>Login administrador</h2>
-  {% if error %}
-    <p style="color:red">{{ error }}</p>
-  {% endif %}
-  <form method="post">
-    {% csrf_token %}
+  <form id="adminLoginForm">
     <label>Usuario:
-      <input type="text" name="username" required>
+      <input type="text" id="username" required>
     </label><br>
     <label>Contraseña:
-      <input type="password" name="password" required>
+      <input type="password" id="password" required>
     </label><br>
     <button type="submit">Iniciar sesión</button>
   </form>
+  <p id="login-error" style="color:red"></p>
+
+  <script>
+    document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorEl  = document.getElementById("login-error");
+
+      try {
+        const res = await fetch("/auth/login_user/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Error de autenticación");
+
+        // Guardar tokens
+        localStorage.setItem("access", data.access);
+        localStorage.setItem("refresh", data.refresh);
+
+        // Redirigir al dashboard
+        window.location.href = "/dashboard/productos/";
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  </script>
 </body>
 </html>

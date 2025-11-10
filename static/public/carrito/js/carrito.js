@@ -1,14 +1,21 @@
+/* ==========================================================================
+ * carrito.js – versión JWT + invitado funcional COMPLETA (con toggle trash/−)
+ * ==========================================================================
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  const ID = Number(window.CLIENTE_ID || 0);
-  const IS_LOGGED = ID > 0;
-  const SESSION_KEY = window.SESSION_KEY || '';
-  const API_BASE = IS_LOGGED ? `/api/carrito/${ID}` : `/api/carrito/guest`;
+  const TOKEN = localStorage.getItem("access") || null;
+  const RAW_ID = localStorage.getItem("user_id");
+  const CLIENTE_ID = RAW_ID && !isNaN(RAW_ID) ? Number(RAW_ID) : 0;
 
-  const getCookie = name => {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? decodeURIComponent(m.pop()) : null;
-  };
+  const IS_LOGGED = Boolean(TOKEN && CLIENTE_ID > 0);
 
+  console.log("[carrito] CLIENTE_ID=", CLIENTE_ID, "TOKEN?", !!TOKEN, "IS_LOGGED?", IS_LOGGED);
+
+  const API_BASE = IS_LOGGED
+    ? `/api/carrito/${CLIENTE_ID}`
+    : `/api/carrito/guest`;
+
+  // ────────────────────────────────
   async function patchCantidad(varId, cant) {
     // 🔐 JWT: Usa fetchPatch que agrega automáticamente el token
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
@@ -21,19 +28,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return res.ok;
   }
 
+  // ────────────────────────────────
   async function renderCarritoDesdeAPI() {
     // 🔐 JWT: fetchWithAuth agrega token automáticamente para usuarios logueados
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
     const res = await fetchWithAuth(`${API_BASE}/`, {
       headers
     });
+    if (!res.ok) {
+      console.error("[carrito] error al cargar:", res.status);
+      return;
+    }
+
     const data = await res.json();
     const contenedor = document.querySelector('.carrito-items');
     if (!contenedor || !Array.isArray(data.items)) return;
 
     const actuales = new Set([...contenedor.children].map(el => el.dataset.varianteId));
-    const nuevos = new Set(data.items.map(item => String(item.variante_id)));
+    const nuevos   = new Set(data.items.map(item => String(item.variante_id)));
 
+    // quitar items que ya no están
     [...contenedor.children].forEach(child => {
       const id = child.dataset.varianteId;
       if (!nuevos.has(id)) {
@@ -42,25 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // renderizar items nuevos
     for (const item of data.items) {
       const id = String(item.variante_id);
-      if (actuales.has(id)) {
-        // 🟢 Actualiza precio y badge incluso si ya está en el DOM
-        const itemEl = contenedor.querySelector(`[data-variante-id="${id}"]`);
-        if (itemEl) {
-          const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
-          const precioEl = itemEl.querySelector('.precio-unitario');
-          const badgeEl = itemEl.querySelector('.badge');
-
-          if (precioEl) precioEl.textContent = `$${precio.toFixed(2)}`;
-          if (badgeEl) {
-            badgeEl.textContent = `(${data.mayoreo ? 'mayoreo' : 'menudeo'})`;
-            badgeEl.className = `badge ${data.mayoreo ? 'badge-mayoreo' : 'badge-menudeo'}`;
-          }
-        }
-        continue;
-      }
-
+      if (actuales.has(id)) continue;
 
       const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
 
@@ -104,36 +103,39 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => div.classList.add('fade-in'));
     }
 
+    // subtotal
     const total = data.items.reduce((acc, item) => {
       const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
       return acc + precio * item.cantidad;
     }, 0);
     document.getElementById('carrito-subtotal').textContent = `$${total.toFixed(2)}`;
-    
+
     if (data.items.length > 0) {
       ensureConfirmButtonVisible(data.carrito_id);
     }
 
+    window.alternarVistaCarrito?.(data.items.length);
   }
 
+  // ────────────────────────────────
   async function updateTotals() {
     // 🔐 JWT: fetchWithAuth agrega token automáticamente
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
     const res = await fetchWithAuth(`${API_BASE}/`, {
       headers
     });
+    if (!res.ok) return;
     const data = await res.json();
-    if (!res.ok) { console.error('[carrito]', data); return; }
 
     const hay = data.items?.length;
     window.alternarVistaCarrito?.(hay);
 
     const alertaMeta = document.getElementById('alerta-meta-mayoreo');
-    const alertaMay = document.getElementById('alerta-mayoreo');
+    const alertaMay  = document.getElementById('alerta-mayoreo');
 
     if (!hay) {
       document.getElementById('carrito-subtotal').textContent = '$0.00';
-      if (alertaMay) alertaMay.style.display = 'none';
+      if (alertaMay)  alertaMay.style.display  = 'none';
       if (alertaMeta) alertaMeta.style.display = 'none';
       return;
     }
@@ -143,16 +145,37 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.piezas-restantes')
       .forEach(el => el.textContent = faltan);
 
-    if (alertaMay) alertaMay.style.display = data.mayoreo ? 'block' : 'none';
+    if (alertaMay)  alertaMay.style.display  = data.mayoreo ? 'block' : 'none';
     if (alertaMeta) alertaMeta.style.display = (!data.mayoreo && faltan > 0) ? 'block' : 'none';
+
+    // 🔄 Actualizar precios unitarios visibles si cambia a mayoreo
+    if (Array.isArray(data.items)) {
+      data.items.forEach(item => {
+        const itemEl = document.querySelector(`.carrito-item[data-variante-id="${item.variante_id}"]`);
+        if (!itemEl) return;
+
+        const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
+        const precioEl = itemEl.querySelector('.precio-unitario');
+        const badgeEl  = itemEl.querySelector('.badge');
+
+        if (precioEl) precioEl.textContent = `$${precio.toFixed(2)}`;
+        if (badgeEl) {
+          badgeEl.textContent = `(${data.mayoreo ? 'mayoreo' : 'menudeo'})`;
+          badgeEl.className   = `badge ${data.mayoreo ? 'badge-mayoreo' : 'badge-menudeo'}`;
+        }
+      });
+    }
+
   }
 
+  // ────────────────────────────────
+  // click en + / − / eliminar
   document.body.addEventListener('click', async e => {
-    const plus = e.target.closest('.btn-plus');
+    const plus  = e.target.closest('.btn-plus');
     const minus = e.target.closest('.btn-minus');
     if (!plus && !minus) return;
 
-    const wrap = (plus || minus).closest('.qty-wrap');
+    const wrap  = (plus || minus).closest('.qty-wrap');
     const input = wrap.querySelector('.qty');
     const varId = wrap.closest('.carrito-item').dataset.varianteId;
     if (!varId) return;
@@ -163,18 +186,20 @@ document.addEventListener('DOMContentLoaded', () => {
       val++;
     } else {
       if (val === 1) {
+        // eliminar
         const item = wrap.closest('.carrito-item');
         item.classList.add('fade-out');
-
         item.addEventListener('animationend', async () => {
           // 🔐 JWT: fetchDelete agrega token automáticamente
           const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
 
           const r = await fetchWithAuth(`${API_BASE}/item/${varId}/eliminar/`, {
             method: 'DELETE',
-            headers
+            headers: {
+              'Content-Type': 'application/json',
+              ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
+            }
           });
-
           if (r.ok) {
             item.remove();
             document.dispatchEvent(new CustomEvent('carrito-actualizado'));
@@ -183,48 +208,53 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.remove('fade-out');
           }
         }, { once: true });
-
         return;
       }
-
       val--;
     }
 
     input.value = val;
-
-if (await patchCantidad(varId, val)) {
-  const btn = wrap.querySelector('.btn-minus');
-
-  if (val === 1) {
-    if (!btn.classList.contains('trash')) {
-      btn.classList.add('trash');
-      btn.innerHTML = `<i class="fa-solid fa-trash fade-in-icon"></i>`;
+    if (await patchCantidad(varId, val)) {
+      // 🔄 actualizar icono dinámicamente
+      const btn = wrap.querySelector('.btn-minus');
+      if (val === 1) {
+        btn.classList.add('trash');
+        btn.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+      } else {
+        btn.classList.remove('trash');
+        btn.textContent = '−';
+      }
+      document.dispatchEvent(new CustomEvent('carrito-actualizado'));
     }
-  } else {
-    if (btn.classList.contains('trash')) {
-      btn.classList.remove('trash');
-      btn.textContent = '−';  // Asegura que siempre se vea el signo menos
-    }
-  }
-
-  document.dispatchEvent(new CustomEvent('carrito-actualizado'));
-}
-
   });
 
+  // ────────────────────────────────
+  // cambio manual en input qty
   document.body.addEventListener('change', async e => {
     if (!e.target.classList.contains('qty')) return;
     const input = e.target;
+    const wrap  = input.closest('.qty-wrap');
     const varId = input.closest('.carrito-item').dataset.varianteId;
     let val = parseInt(input.value) || 1;
     if (val < 1) val = 1;
     input.value = val;
 
     if (await patchCantidad(varId, val)) {
+      // 🔄 también actualizar icono dinámicamente
+      const btn = wrap.querySelector('.btn-minus');
+      if (val === 1) {
+        btn.classList.add('trash');
+        btn.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+      } else {
+        btn.classList.remove('trash');
+        btn.textContent = '−';
+      }
       document.dispatchEvent(new CustomEvent('carrito-actualizado'));
     }
   });
 
+  // ────────────────────────────────
+  // vaciar carrito completo
   document.querySelector('.btn-vaciar')?.addEventListener('click', async () => {
     if (!confirm('¿Vaciar todo el carrito?')) return;
 
@@ -233,21 +263,42 @@ if (await patchCantidad(varId, val)) {
 
     const r = await fetchWithAuth(`${API_BASE}/empty/`, {
       method: 'DELETE',
-      headers
+      headers: {
+        'Content-Type': 'application/json',
+        ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
+      }
     });
+    if (r.ok) document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+  });
 
-    if (r.ok) {
-      document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+  // ────────────────────────────────
+  function ensureConfirmButtonVisible(carritoId) {
+    const botonesWrapper = document.querySelector('.carrito-botones');
+    if (!botonesWrapper) return;
+
+    const existente = botonesWrapper.querySelector('.btn-finalizar');
+    if (existente) existente.remove();
+
+    const seguirBtn = botonesWrapper.querySelector('.btn-seguir');
+
+    if (IS_LOGGED) {
+      const enlace = document.createElement('a');
+      enlace.className = 'btn-finalizar';
+      enlace.textContent = 'Finalizar compra';
+      enlace.href = `/ordenar/${carritoId}/`;
+      botonesWrapper.insertBefore(enlace, seguirBtn);
     } else {
-      alert('No se pudo vaciar el carrito.');
+      const enlace = document.createElement('button');
+      enlace.className = 'btn-finalizar';
+      enlace.textContent = 'Finalizar compra';
+      enlace.addEventListener('click', e => {
+        e.preventDefault(); modalGuest();
+      });
+      botonesWrapper.insertBefore(enlace, seguirBtn);
     }
-  });
+  }
 
-  document.querySelector('.btn-finalizar')?.addEventListener('click', e => {
-    if (IS_LOGGED) return;
-    e.preventDefault(); modalGuest();
-  });
-
+  // ────────────────────────────────
   function modalGuest() {
     let m = document.getElementById('guest-checkout-modal');
     if (m) { m.classList.add('open'); return; }
@@ -273,9 +324,10 @@ if (await patchCantidad(varId, val)) {
     });
   }
 
+  // ────────────────────────────────
   window.alternarVistaCarrito = hay => {
     document.getElementById('carrito-activo').style.display = hay ? 'block' : 'none';
-    document.getElementById('carrito-vacio').style.display = hay ? 'none' : 'block';
+    document.getElementById('carrito-vacio').style.display  = hay ? 'none'  : 'block';
   };
 
   window.updateTotals = updateTotals;
@@ -283,49 +335,9 @@ if (await patchCantidad(varId, val)) {
   document.addEventListener('carrito-actualizado', async () => {
     await renderCarritoDesdeAPI();
     await updateTotals();
-
-    const subtotalEl = document.getElementById('carrito-subtotal');
-    if (subtotalEl) {
-      subtotalEl.classList.remove('fade-in-extra');
-      void subtotalEl.offsetWidth;
-      subtotalEl.classList.add('fade-in-extra');
-    }
-
-    const botonesWrap = document.querySelector('.carrito-botones');
-    if (botonesWrap) {
-      botonesWrap.classList.remove('fade-in-extra');
-      void botonesWrap.offsetWidth;
-      botonesWrap.classList.add('fade-in-extra');
-    }
   });
 
   renderCarritoDesdeAPI();
   updateTotals();
-
   document.getElementById('carrito-container')?.classList.add('fade-in-carrito');
-
-
-function ensureConfirmButtonVisible(carritoId) {
-  const botonesWrapper = document.querySelector('.carrito-botones');
-  if (!botonesWrapper) return;
-
-  // Elimina botón anterior si existe
-  const existente = botonesWrapper.querySelector('.btn-finalizar');
-  if (existente) existente.remove();
-
-  const seguirBtn = botonesWrapper.querySelector('.btn-seguir');
-
-  if (IS_LOGGED) {
-    const enlace = document.createElement('a');
-    enlace.className = 'btn-finalizar';
-    enlace.textContent = 'Finalizar compra';
-    enlace.href = `/ordenar/${carritoId}/`; // 👈 redirección con GET
-
-    botonesWrapper.insertBefore(enlace, seguirBtn);
-  }
-}
-
-
-
-
 });

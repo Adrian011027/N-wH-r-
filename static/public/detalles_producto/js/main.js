@@ -1,4 +1,4 @@
-/* main.js – ES module (smooth expand / collapse) */
+/* main.js – ES module (smooth expand / collapse + JWT) */
 document.addEventListener('DOMContentLoaded', async () => {
 
   /* ====== elementos base ====== */
@@ -12,15 +12,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const variantes   = JSON.parse(document.getElementById('variantes-data').textContent);
 
   const datos = document.getElementById('detalles-datos');
-  const cliId = datos?.dataset.clienteId;
   const prodId = +datos?.dataset.productoId;
 
   const elegidas = new Set();
 
-  /* ====== helpers ====== */
-  const getCSRF = () =>
-    decodeURIComponent(document.cookie.split(';').map(c => c.trim())
-      .find(c => c.startsWith('csrftoken='))?.split('=')[1] || '');
+  /* ====== auth: JWT ====== */
+  const TOKEN      = localStorage.getItem("access");
+  const CLIENTE_ID = Number(localStorage.getItem("user_id") || 0);
+  const IS_LOGGED  = !!TOKEN;
 
   const stockTxt = talla => {
     const v = variantes.find(x => x.talla === talla);
@@ -75,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <button class="btn-minus">−</button>
       <input type="number" min="1" value="1" class="qty">
       <button class="btn-plus">+</button>`;
-    
+
     const qty = qtyWrap.querySelector('.qty');
     const btnMinus = qtyWrap.querySelector('.btn-minus');
     const btnPlus  = qtyWrap.querySelector('.btn-plus');
@@ -100,8 +99,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnMinus.innerHTML = '<i class="fas fa-trash"></i>';
         btnMinus.classList.add('trash');
       } else {
-        btnMinus.textContent = '−';
-        btnMinus.classList.remove('trash');
+        // transición suave si era ícono
+        if (btnMinus.classList.contains('trash')) {
+          btnMinus.classList.add('fade-out');
+          setTimeout(() => {
+            btnMinus.textContent = '−';
+            btnMinus.classList.remove('trash', 'fade-out');
+          }, 200);
+        } else {
+          btnMinus.textContent = '−';
+          btnMinus.classList.remove('trash');
+        }
       }
     }
 
@@ -116,36 +124,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, { once: true });
     }
 
-    actualizarBtnMinus();function actualizarBtnMinus() {
-   const cantidad = +qty.value;
-  if (cantidad === 1) {
-    btnMinus.innerHTML = '<i class="fas fa-trash"></i>';
-    btnMinus.classList.add('trash');
-  } else {
-    // Si era un ícono, primero aplica fade-out
-    if (btnMinus.classList.contains('trash')) {
-      btnMinus.classList.add('fade-out');
-
-      // Espera la animación antes de cambiar
-      setTimeout(() => {
-        btnMinus.textContent = '−';
-        btnMinus.classList.remove('trash', 'fade-out');
-      }, 200); // debe coincidir con el duration de fadeOutIcon
-    } else {
-      btnMinus.textContent = '−';
-      btnMinus.classList.remove('trash');
-    }
-  }
-}
-
-
+    actualizarBtnMinus();
 
     selectEl.className = 'talla-select';
     selectEl.dataset.old = talla;
     selectEl.onchange = () => cambioTalla(selectEl);
 
     fila.append(selectEl, qtyWrap);
-
     contLineas.appendChild(fila);
 
     requestAnimationFrame(() => {
@@ -186,20 +171,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-btnAddCart.addEventListener('click', async () => {
-  const seleccion = [];
-  contLineas.querySelectorAll('.linea-talla').forEach(fila => {
-    seleccion.push({
-      talla: fila.dataset.talla,
-      cantidad: +fila.querySelector('.qty').value
+  /* ====== botón agregar al carrito ====== */
+  btnAddCart.addEventListener('click', async () => {
+    const seleccion = [];
+    contLineas.querySelectorAll('.linea-talla').forEach(fila => {
+      seleccion.push({
+        talla: fila.dataset.talla,
+        cantidad: +fila.querySelector('.qty').value
+      });
     });
-  });
-
-  if (!seleccion.length) {
-    msg.style.color = 'orange';
-    msg.textContent = '⚠️ No has añadido tallas.';
-    return;
-  }
 
   msg.textContent = '';
   let total = 0;
@@ -237,7 +217,12 @@ btnAddCart.addEventListener('click', async () => {
   msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
 });
 
+    msg.style.color = 'green';
+    msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
+    document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+  });
 
+  /* animación de secciones */
   document.querySelectorAll('.detalle-section')
           .forEach(sec => sec.classList.add('fade-in'));
 });

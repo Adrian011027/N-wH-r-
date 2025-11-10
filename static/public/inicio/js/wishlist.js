@@ -1,52 +1,38 @@
 /* ==========================================================================
  * Wishlist Module
  * Invitado + Multi-usuario con selector de tallas y carrito invitado
- * --------------------------------------------------------------------------
- * Invitado  → localStorage (wishlist_ids_guest)
- * Login     → migra guest → wishlist_ids_<userId> y sincroniza backend
- * Logout    → nukeAllKeys() borra TODAS las claves wishlist_ids_*
  * ======================================================================== */
 
 export function initWishlist({
-  selector          = '.wishlist-btn',              // Selector CSS de los corazones
-  storageKey        = 'wishlist_ids',               // Prefijo en localStorage
-  backendURL        = '/api/wishlist/',             // Endpoint REST → /<cliente>/
-  csrfToken         = null,                         // CSRF (Django, por ej.)
-  isAuthenticated   = false,                        // Usuario logueado
+  selector          = '.wishlist-btn',
+  storageKey        = 'wishlist_ids',
+  backendURL        = '/api/wishlist/',
+  csrfToken         = null,
+  isAuthenticated   = false,
   fetchProductoURL  = '/api/productos_por_ids/?ids=',
-  clienteId         = null                          // ID numérico del cliente o null
+  clienteId         = null
 } = {}) {
 
-  /* ≡≡≡ 0.  CONSTANTES Y UTILITARIOS DE ALMACENAMIENTO ≡≡≡ */
+  const IS_GUEST_ID   = 0;
+  const safeClienteId = clienteId ?? IS_GUEST_ID;
 
-  const IS_GUEST_ID   = 0;                                   // ID ficticio para invitados
-  const safeClienteId = clienteId ?? IS_GUEST_ID;            // Nunca null en peticiones
-
-  // Clave específica para este usuario (o invitado) en localStorage
   const keyUser = (isAuthenticated && clienteId)
     ? `${storageKey}_${clienteId}`
     : `${storageKey}_guest`;
 
-  /**
-   * Devuelve la lista de IDs guardada para este usuario.
-   * @returns {string[]} array de IDs como strings
-   */
   const getList = () => {
     try { return JSON.parse(localStorage.getItem(keyUser)) || []; }
     catch { return []; }
   };
 
-  /** Persiste lista en LS y actualiza el contador en header. */
   const setList = list => {
     localStorage.setItem(keyUser, JSON.stringify(list));
     updateHeaderUI(list);
   };
 
-  /* ≡≡≡ 1.  MIGRACIÓN INVITADO → USUARIO Y SINCRONIZACIÓN BACKEND ≡≡≡ */
-
+  /* ========== Migración invitado → usuario ========== */
   if (isAuthenticated && clienteId) {
     try {
-      // 1-A. Fusiona posible lista invitado + lista ya existente del usuario
       const guestRaw = localStorage.getItem(`${storageKey}_guest`);
       const userRaw  = localStorage.getItem(keyUser);
 
@@ -58,7 +44,6 @@ export function initWishlist({
       localStorage.setItem(keyUser, JSON.stringify(merged));
       localStorage.removeItem(`${storageKey}_guest`);
 
-      // 1-B. Sube al backend los likes heredados del invitado
       if (guestRaw) {
         for (const id of JSON.parse(guestRaw)) {
           // 🔐 JWT: fetchPost agrega token automáticamente
@@ -66,16 +51,14 @@ export function initWishlist({
             .catch(console.error);
         }
       }
-    } catch { /* silencioso */ }
+    } catch {}
   } else {
-    // Invitado: elimina listas pertenecientes a otros usuarios
     Object.keys(localStorage)
       .filter(k => k.startsWith(storageKey) && !k.endsWith('_guest'))
       .forEach(k => localStorage.removeItem(k));
   }
 
-  /* ≡≡≡ 2.  REFERENCIAS A NODOS DEL DOM (una sola búsqueda) ≡≡≡ */
-
+  /* ========== DOM Refs ========== */
   const dom = {
     wishlistPanel   : document.getElementById('wishlist-panel'),
     wishlistContent : document.querySelector('#wishlist-panel .wishlist-content'),
@@ -87,13 +70,6 @@ export function initWishlist({
     headerTitle     : document.getElementById('wishlist-header-title')
   };
 
-  /* ≡≡≡ 3.  HELPER VISUALES (corazones + contador header) ≡≡≡ */
-
-  /**
-   * Activa / desactiva un corazón concreto.
-   * @param {HTMLElement} btn  Elemento botón/ícono
-   * @param {boolean} on       Estado activo
-   */
   const toggleBtn = (btn, on) => {
     btn.classList.toggle('active', on);
     const ic = btn.querySelector('i');
@@ -101,26 +77,42 @@ export function initWishlist({
     ic?.classList.toggle('fa-regular', !on);
   };
 
-  /** Actualiza ícono de cabecera y badge con el # de favoritos. */
   const updateHeaderUI = list => {
     const { wishlistIcon, wishlistCount } = dom;
-    wishlistIcon?.classList.toggle('fa-solid', !!list.length);
-    wishlistIcon?.classList.toggle('fa-regular', !list.length);
-    if (wishlistIcon) wishlistIcon.style.color = list.length ? '#ff4d6d' : '';
+    const count = list.length;
 
+    // Ícono principal (btn del panel)
+    if (wishlistIcon) {
+      wishlistIcon.classList.toggle('fa-solid', !!count);
+      wishlistIcon.classList.toggle('fa-regular', !count);
+      wishlistIcon.style.color = count ? '#ff4d6d' : '';
+    }
+
+    // Contador badge
     if (wishlistCount) {
-      wishlistCount.textContent = list.length;
-      wishlistCount.hidden      = !list.length;
+      const prev = parseInt(wishlistCount.textContent, 10) || 0;
+      wishlistCount.textContent = count;
+      wishlistCount.hidden = !count;
+
+      if (count !== prev) {
+        wishlistCount.classList.remove('changed');
+        void wishlistCount.offsetWidth; // ⚡ reflow para reiniciar animación
+        wishlistCount.classList.add('changed');
+      }
+    }
+
+    // Actualizar también el icono independiente del header
+    const headerHeart = document.getElementById('icon-wishlist-header');
+    if (headerHeart) {
+      headerHeart.classList.toggle('active', !!count);
     }
   };
 
-  /* ≡≡≡ 4.  HIDRATACIÓN INICIAL (pull de servidor si login) ≡≡≡ */
-
+  /* ========== Hidratación inicial ========== */
   let hydrateDoneResolve;
   const hydrateDone = new Promise(res => (hydrateDoneResolve = res));
 
   (async () => {
-    // 4-A. Trae lista del backend si user logueado
     if (isAuthenticated && clienteId) {
       try {
         // 🔐 JWT: fetchGet agrega token automáticamente
@@ -129,53 +121,55 @@ export function initWishlist({
           const { productos = [] } = await r.json();
           setList([...new Set([...getList(), ...productos.map(String)])]);
         }
-      } catch (err) {
-        console.error('[Wishlist] pull', err);
-      }
+      } catch (err) { console.error('[Wishlist] pull', err); }
     }
 
-    // 4-B. Marca corazones ya activos
     const idsSet = new Set(getList());
     document.querySelectorAll(selector)
       .forEach(btn => toggleBtn(btn, idsSet.has(btn.dataset.productId)));
 
-    hydrateDoneResolve();      // ✅ listo
+    // Forzar actualización inicial de contador
+    updateHeaderUI(getList());
+
+    hydrateDoneResolve();
   })();
 
-  /* ≡≡≡ 5.  ABRIR / CERRAR PANEL DE WISHLIST ≡≡≡ */
-
+  /* ========== Panel toggle ========== */
   const showWishlist = async () => {
     await hydrateDone;
     renderWishlistPanel();
     dom.wishlistPanel.classList.add('open');
     dom.overlay.classList.add('active');
   };
-
   const hideWishlist = () => {
     closeSizePicker(dom.wishlistPanel.querySelector('.size-picker'), 'side');
     dom.wishlistPanel.classList.remove('open');
     dom.overlay.classList.remove('active');
   };
-
   dom.wishlistBtn ?.addEventListener('click', showWishlist);
   dom.closeBtn    ?.addEventListener('click', hideWishlist);
   dom.overlay     ?.addEventListener('click', hideWishlist);
 
-  /* ≡≡≡ 6.  CORAZONES EN CATÁLOGO (LS + backend) ≡≡≡ */
-
+  /* ========== Corazones catálogo ========== */
   document.body.addEventListener('click', e => {
     const heart = e.target.closest(selector);
     if (!heart) return;
 
     const id = heart.dataset.productId;
     let list = getList();
-    const add = !heart.classList.contains('active');   // toggle
+    const add = !heart.classList.contains('active');
 
     toggleBtn(heart, add);
-    add ? list.push(id) : list = list.filter(x => x !== id);
-    setList(list);
 
-    // Sincroniza backend si user
+    if (add) {
+      list.push(id);
+    } else {
+      list = list.filter(x => x !== id);
+    }
+
+    setList(list);
+    updateHeaderUI(list);
+
     if (!isAuthenticated) return;
     
     // 🔐 JWT: Usa fetchWithAuth en lugar de fetch manual
@@ -186,31 +180,21 @@ export function initWishlist({
     }).catch(console.error);
   });
 
-  /* -------------------------------------------------
-   * 7.  EVENTOS DENTRO DEL PANEL (picker de tallas, qty…)
-   * ------------------------------------------------- */
-
+  /* ========== Eventos dentro del panel ========== */
   dom.wishlistPanel?.addEventListener('click', async e => {
-
-    /* 7-A · Cierre auto picker si clic fuera */
     const pickerOpen = dom.wishlistPanel.querySelector('.size-picker');
     if (pickerOpen && !e.target.closest('.size-picker') &&
                       !e.target.matches('.btn-carrito-mini')) {
       closeSizePicker(pickerOpen, 'down');
     }
 
-    /* 7-B · Botón “Agregar” (abre picker) */
     if (e.target.matches('.btn-carrito-mini')) {
       const pid = e.target.dataset.id;
-
-      // Si ya hay picker abierto para este prod → ciérralo
       if (pickerOpen && pickerOpen.dataset.productId === pid) {
-        closeSizePicker(pickerOpen, 'down');
-        return;
+        closeSizePicker(pickerOpen, 'down'); return;
       }
       pickerOpen && closeSizePicker(pickerOpen, 'down');
 
-      // Trae tallas y construye picker
       let tallas = [];
       try {
         // 🔐 Endpoint público, no requiere token pero fetchGet es compatible
@@ -231,7 +215,6 @@ export function initWishlist({
         </div>`;
       dom.wishlistPanel.appendChild(picker);
 
-      // Posiciona picker y aplica blur
       const r = dom.wishlistPanel.getBoundingClientRect();
       picker.style.left  = `${r.left}px`;
       picker.style.width = `${r.width}px`;
@@ -240,7 +223,6 @@ export function initWishlist({
       dom.wishlistContent.classList.add('blurred');
     }
 
-    /* 7-C · Selección de talla (envía al carrito) */
     if (e.target.matches('.size-option')) {
       const talla = e.target.dataset.size;
       const pid   = e.target.closest('.size-picker').dataset.productId;
@@ -250,51 +232,22 @@ export function initWishlist({
         e.target.closest('.size-picker'), 'down'), 160);
     }
 
-    /* 7-D · Botón ✕ dentro del picker */
     if (e.target.matches('.close-size-picker')) {
       closeSizePicker(e.target.closest('.size-picker'), 'down');
     }
   });
 
-  /* ≡≡≡ 7-bis.  +/- cantidad (delegado global) ≡≡≡ */
-
-  document.body.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-
-    const wrapper = btn.closest('.qty-wrap');
-    if (!wrapper) return;
-
-    const input = wrapper.querySelector('input.qty');
-    let val = parseInt(input.value, 10) || 1;
-
-    if (btn.classList.contains('btn-plus'))  input.value = val + 1;
-    if (btn.classList.contains('btn-minus') && val > 1) input.value = val - 1;
-  });
-
-  /* ≡≡≡ 8.  FUNCIONES DE UTILIDAD PRINCIPALES ≡≡≡ */
-
-  /**
-   * Muestra toast flotante.
-   * @param {string} msg
-   */
+  /* ========== Utils ========== */
   function showToast(msg) {
     const toast = document.createElement('div');
     toast.className = 'toast-message';
     toast.textContent = msg;
     document.body.appendChild(toast);
-
     setTimeout(() => toast.classList.add('show'), 100);
     setTimeout(() => toast.classList.remove('show'), 2500);
     setTimeout(() => toast.remove(), 3000);
   }
 
-  /**
-   * POST: agrega item al carrito (backend) y actualiza UI local.
-   * @param {string} pid    ID producto
-   * @param {string} talla  Talla elegida
-   * @param {number} cant   Cantidad
-   */
   async function addToCart(pid, talla, cant = 1) {
     try {
       // 🔐 JWT: fetchPost agrega token automáticamente
@@ -307,7 +260,6 @@ export function initWishlist({
       if (!r.ok) throw new Error(await r.text());
       console.log('🛒', await r.json());
 
-      // Reemplaza botón “Agregar” por texto “Ya en carrito”
       const card = dom.wishlistPanel.querySelector(
         `.wishlist-item .btn-carrito-mini[data-id="${pid}"]`
       )?.closest('.wishlist-item');
@@ -329,17 +281,11 @@ export function initWishlist({
 
       showToast('Producto agregado al carrito');
       document.dispatchEvent(new CustomEvent('carrito-actualizado'));
-
     } catch (err) {
       alert('No se pudo agregar.\n' + err.message);
     }
   }
 
-  /**
-   * Cierra selector de talla con animación.
-   * @param {HTMLElement} node
-   * @param {'side'|'down'} dir
-   */
   function closeSizePicker(node, dir = 'down') {
     if (!node) return;
     node.classList.add(dir === 'side' ? 'fade-out-side' : 'fade-out-down');
@@ -350,9 +296,7 @@ export function initWishlist({
     node.addEventListener('animationend', () => node.remove(), { once: true });
   }
 
-  /* ≡≡≡ 9.  RENDER DEL PANEL + UTILITARIOS RELACIONADOS ≡≡≡ */
-
-  /** Consulta carrito y devuelve set de IDs ya en carrito. */
+  /* ========== Render panel ========== */
   async function getCartIds() {
     if (!isAuthenticated) return new Set();
     try {
@@ -367,7 +311,6 @@ export function initWishlist({
     }
   }
 
-  /** Genera HTML de las tarjetas dentro del panel. */
   const buildCards = (prods, inCart = new Set()) => prods.map(p => `
     <div class="wishlist-item" data-id="${p.id}">
       <div class="wishlist-img-col">
@@ -376,42 +319,30 @@ export function initWishlist({
       <div class="wishlist-info-col">
         <h4 class="nombre">${p.nombre}</h4>
         <p class="precio">$${p.precio}</p>
-        <div class="wishlist-controls">
-          <div class="qty-wrap">
-            <button class="btn-minus">−</button>
-            <input type="number" class="qty" value="1" readonly>
-            <button class="btn-plus">+</button>
-          </div>
+        <div class="wishlist-actions">
           ${inCart.has(String(p.id))
             ? `<span class="in-cart-note">Ya en carrito</span>`
             : `<button class="btn-carrito-mini" data-id="${p.id}">Agregar al carrito</button>`
           }
-          <button class="remove-item"><i class="fa-regular fa-trash-can"></i></button>
         </div>
       </div>
     </div>
   `).join('');
 
-  /**
-   * Rellena el panel de wishlist con sus productos.
-   * Llama a buildCards y se ocupa de estados vacíos.
-   */
   async function renderWishlistPanel() {
     const ids = getList();
-
-    // ---- Estado vacío ----
     if (!ids.length) {
       dom.headerTitle && (dom.headerTitle.style.visibility = 'hidden');
       dom.wishlistContent.innerHTML = isAuthenticated ? EMPTY_USER : EMPTY_GUEST;
+      updateHeaderUI([]);
       return;
     }
     dom.headerTitle && (dom.headerTitle.style.visibility = 'visible');
 
-    // ---- Trae datos de productos ----
     try {
       dom.wishlistContent.textContent = 'Cargando…';
       const url = isAuthenticated
-        ? `${backendURL}${clienteId}/?full=true`
+        ? `${backendURL}${safeClienteId}/?full=true`
         : `${fetchProductoURL}${ids.join(',')}`;
       
       // 🔐 JWT: fetchGet agrega token automáticamente si el usuario está logueado
@@ -421,17 +352,16 @@ export function initWishlist({
       dom.wishlistContent.innerHTML = productos.length
         ? buildCards(productos, inCart)
         : 'No tienes productos en tu wishlist.';
+
+      updateHeaderUI(ids);
     } catch (err) {
       dom.wishlistContent.textContent = 'Error al cargar tu wishlist.';
     }
 
-    // Hint para invitados
     if (!isAuthenticated) injectHint();
   }
 
-  /* Plantillas de estados vacíos */
-  const EMPTY_ICON = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+  const EMPTY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
          fill="none" stroke="currentColor" stroke-width="1.2"
          stroke-linecap="round" stroke-linejoin="round">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
@@ -448,32 +378,29 @@ export function initWishlist({
       <h3>No tienes productos<br>en tu wishlist.</h3>
       <p class="wishlist-sub">¿Quieres conservar tus favoritos?</p>
       <p class="wishlist-links">
-        <a href="#" id="open-login-hint">Inicia sesión</a> o
-        <a href="/registrarse/">crea una cuenta</a>.
+        <a href="#" id="open-login-hint" class="wishlist-link">Inicia sesión</a> o
+        <a href="/registrarse/" class="wishlist-link">crea una cuenta</a>.
       </p>
     </div>`;
 
-  /** Inyecta aviso de login al final (invitados). */
   function injectHint() {
     dom.wishlistContent.insertAdjacentHTML('beforeend', `
       <div class="wishlist-hint">
         ¿Quieres conservar tus favoritos?
-        <a href="#" id="open-login-hint">Inicia sesión</a> o
-        <a href="/registrarse/">crea una cuenta</a>.
+        <a href="#" id="open-login-hint" class="wishlist-link">Inicia sesión</a> o
+        <a href="/registrarse/" class="wishlist-link">crea una cuenta</a>.
       </div>`);
   }
 
-  /* Apertura panel de login si usuario toca hint */
+  // 👇 corregido: cerrar wishlist al abrir login
   document.body.addEventListener('click', e => {
     if (e.target.id === 'open-login-hint') {
       e.preventDefault();
-      window.mostrarLoginPanel?.();
+      hideWishlist(); // cerrar panel de favoritos
+      window.mostrarLoginPanel?.(); // abrir login
     }
   });
 
-  /* ≡≡≡ 10.  API PÚBLICA + LISTENERS GLOBALES ≡≡≡ */
-
-  /** Borra wishlist actual del usuario. */
   function clearWishlist() {
     const ids = getList();
     localStorage.removeItem(keyUser);
@@ -481,7 +408,6 @@ export function initWishlist({
     dom.wishlistContent && (dom.wishlistContent.textContent =
       'No tienes productos en tu wishlist.');
 
-    // Limpia backend
     if (isAuthenticated && clienteId && ids.length) {
       ids.forEach(id => {
         // 🔐 JWT: fetchDelete agrega token automáticamente
@@ -492,7 +418,6 @@ export function initWishlist({
     }
   }
 
-  /** Elimina TODAS las keys wishlist_* (en logout). */
   function nukeAllKeys() {
     Object.keys(localStorage)
       .filter(k => k.startsWith(storageKey))
@@ -500,25 +425,19 @@ export function initWishlist({
     updateHeaderUI([]);
   }
 
-  // Expone para scripts externos (ej: refresh desde fuera)
   window.renderWishlistPanel = renderWishlistPanel;
 
-  // Listener global para recibir evento “carrito-actualizado”
   if (!window.__wishlistCarritoListenerRegistered) {
     window.__wishlistCarritoListenerRegistered = true;
-
     document.addEventListener('carrito-actualizado', async () => {
-      if (
-        dom.wishlistPanel?.classList.contains('open') &&
-        typeof window.renderWishlistPanel === 'function'
-      ) {
+      if (dom.wishlistPanel?.classList.contains('open') &&
+          typeof window.renderWishlistPanel === 'function') {
         await window.renderWishlistPanel();
       }
     });
   }
 
-  // === Devolvemos API público ===
   const api = { clearWishlist, nukeAllKeys };
   window.__wishlistAPI = api;
   return api;
-} // ← initWishlist
+}
