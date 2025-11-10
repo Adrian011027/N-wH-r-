@@ -7,8 +7,10 @@ from ..models import  Carrito, Orden, OrdenDetalle, Variante
 from django.db import models, transaction
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from .decorators import jwt_role_required, admin_required
 
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(["GET"])
 def get_orden(request, id):
     # 1. Recuperar la orden o devolver 404
@@ -102,7 +104,8 @@ def crear_orden_desde_payload(payload):
     return orden
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@admin_required()
+@require_http_methods(["POST", "PUT"])
 def update_status(request, id):
     orden = get_object_or_404(Orden, id=id)
     orden.status = 'proces'
@@ -126,10 +129,12 @@ def procesar_por_link(request, token):
     orden = get_object_or_404(Orden, id=id_orden)
     orden.status = 'procesando'
     orden.save(update_fields=['status'])
-    return HttpResponse("✅ ¡Tu orden ha sido actualizada a “procesando”!")
+    return HttpResponse("✅ ¡Tu orden ha sido actualizada a 'procesando'!")
 
 
 @csrf_exempt
+@admin_required()
+@require_http_methods(["DELETE", "POST"])
 def eliminar_orden(request, id):
     """
     Elimina la orden con el id dado y todos sus detalles asociados.
@@ -143,7 +148,10 @@ def eliminar_orden(request, id):
         {"mensaje": f"Orden {id} eliminada correctamente."},
         status=200
     )
+
 @csrf_exempt
+@admin_required()
+@require_http_methods(["DELETE", "POST"])
 def eliminar_producto(request, orden_id, producto_id):
     """
     Elimina de la orden con el id dado el producto id producto.

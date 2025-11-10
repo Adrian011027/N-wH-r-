@@ -35,18 +35,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (producto_id === prodId && Array.isArray(items)) {
         let total = 0;
         for (const item of items) {
-          const res = await fetch(`/api/carrito/create/${cliId}/`, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCSRF()
-            },
-            body: JSON.stringify({
-              producto_id,
-              talla: item.talla,
-              cantidad: item.cantidad
-            })
+          // 🔐 JWT: fetchPost agrega token automáticamente
+          const res = await fetchPost(`/api/carrito/create/${cliId}/`, {
+            producto_id,
+            talla: item.talla,
+            cantidad: item.cantidad
           });
           if (res.ok) total += item.cantidad;
         }
@@ -212,41 +205,32 @@ btnAddCart.addEventListener('click', async () => {
   let total = 0;
 
   for (const item of seleccion) {
-  try {
-    const headers = {
-      'Content-Type': 'application/json'
-    };
+    try {
+      let endpoint = '';
+      if (cliId) {
+        endpoint = `/api/carrito/create/${cliId}/`;
+      } else {
+        endpoint = `/api/carrito/create/0/`;  // ✅ ESTA es la ruta correcta
+      }
 
-    let endpoint = '';
-    if (cliId) {
-      headers['X-CSRFToken'] = getCSRF();
-      endpoint = `/api/carrito/create/${cliId}/`;
-    } else {
-      endpoint = `/api/carrito/create/0/`;  // ✅ ESTA es la ruta correcta
-    }
-
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers,
-      body: JSON.stringify({
+      // 🔐 JWT: fetchPost agrega token automáticamente si el usuario está logueado
+      const res = await fetchPost(endpoint, {
         producto_id: prodId,
         talla: item.talla,
         cantidad: item.cantidad
-      })
-    });
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
 
-    total += item.cantidad;
+      total += item.cantidad;
 
-  } catch (e) {
-    msg.style.color = 'red';
-    msg.textContent = '❌ ' + e.message;
-    return;
+    } catch (e) {
+      msg.style.color = 'red';
+      msg.textContent = '❌ ' + e.message;
+      return;
+    }
   }
-}
 
 
   msg.style.color = 'green';

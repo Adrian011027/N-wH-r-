@@ -3,7 +3,8 @@ from functools import wraps
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from ..models import Usuario
-from store.utils.jwt_helpers import decode_jwt
+import jwt
+from django.conf import settings
 
 
 # ───────────────────────────────────────────────
@@ -48,50 +49,98 @@ def login_required_user(view_func):
 # ───────────────────────────────────────────────
 # Nuevo: JWT para APIs (React / React Native)
 # ───────────────────────────────────────────────
-# store/views/decorators.py
-from functools import wraps
-from django.http import JsonResponse
-from store.utils.jwt_helpers import decode_jwt
-
-def jwt_role_required(allowed_roles=None, allow_self=True):
+def jwt_role_required(allowed_roles=None):
     """
-    Valida JWT + rol (Usuario/Admin) + dueño del recurso (Cliente).
-    - allowed_roles: lista de roles permitidos (ej: ['admin', 'seller'])
-    - allow_self: si True, permite que un usuario/cliente acceda solo a su propio recurso
+    Decorador para proteger rutas con JWT y validar roles
+    
+    Args:
+        allowed_roles: Lista de roles permitidos. Si es None, permite todos los roles autenticados.
+                      Ejemplo: ['admin'], ['admin', 'user']
+    
+    Uso:
+        @jwt_role_required()  # Solo requiere autenticación
+        @jwt_role_required(['admin'])  # Solo admin
+        @jwt_role_required(['admin', 'user'])  # Admin o user
     """
-    if allowed_roles is None:
-        allowed_roles = []
-
     def decorator(view_func):
         @wraps(view_func)
-        def _wrapped(request, *args, **kwargs):
-            auth_header = request.headers.get("Authorization", "")
-            if not auth_header.startswith("Bearer "):
-                return JsonResponse({"error": "Token requerido"}, status=401)
-
-            token = auth_header.split(" ", 1)[1]
-            payload = decode_jwt(token)
-            if not payload:
-                return JsonResponse({"error": "Token inválido o expirado"}, status=401)
-
-            request.user_id = payload.get("user_id")
-            request.user_role = payload.get("role")
-
-            # 1) Admin siempre pasa
-            if request.user_role == "admin":
+        def wrapped_view(request, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            
+            if not auth_header:
+                return JsonResponse({
+                    'error': 'Token de autenticación requerido',
+                    'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+                }, status=401)
+            
+            try:
+                # Extraer token del header "Bearer <token>"
+                parts = auth_header.split(' ')
+                if len(parts) != 2 or parts[0].lower() != 'bearer':
+                    return JsonResponse({
+                        'error': 'Formato de token inválido',
+                        'detail': 'Use: Authorization: Bearer <token>'
+                    }, status=401)
+                
+                token = parts[1]
+                SECRET_KEY = getattr(settings, 'JWT_SECRET_KEY', 'tu-clave-secura-cambiar-en-produccion')
+                
+                # Decodificar token
+                payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                
+                # Verificar que sea un access token
+                if payload.get('type') != 'access':
+                    return JsonResponse({
+                        'error': 'Tipo de token inválido',
+                        'detail': 'Debe usar un access token'
+                    }, status=401)
+                
+                # Verificar que el usuario existe
+                try:
+                    user = Usuario.objects.get(id=payload['user_id'])
+                except Usuario.DoesNotExist:
+                    return JsonResponse({
+                        'error': 'Usuario no encontrado',
+                        'detail': 'El usuario del token no existe'
+                    }, status=404)
+                
+                # Agregar información del usuario al request
+                request.user_id = payload['user_id']
+                request.user_role = payload['role']
+                request.username = payload['username']
+                request.jwt_user = user
+                
+                # Verificar roles si se especificaron
+                if allowed_roles and request.user_role not in allowed_roles:
+                    return JsonResponse({
+                        'error': 'Permisos insuficientes',
+                        'detail': f'Se requiere uno de los siguientes roles: {", ".join(allowed_roles)}',
+                        'your_role': request.user_role
+                    }, status=403)
+                
                 return view_func(request, *args, **kwargs)
-
-            # 2) Si el rol está permitido explícitamente
-            if request.user_role in allowed_roles:
-                return view_func(request, *args, **kwargs)
-
-            # 3) Si allow_self=True → solo su propio recurso
-            if allow_self:
-                target_id = kwargs.get("id") or kwargs.get("cliente_id") or kwargs.get("user_id")
-                if target_id and str(target_id) != str(request.user_id):
-                    return JsonResponse({"error": "No tienes permiso para acceder a este recurso"}, status=403)
-                return view_func(request, *args, **kwargs)
-
-            return JsonResponse({"error": "Acceso denegado"}, status=403)
-        return _wrapped
+                
+            except jwt.ExpiredSignatureError:
+                return JsonResponse({
+                    'error': 'Token expirado',
+                    'detail': 'Por favor, renueva tu token o inicia sesión nuevamente'
+                }, status=401)
+            except jwt.InvalidTokenError as e:
+                return JsonResponse({
+                    'error': 'Token inválido',
+                    'detail': str(e)
+                }, status=401)
+            except Exception as e:
+                return JsonResponse({
+                    'error': 'Error de autenticación',
+                    'detail': str(e)
+                }, status=401)
+        
+        return wrapped_view
     return decorator
+
+
+def admin_required():
+    """Decorador específico para rutas solo de administradores"""
+    return jwt_role_required(['admin'])
+

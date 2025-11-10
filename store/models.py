@@ -248,3 +248,11 @@ class ContactoCliente(models.Model):
 
     def __str__(self):
         return f"Contacto de {self.cliente.username}"
+
+
+class BlacklistedToken(models.Model):
+    token = models.TextField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Blacklisted at {self.created_at}"

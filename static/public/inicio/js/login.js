@@ -1,9 +1,3 @@
-/* -------- token desde el input oculto -------- */
-export function getCSRFToken() {
-  const input = document.querySelector('#loginForm input[name="csrfmiddlewaretoken"]');
-  return input ? input.value : '';
-}
-
 /* -------- Mostrar/Ocultar contraseña -------- */
 document.addEventListener("DOMContentLoaded", () => {
   const pwd = document.getElementById("password");
@@ -27,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* -------- envío del formulario de login -------- */
+/* -------- envío del formulario de login con JWT -------- */
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -41,32 +35,32 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    const res = await fetch("/login-client/", {
+    // 🔐 JWT: Usa fetch normal para login (endpoint público)
+    const res = await fetch("/api/auth/login/", {
       method: "POST",
-      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": getCSRFToken(),
       },
       body: JSON.stringify({ username, password }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
 
     if (res.ok) {
-      const idRes = await fetch(`/api/cliente_id/${username}/`, {
-        credentials: "same-origin",
-      });
-      if (idRes.ok) {
-        const { id } = await idRes.json();
-        localStorage.setItem("clienteId", id);
-      } else {
-        console.warn("No pude recuperar el clienteId");
+      // Guardar tokens JWT en localStorage
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Guardar clienteId si existe
+      if (data.user.cliente_id) {
+        localStorage.setItem("clienteId", data.user.cliente_id);
       }
 
-      window.location.reload();
+      // Redirigir al inicio
+      window.location.href = "/";
     } else {
-      errorBox.textContent = `❌ ${data.error || "Error desconocido"}`;
+      errorBox.textContent = `❌ ${data.error || "Credenciales inválidas"}`;
     }
   } catch (err) {
     errorBox.textContent = `❌ Error inesperado: ${err}`;

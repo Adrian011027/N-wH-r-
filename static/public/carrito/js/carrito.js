@@ -10,13 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   async function patchCantidad(varId, cant) {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    if (IS_LOGGED) headers['X-CSRFToken'] = getCookie('csrftoken');
-    else headers['X-Session-Key'] = SESSION_KEY;
-
-    const res = await fetch(`${API_BASE}/item/${varId}/actualizar/`, {
+    // 🔐 JWT: Usa fetchPatch que agrega automáticamente el token
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    
+    const res = await fetchWithAuth(`${API_BASE}/item/${varId}/actualizar/`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ cantidad: cant })
@@ -25,8 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function renderCarritoDesdeAPI() {
-    const res = await fetch(`${API_BASE}/`, {
-      headers: IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY }
+    // 🔐 JWT: fetchWithAuth agrega token automáticamente para usuarios logueados
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    const res = await fetchWithAuth(`${API_BASE}/`, {
+      headers
     });
     const data = await res.json();
     const contenedor = document.querySelector('.carrito-items');
@@ -118,8 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function updateTotals() {
-    const res = await fetch(`${API_BASE}/`, {
-      headers: IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY }
+    // 🔐 JWT: fetchWithAuth agrega token automáticamente
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    const res = await fetchWithAuth(`${API_BASE}/`, {
+      headers
     });
     const data = await res.json();
     if (!res.ok) { console.error('[carrito]', data); return; }
@@ -166,11 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
         item.classList.add('fade-out');
 
         item.addEventListener('animationend', async () => {
-          const headers = IS_LOGGED
-            ? { 'X-CSRFToken': getCookie('csrftoken') }
-            : { 'X-Session-Key': SESSION_KEY };
+          // 🔐 JWT: fetchDelete agrega token automáticamente
+          const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
 
-          const r = await fetch(`${API_BASE}/item/${varId}/eliminar/`, {
+          const r = await fetchWithAuth(`${API_BASE}/item/${varId}/eliminar/`, {
             method: 'DELETE',
             headers
           });
@@ -228,11 +228,10 @@ if (await patchCantidad(varId, val)) {
   document.querySelector('.btn-vaciar')?.addEventListener('click', async () => {
     if (!confirm('¿Vaciar todo el carrito?')) return;
 
-    const headers = IS_LOGGED
-      ? { 'X-CSRFToken': getCookie('csrftoken') }
-      : { 'X-Session-Key': SESSION_KEY };
+    // 🔐 JWT: fetchDelete agrega token automáticamente
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
 
-    const r = await fetch(`${API_BASE}/empty/`, {
+    const r = await fetchWithAuth(`${API_BASE}/empty/`, {
       method: 'DELETE',
       headers
     });

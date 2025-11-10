@@ -8,6 +8,10 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
+import jwt
+from django.conf import settings
+from store.models import BlacklistedToken
+
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
 from .decorators import jwt_role_required
@@ -178,5 +182,77 @@ def refresh_token(request):
         new_access = generate_access_token(payload["user_id"], payload.get("role", "cliente"))
         return JsonResponse({"access": new_access}, status=200)
 
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+# ───────────────────────────────────────────────
+# Logout Cliente con invalidación de Refresh Token
+# ───────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def logout_client(request):
+    """
+    Logout de clientes con invalidación de refresh token.
+    - El cliente debe enviar su refresh token en el body.
+    - El token se guarda en la blacklist.
+    - El frontend además debe borrar access y refresh de su storage.
+    """
+    try:
+        data = json.loads(request.body or "{}")
+        refresh = data.get("refresh")
+
+        if not refresh:
+            return JsonResponse({"error": "Refresh token requerido"}, status=400)
+
+        # Decodificar refresh
+        payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+        if payload.get("type") != "refresh":
+            return JsonResponse({"error": "No es un refresh token"}, status=400)
+
+        # Guardar en blacklist
+        BlacklistedToken.objects.create(token=refresh)
+
+        return JsonResponse({"message": "Logout cliente exitoso"}, status=200)
+
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"error": "Refresh token expirado"}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({"error": "Refresh token inválido"}, status=401)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+# ───────────────────────────────────────────────
+# Logout Usuario (admin) con invalidación
+# ───────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def logout_user(request):
+    """
+    Logout de usuarios admin con invalidación de refresh token.
+    - Igual que logout_client pero para admins/usuarios.
+    """
+    try:
+        data = json.loads(request.body or "{}")
+        refresh = data.get("refresh")
+
+        if not refresh:
+            return JsonResponse({"error": "Refresh token requerido"}, status=400)
+
+        # Decodificar refresh
+        payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+        if payload.get("type") != "refresh":
+            return JsonResponse({"error": "No es un refresh token"}, status=400)
+
+        # Guardar en blacklist
+        BlacklistedToken.objects.create(token=refresh)
+
+        return JsonResponse({"message": "Logout usuario exitoso"}, status=200)
+
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"error": "Refresh token expirado"}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({"error": "Refresh token inválido"}, status=401)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
