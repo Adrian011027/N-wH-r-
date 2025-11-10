@@ -7,7 +7,7 @@ from django.db                   import models, transaction
 from django.db.models            import Sum
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from store.views.decorators      import login_required_client
+from store.views.decorators      import login_required_client, jwt_role_required
 from store.views.orden import crear_orden_desde_payload
 from ..models import (
     Cliente, Carrito, Producto, AtributoValor,
@@ -66,6 +66,7 @@ def get_carrito_by_session(session_key):
 # -----------------------------------------------------------------
 # 0. Detalle de carrito para invitados (session_key)
 # -----------------------------------------------------------------
+@csrf_exempt
 @require_http_methods(["GET"])
 def detalle_carrito_session(request):
     carrito = get_carrito_by_session(request.session.session_key)
@@ -184,6 +185,8 @@ def create_carrito(request, cliente_id):
 # -----------------------------------------------------------------
 # 2. Detalle de carrito (cliente logueado)
 # -----------------------------------------------------------------
+@csrf_exempt
+@jwt_role_required()
 @require_http_methods(["GET"])
 def detalle_carrito_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -241,6 +244,7 @@ def _build_detalle_response(carrito):
 # 3. Eliminar producto
 # -----------------------------------------------------------------
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(["DELETE"])
 def delete_producto_carrito(request, cliente_id, variante_id):
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -254,6 +258,7 @@ def delete_producto_carrito(request, cliente_id, variante_id):
 # 4. Vaciar carrito  (cliente logueado  o  invitado)
 # -----------------------------------------------------------------
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(["DELETE"])
 def vaciar_carrito(request, cliente_id):
     # ===============  invitado  ==========================
@@ -297,6 +302,7 @@ def vaciar_carrito_guest(request):
 # 5. PATCH cantidad (con bloqueo de fila)
 # -----------------------------------------------------------------
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(["PATCH"])
 def actualizar_cantidad_producto(request, cliente_id, variante_id):
     try:
@@ -455,6 +461,7 @@ def eliminar_item_guest(request, variante_id):
 # views.py
 
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(["POST"])
 def finalizar_compra(request, carrito_id):
     carrito = get_object_or_404(Carrito, id=carrito_id)

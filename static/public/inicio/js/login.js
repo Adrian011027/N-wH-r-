@@ -21,19 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* -------- Utilidad para decodificar JWT sin librerías externas -------- */
-function decodeJWT(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-  } catch (e) {
-    console.error("Error al decodificar JWT:", e);
-    return {};
-  }
-}
-
-/* -------- envío del formulario de login (JWT) -------- */
-document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
+/* -------- envío del formulario de login con JWT -------- */
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const username = document.getElementById("username").value.trim();
@@ -46,41 +35,32 @@ document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
   }
 
   try {
-    const res = await fetch("/auth/login_client/", {
+    // 🔐 JWT: Usa fetch normal para login (endpoint público)
+    const res = await fetch("/api/auth/login/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ username, password }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res.json();
 
     if (res.ok) {
-      // 🔑 Guardamos tokens en localStorage
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-
-      // ✅ Decodificamos el access token para extraer datos del usuario
-      const decoded = decodeJWT(data.access);
-      if (decoded) {
-        // 🔹 Guardamos user_id y role
-        if (decoded.user_id) {
-          localStorage.setItem("user_id", decoded.user_id);
-        }
-        localStorage.setItem("role", decoded.role || "cliente");
-
-        // 🔹 Guardamos username si viene en el token
-        if (decoded.username) {
-          localStorage.setItem("username", decoded.username);
-        } else {
-          // fallback: usamos el username del form
-          localStorage.setItem("username", username);
-        }
+      // Guardar tokens JWT en localStorage
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Guardar clienteId si existe
+      if (data.user.cliente_id) {
+        localStorage.setItem("clienteId", data.user.cliente_id);
       }
 
-      // ✅ Recargar página o cerrar panel
-      window.location.reload();
+      // Redirigir al inicio
+      window.location.href = "/";
     } else {
-      errorBox.textContent = `❌ ${data.error || "Error de autenticación"}`;
+      errorBox.textContent = `❌ ${data.error || "Credenciales inválidas"}`;
     }
   } catch (err) {
     errorBox.textContent = `❌ Error inesperado: ${err.message}`;

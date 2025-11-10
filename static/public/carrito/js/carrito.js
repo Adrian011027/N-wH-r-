@@ -17,12 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   async function patchCantidad(varId, cant) {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
-    };
-
-    const res = await fetch(`${API_BASE}/item/${varId}/actualizar/`, {
+    // 🔐 JWT: Usa fetchPatch que agrega automáticamente el token
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    
+    const res = await fetchWithAuth(`${API_BASE}/item/${varId}/actualizar/`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ cantidad: cant })
@@ -32,11 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   async function renderCarritoDesdeAPI() {
-    const res = await fetch(`${API_BASE}/`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
-      }
+    // 🔐 JWT: fetchWithAuth agrega token automáticamente para usuarios logueados
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    const res = await fetchWithAuth(`${API_BASE}/`, {
+      headers
     });
     if (!res.ok) {
       console.error("[carrito] error al cargar:", res.status);
@@ -122,11 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   async function updateTotals() {
-    const res = await fetch(`${API_BASE}/`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
-      }
+    // 🔐 JWT: fetchWithAuth agrega token automáticamente
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+    const res = await fetchWithAuth(`${API_BASE}/`, {
+      headers
     });
     if (!res.ok) return;
     const data = await res.json();
@@ -194,7 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = wrap.closest('.carrito-item');
         item.classList.add('fade-out');
         item.addEventListener('animationend', async () => {
-          const r = await fetch(`${API_BASE}/item/${varId}/eliminar/`, {
+          // 🔐 JWT: fetchDelete agrega token automáticamente
+          const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+
+          const r = await fetchWithAuth(`${API_BASE}/item/${varId}/eliminar/`, {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
@@ -259,7 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.btn-vaciar')?.addEventListener('click', async () => {
     if (!confirm('¿Vaciar todo el carrito?')) return;
 
-    const r = await fetch(`${API_BASE}/empty/`, {
+    // 🔐 JWT: fetchDelete agrega token automáticamente
+    const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+
+    const r = await fetchWithAuth(`${API_BASE}/empty/`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

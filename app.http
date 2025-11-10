@@ -40,7 +40,7 @@ Content-Type: application/json
 
 
 ### obtener productos
-GET http://127.0.0.1:8000/api/productos 
+GET http://127.0.0.1:8000/api/users 
 
 ###
 DELETE http://127.0.0.1:8000/api/productos/delete/all/
@@ -70,21 +70,26 @@ DELETE http://127.0.0.1:8000/api/productos/delete/2/
 
 ### GET clientes
 GET http://127.0.0.1:8000/user/get/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTY2Mjg2OTcsImlhdCI6MTc1NjYyMTQ5N30.yXxecQtsaQNd3hZSs1rqmBhwmdJgfTQTzYGqA7Moh6k
 
 ### GET clientes
 GET http://127.0.0.1:8000/clientes/
 
 ### Crear cliente
 
-POST http://127.0.0.1:8000/clientes/crear/
+POST http://127.0.0.1:8000/user/create/
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTY2Mjg2OTcsImlhdCI6MTc1NjYyMTQ5N30.yXxecQtsaQNd3hZSs1rqmBhwmdJgfTQTzYGqA7Moh6k
 
 {
-  "username": "Prueba1",
-  "password": "prueba123",
-  "correo":   "prueba1@example.com",
-  "nombre":   "Prueba Uno"
+  "username": "admin2",
+  "password": "admin2123",
+  "role":   "admin"
 }
+
+###
+DELETE http://127.0.0.1:8000/clientes/delete/4/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTY2Mjg2OTcsImlhdCI6MTc1NjYyMTQ5N30.yXxecQtsaQNd3hZSs1rqmBhwmdJgfTQTzYGqA7Moh6k
 
 
 

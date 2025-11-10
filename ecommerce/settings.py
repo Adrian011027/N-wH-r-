@@ -39,12 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # Para permitir peticiones desde el frontend
     'store',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Debe estar antes de CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -188,6 +190,34 @@ TWILIO_ACCOUNT_SID    = config("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN     = config("TWILIO_AUTH_TOKEN")
 TWILIO_WHATSAPP_FROM  = config("TWILIO_WHATSAPP_FROM")
 TWILIO_ADMIN_PHONE    = config("TWILIO_ADMIN_PHONE")  # ← agrega esta variable al .env también
+
+
+# ───────── Configuración JWT ──────────
+JWT_SECRET_KEY = config('JWT_SECRET_KEY', default='tu-clave-secreta-muy-segura-cambiar-en-produccion')
+
+# ───────── Configuración CORS ──────────
+# Permitir peticiones desde el frontend
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",       # React
+    "http://localhost:5173",       # Vite
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",       # Otros frontends
+]
+
+# Headers permitidos para JWT
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'authorization',
+    'content-type',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Permitir credenciales (cookies, headers de autorización)
+CORS_ALLOW_CREDENTIALS = True
+
 
 
 

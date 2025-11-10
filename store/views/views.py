@@ -8,6 +8,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
+import jwt
+from django.conf import settings
+from store.models import BlacklistedToken
+
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
 from .decorators import jwt_role_required
@@ -182,85 +186,73 @@ def refresh_token(request):
         return JsonResponse({"error": str(e)}, status=400)
 
 
+# ───────────────────────────────────────────────
+# Logout Cliente con invalidación de Refresh Token
+# ───────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def logout_client(request):
+    """
+    Logout de clientes con invalidación de refresh token.
+    - El cliente debe enviar su refresh token en el body.
+    - El token se guarda en la blacklist.
+    - El frontend además debe borrar access y refresh de su storage.
+    """
+    try:
+        data = json.loads(request.body or "{}")
+        refresh = data.get("refresh")
 
-#@jwt_role_required()
-def dashboard_categorias(request):
-    return render(request, "dashboard/categorias/lista.html")
+        if not refresh:
+            return JsonResponse({"error": "Refresh token requerido"}, status=400)
 
-# ───────────────────────────────────────────────────────────────
-# Dashboard: productos
-# ───────────────────────────────────────────────────────────────
-#@jwt_role_required()
-def lista_productos(request):
-    return render(request, "dashboard/productos/lista.html")
+        # Decodificar refresh
+        payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+        if payload.get("type") != "refresh":
+            return JsonResponse({"error": "No es un refresh token"}, status=400)
 
+        # Guardar en blacklist
+        BlacklistedToken.objects.create(token=refresh)
 
-#@jwt_role_required()
-def alta(request):
-    return render(request, "dashboard/productos/registro.html")
+        return JsonResponse({"message": "Logout cliente exitoso"}, status=200)
 
-
-#@jwt_role_required()
-def editar_producto(request, id):
-    producto   = get_object_or_404(Producto, id=id)
-    categorias = Categoria.objects.all()
-    variantes  = (
-        producto.variantes
-        .prefetch_related("attrs__atributo_valor")
-        .all()
-    )
-
-    variantes_data = []
-    for v in variantes:
-        talla = next(
-            (
-                av.atributo_valor.valor
-                for av in v.attrs.all()
-                if av.atributo_valor.atributo.nombre.lower() == "talla"
-            ),
-            "—",
-        )
-        variantes_data.append({
-            "id"    : v.id,
-            "talla" : talla,
-            "precio": v.precio,
-            "stock" : v.stock,
-        })
-
-    return render(request, "dashboard/productos/editar.html", {
-        "producto"  : producto,
-        "categorias": categorias,
-        "variantes" : variantes_data,
-    })
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"error": "Refresh token expirado"}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({"error": "Refresh token inválido"}, status=401)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 
-# ───────────────────────────────────────────────────────────────
-# Dashboard: clientes
-# ───────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────
+# Logout Usuario (admin) con invalidación
+# ───────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST"])
+def logout_user(request):
+    """
+    Logout de usuarios admin con invalidación de refresh token.
+    - Igual que logout_client pero para admins/usuarios.
+    """
+    try:
+        data = json.loads(request.body or "{}")
+        refresh = data.get("refresh")
 
-def dashboard_clientes(request):
-    return render(request, "dashboard/clientes/lista.html",
-                  {"clientes": Cliente.objects.all()})
+        if not refresh:
+            return JsonResponse({"error": "Refresh token requerido"}, status=400)
 
+        # Decodificar refresh
+        payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+        if payload.get("type") != "refresh":
+            return JsonResponse({"error": "No es un refresh token"}, status=400)
 
-#@jwt_role_required()
-def editar_cliente(request, id):
-    cliente = get_object_or_404(Cliente, id=id)
+        # Guardar en blacklist
+        BlacklistedToken.objects.create(token=refresh)
 
-    if request.method == "GET":
-        return render(request, "dashboard/clientes/editar.html",
-                      {"cliente": cliente})
+        return JsonResponse({"message": "Logout usuario exitoso"}, status=200)
 
-    # POST
-    cliente.username  = request.POST.get("username")
-    cliente.correo    = request.POST.get("correo")
-    cliente.nombre    = request.POST.get("nombre")
-    cliente.telefono  = request.POST.get("telefono")
-    cliente.direccion = request.POST.get("direccion")
-    cliente.save()
-    return redirect("dashboard_clientes")
-
-
-
-def login_user_page(request):
-    return render(request, "dashboard/auth/login.html")
+    except jwt.ExpiredSignatureError:
+        return JsonResponse({"error": "Refresh token expirado"}, status=401)
+    except jwt.InvalidTokenError:
+        return JsonResponse({"error": "Refresh token inválido"}, status=401)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

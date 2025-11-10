@@ -8,11 +8,12 @@ from .views.reset_password import (
 )
 
 # ─────────── Auth con JWT ───────────
+from .views import auth
 from .views.views import (
-    index, genero_view, registrarse,
-    login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria   # 👈 ya devuelven JWT
+    index, genero_view, registrarse,logout_client,logout_user,
+    login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria
 )
-from .utils.jwt_helpers import generate_access_token, decode_jwt, generate_refresh_token
+
 # ─────────── Carrito ───────────
 from .views.carrito import (
     create_carrito, detalle_carrito_cliente, delete_producto_carrito,
@@ -74,9 +75,19 @@ urlpatterns = [
     path("registrarse/",               registrarse,    name="registrarse"),
 
     # ---------- Auth (JWT) ----------
+    path("api/auth/login/",   auth.login,          name="api_login"),
+    path("api/auth/refresh/", auth.refresh_token,  name="api_refresh_token"),
+    path("api/auth/logout/",  auth.logout,         name="api_logout"),
+    path("api/auth/verify/",  auth.verify_token,   name="api_verify_token"),
+    
+    # Auth antiguo (compatibilidad)
     path("auth/login_user/",   login_user,    name="login_user"),
     path("auth/login_client/", login_client,  name="login_client"),
     path("auth/refresh/",      refresh_token, name="refresh_token"),
+    path("auth/logout_client/", logout_client, name="logout_client"),   
+    path("auth/logout_user/",   logout_user,   name="logout_user"),
+
+
 
     # ---------- Categorías API ----------
     path("api/categorias/",                     get_categorias,    name="get_categorias"),
@@ -109,10 +120,10 @@ urlpatterns = [
     path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
 
     # ---------- Usuarios (solo admin JWT) ----------
-    path("user/get/",             get_user,    name="get_user"),
-    path("user/create/",          create_user, name="create_user"),
-    path("user/update/<int:id>/", update_user, name="update_user"),
-    path("user/delete/<int:id>/", delete_user, name="delete_user"),
+    path("api/users/",                  get_user,    name="get_user"),
+    path("api/users/create/",           create_user, name="create_user"),
+    path("api/users/update/<int:id>/",  update_user, name="update_user"),
+    path("api/users/delete/<int:id>/",  delete_user, name="delete_user"),
 
     # ---------- Productos ----------
     path("producto/<int:id>/",                      detalle_producto,  name="detalle_producto"),

@@ -7,6 +7,7 @@ from django.http      import JsonResponse, Http404
 from django.views.decorators.csrf  import csrf_exempt
 from django.views.decorators.http  import require_http_methods
 from django.utils.decorators       import method_decorator
+from .decorators import jwt_role_required
 
 from ..models import Cliente, Wishlist, Producto, VarianteAtributo
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 #  1. Devuelve el ID de Cliente a partir del username
 # ─────────────────────────────────────────────────────────────
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(['GET'])
 def get_cliente_id(request, username):
     """
@@ -31,6 +33,7 @@ def get_cliente_id(request, username):
 #  2. Wishlist REST (GET / PATCH / DELETE)
 # ─────────────────────────────────────────────────────────────
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(['GET', 'POST', 'DELETE'])
 def wishlist_detail(request, id_cliente):
 
@@ -82,6 +85,7 @@ def wishlist_detail(request, id_cliente):
 #  3. Vaciar wishlist
 # ─────────────────────────────────────────────────────────────
 @csrf_exempt
+@jwt_role_required()
 @require_http_methods(['DELETE'])
 def wishlist_all(request, id_cliente):
     """

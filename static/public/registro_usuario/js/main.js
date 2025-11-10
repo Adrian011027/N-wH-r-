@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (direccion) datos.direccion = direccion;
 
     try {
+      // ℹ️ NOTA: /create-client/ es un endpoint PÚBLICO, no requiere JWT
       const res = await fetch('/create-client/', {
         method: 'POST',
         credentials: 'same-origin',

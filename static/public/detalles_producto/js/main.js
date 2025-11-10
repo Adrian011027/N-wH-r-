@@ -26,6 +26,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     return v ? `Talla ${talla}: Stock disponible ${v.stock}` : '';
   };
 
+  /* ====== reintento post-login ====== */
+  const prelogin = sessionStorage.getItem('prelogin_carrito');
+  if (cliId && prelogin) {
+    try {
+      const { producto_id, items } = JSON.parse(prelogin);
+      if (producto_id === prodId && Array.isArray(items)) {
+        let total = 0;
+        for (const item of items) {
+          // 🔐 JWT: fetchPost agrega token automáticamente
+          const res = await fetchPost(`/api/carrito/create/${cliId}/`, {
+            producto_id,
+            talla: item.talla,
+            cantidad: item.cantidad
+          });
+          if (res.ok) total += item.cantidad;
+        }
+        if (total > 0) {
+          msg.style.color = 'green';
+          msg.textContent = `✔️ Se agregaron ${total} unidades al carrito tras iniciar sesión.`;
+        }
+      }
+    } catch (err) {
+      console.error('Error al procesar prelogin_carrito:', err);
+    }
+    sessionStorage.removeItem('prelogin_carrito');
+  }
+
   /* ====== crear línea ====== */
   function crearLinea(selectEl) {
     const talla = selectEl.value;
@@ -154,46 +181,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
-    if (!seleccion.length) {
-      msg.style.color = 'orange';
-      msg.textContent = '⚠️ No has añadido tallas.';
+  msg.textContent = '';
+  let total = 0;
+
+  for (const item of seleccion) {
+    try {
+      let endpoint = '';
+      if (cliId) {
+        endpoint = `/api/carrito/create/${cliId}/`;
+      } else {
+        endpoint = `/api/carrito/create/0/`;  // ✅ ESTA es la ruta correcta
+      }
+
+      // 🔐 JWT: fetchPost agrega token automáticamente si el usuario está logueado
+      const res = await fetchPost(endpoint, {
+        producto_id: prodId,
+        talla: item.talla,
+        cantidad: item.cantidad
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
+
+      total += item.cantidad;
+
+    } catch (e) {
+      msg.style.color = 'red';
+      msg.textContent = '❌ ' + e.message;
       return;
     }
+  }
 
-    msg.textContent = '';
-    let total = 0;
 
-    for (const item of seleccion) {
-      try {
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(TOKEN && { Authorization: `Bearer ${TOKEN}` })
-        };
-
-        const endpoint = IS_LOGGED
-          ? `/api/carrito/create/${CLIENTE_ID}/`
-          : `/api/carrito/create/0/`;
-
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            producto_id: prodId,
-            talla: item.talla,
-            cantidad: item.cantidad
-          })
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
-
-        total += item.cantidad;
-      } catch (e) {
-        msg.style.color = 'red';
-        msg.textContent = '❌ ' + e.message;
-        return;
-      }
-    }
+  msg.style.color = 'green';
+  msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
+});
 
     msg.style.color = 'green';
     msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;

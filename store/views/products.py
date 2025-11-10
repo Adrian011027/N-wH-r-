@@ -2,12 +2,11 @@ from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Atributo, AtributoValor, Producto, Categoria, Variante
-from .decorators import login_required_user, login_required_client
+from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
 from django.db.models import Prefetch
 from decimal import Decimal
 from .decorators import jwt_role_required
 import json
-
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -59,8 +58,8 @@ def detalle_producto(request, id):
 
 
 
-#@login_required_user          # (opcional, según tu negocio)
-#@require_GET
+#@jwt_role_required()  # Público - Ver detalles de producto
+@require_GET
 def get_all_products(request):
 
     productos = Producto.objects.prefetch_related('variantes__attrs__atributo_valor__atributo')
@@ -96,95 +95,123 @@ def get_all_products(request):
         })
 
     return JsonResponse(data, safe=False)
-#@login_required_user
-@csrf_exempt
 
+@csrf_exempt
+@admin_required()
 @require_http_methods(["POST"])
 def create_product(request):
+
+    # Detecta si el request viene en JSON o multipart/form-data
+    if request.content_type.startswith("application/json"):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "JSON inválido"}, status=400)
+
+        nombre      = data.get("nombre")
+        descripcion = data.get("descripcion")
+        precio      = data.get("precio")
+        precio_mayorista = data.get("precio_mayorista", precio)
+        categoria_id= data.get("categoria_id")
+        genero      = data.get("genero")
+        en_oferta   = data.get("en_oferta", False)
+        imagen      = None  # No hay archivos en JSON
+
+        tallas = data.get("tallas", [])
+        stocks = data.get("stocks", [])
+
+    else:  # multipart/form-data
+        nombre      = request.POST.get("nombre")
+        descripcion = request.POST.get("descripcion")
+        precio      = request.POST.get("precio")
+        precio_mayorista = request.POST.get("precio_mayorista", precio)
+        categoria_id= request.POST.get("categoria_id")
+        genero      = request.POST.get("genero")
+        en_oferta   = request.POST.get("en_oferta") == "on"
+        imagen      = request.FILES.get("imagen")
+
+        tallas = request.POST.getlist("tallas")
+        stocks = request.POST.getlist("stocks")
+
+    # Validaciones mínimas
+    if not nombre: return JsonResponse({"error": "Falta campo 'nombre'"}, status=400)
+    if not descripcion: return JsonResponse({"error": "Falta campo 'descripcion'"}, status=400)
+    if precio is None: return JsonResponse({"error": "Falta campo 'precio'"}, status=400)
+    if not categoria_id: return JsonResponse({"error": "Falta campo 'categoria_id'"}, status=400)
+
     try:
-        # ─── Datos básicos del producto ─────────────────────────────
-        nombre      = request.POST['nombre']
-        descripcion = request.POST['descripcion']
-        precio      = request.POST['precio']
-        precio_mayorista = request.POST['precio_mayorista']
-        categoria   = Categoria.objects.get(id=request.POST['categoria_id'])
-        genero      = request.POST['genero']
-        en_oferta   = request.POST.get('en_oferta') == 'on'
-        imagen      = request.FILES.get('imagen')
-
-        # ─── Arrays de tallas y stocks (si existen) ─────────────────
-        tallas = request.POST.getlist('tallas')
-        stocks = request.POST.getlist('stocks')
-
-        # Normaliza a ints
-        stocks = [int(s) for s in stocks]
-
-    except KeyError as ke:
-        return JsonResponse({'error': f'Falta campo {ke}'}, status=400)
+        categoria = Categoria.objects.get(id=categoria_id)
     except Categoria.DoesNotExist:
-        return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
+        return JsonResponse({"error": "Categoría no encontrada"}, status=404)
 
-    # ─── Crea el producto ──────────────────────────────────────────
+    try:
+        precio = float(precio)
+        precio_mayorista = float(precio_mayorista)
+    except ValueError:
+        return JsonResponse({"error": "precio y precio_mayorista deben ser numéricos"}, status=400)
+
+    # Crear producto
     producto = Producto.objects.create(
         nombre=nombre,
         descripcion=descripcion,
         precio=precio,
-        precio_mayorista= precio_mayorista,
+        precio_mayorista=precio_mayorista,
         categoria=categoria,
         genero=genero,
         en_oferta=en_oferta,
         imagen=imagen,
     )
 
-    # ─── Atributo “Talla” (solo se crea/obtiene una vez) ───────────
-    atributo_talla, _ = Atributo.objects.get_or_create(nombre='Talla')
+    # Atributo "Talla"
+    atributo_talla, _ = Atributo.objects.get_or_create(nombre="Talla")
 
-    # ────────────────────────────────────────────────────────────────
-    # CASO A) Arrays tallas+stocks recibidos y longitudes iguales
-    # ────────────────────────────────────────────────────────────────
-    if tallas and len(tallas) == len(stocks):
+    # Variantes múltiples (tallas + stocks)
+    if tallas and stocks and len(tallas) == len(stocks):
+        try:
+            stocks = [int(s) for s in stocks]
+        except:
+            return JsonResponse({"error": "Stock debe ser numérico"}, status=400)
+
         for talla, stock in zip(tallas, stocks):
-            valor_talla, _ = AtributoValor.objects.get_or_create(
-                atributo=atributo_talla,
-                valor=talla
-            )
+            valor, _ = AtributoValor.objects.get_or_create(atributo=atributo_talla, valor=talla)
             variante = Variante.objects.create(
                 producto=producto,
                 precio=precio,
                 precio_mayorista=precio_mayorista,
                 stock=stock,
             )
-            variante.attrs.create(atributo_valor=valor_talla)
+            variante.attrs.create(atributo_valor=valor)
 
-    # ────────────────────────────────────────────────────────────────
-    # CASO B) Formulario simple: solo llega “stock” (y opcionalmente “talla”)
-    # ────────────────────────────────────────────────────────────────
+    # Variante simple (stock único)
     else:
-        try:
-            stock_unico = int(request.POST['stock'])
-        except (KeyError, ValueError):
-            return JsonResponse({'error': 'Falta campo stock'}, status=400)
+        stock_unico = data.get("stock") if request.content_type.startswith("application/json") else request.POST.get("stock")
+        talla_unica = data.get("talla", "Única") if request.content_type.startswith("application/json") else request.POST.get("talla", "Única")
 
-        talla_unica = request.POST.get('talla', 'Única')
-        valor_talla, _ = AtributoValor.objects.get_or_create(
-            atributo=atributo_talla,
-            valor=talla_unica
-        )
+        if stock_unico is None:
+            return JsonResponse({"error": "Falta campo 'stock'"}, status=400)
+
+        try:
+            stock_unico = int(stock_unico)
+        except:
+            return JsonResponse({"error": "stock debe ser numérico"}, status=400)
+
+        valor, _ = AtributoValor.objects.get_or_create(atributo=atributo_talla, valor=talla_unica)
         variante = Variante.objects.create(
             producto=producto,
             precio=precio,
             precio_mayorista=precio_mayorista,
             stock=stock_unico,
         )
-        variante.attrs.create(atributo_valor=valor_talla)
+        variante.attrs.create(atributo_valor=valor)
 
     return JsonResponse(
-        {'id': producto.id, 'message': 'Producto y variantes creados'}, 
+        {"id": producto.id, "message": "Producto y variantes creados"},
         status=201
     )
 
-@login_required_user
-@require_http_methods(["POST"])
+@csrf_exempt
+@admin_required()
+@require_http_methods(["POST", "PUT"])
 def update_productos(request, id):
     producto = get_object_or_404(Producto, id=id)
 
@@ -222,8 +249,9 @@ def update_productos(request, id):
         status=200
     )
 
-@login_required_user 
-@require_http_methods(["POST"])
+@csrf_exempt
+@admin_required()
+@require_http_methods(["POST", "PUT"])
 def update_variant(request, variante_id):
 
     variante = get_object_or_404(Variante, id=variante_id)
@@ -244,14 +272,16 @@ def update_variant(request, variante_id):
         status=200
     )
 
-@login_required_user
-@require_http_methods(["POST"])
+@csrf_exempt
+@admin_required()
+@require_http_methods(["DELETE", "POST"])
 def delete_productos(request, id):
     producto = get_object_or_404(Producto, id=id)
     producto.delete()
     return JsonResponse({'mensaje': f'Producto {producto.nombre} y sus variantes eliminados'}, status=200)
 
 @csrf_exempt
+@admin_required()
 @require_http_methods(["DELETE"])
 def delete_all_productos(request):
     # Contamos cuántos productos hay antes de borrarlos

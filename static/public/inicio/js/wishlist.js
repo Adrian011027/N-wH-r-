@@ -46,14 +46,9 @@ export function initWishlist({
 
       if (guestRaw) {
         for (const id of JSON.parse(guestRaw)) {
-          fetch(`${backendURL}${safeClienteId}/`, {
-            method  : 'POST',
-            headers : {
-              'Content-Type': 'application/json',
-              ...(csrfToken && { 'X-CSRFToken': csrfToken })
-            },
-            body    : JSON.stringify({ producto_id: id })
-          }).catch(console.error);
+          // 🔐 JWT: fetchPost agrega token automáticamente
+          fetchPost(`${backendURL}${clienteId}/`, { producto_id: id })
+            .catch(console.error);
         }
       }
     } catch {}
@@ -120,7 +115,8 @@ export function initWishlist({
   (async () => {
     if (isAuthenticated && clienteId) {
       try {
-        const r = await fetch(`${backendURL}${safeClienteId}/`);
+        // 🔐 JWT: fetchGet agrega token automáticamente
+        const r = await fetchGet(`${backendURL}${clienteId}/`);
         if (r.ok) {
           const { productos = [] } = await r.json();
           setList([...new Set([...getList(), ...productos.map(String)])]);
@@ -175,13 +171,12 @@ export function initWishlist({
     updateHeaderUI(list);
 
     if (!isAuthenticated) return;
-    fetch(`${backendURL}${safeClienteId}/`, {
-      method  : add ? 'POST' : 'DELETE',
-      headers : {
-        'Content-Type': 'application/json',
-        ...(csrfToken && { 'X-CSRFToken': csrfToken })
-      },
-      body    : JSON.stringify({ producto_id: id })
+    
+    // 🔐 JWT: Usa fetchWithAuth en lugar de fetch manual
+    const method = add ? 'POST' : 'DELETE';
+    fetchWithAuth(`${backendURL}${clienteId}/`, {
+      method,
+      body: JSON.stringify({ producto_id: id })
     }).catch(console.error);
   });
 
@@ -202,7 +197,8 @@ export function initWishlist({
 
       let tallas = [];
       try {
-        const r = await fetch(`/api/productos/${pid}/`);
+        // 🔐 Endpoint público, no requiere token pero fetchGet es compatible
+        const r = await fetchGet(`/api/productos/${pid}/`);
         tallas = (await r.json()).tallas || ['Única'];
       } catch { tallas = ['Única']; }
 
@@ -254,14 +250,13 @@ export function initWishlist({
 
   async function addToCart(pid, talla, cant = 1) {
     try {
-      const r = await fetch(`/api/carrito/create/${safeClienteId}/`, {
-        method  : 'POST',
-        headers : {
-          'Content-Type': 'application/json',
-          ...(csrfToken && { 'X-CSRFToken': csrfToken })
-        },
-        body    : JSON.stringify({ producto_id: pid, talla, cantidad: cant })
+      // 🔐 JWT: fetchPost agrega token automáticamente
+      const r = await fetchPost(`/api/carrito/create/${safeClienteId}/`, {
+        producto_id: pid,
+        talla,
+        cantidad: cant
       });
+      
       if (!r.ok) throw new Error(await r.text());
       console.log('🛒', await r.json());
 
@@ -305,7 +300,8 @@ export function initWishlist({
   async function getCartIds() {
     if (!isAuthenticated) return new Set();
     try {
-      const r = await fetch(`/api/carrito/${safeClienteId}/`, { credentials: 'same-origin' });
+      // 🔐 JWT: fetchGet agrega token automáticamente
+      const r = await fetchGet(`/api/carrito/${clienteId}/`);
       if (!r.ok) throw new Error(r.status);
       const { items = [] } = await r.json();
       return new Set(items.map(it => String(it.producto_id)));
@@ -348,7 +344,9 @@ export function initWishlist({
       const url = isAuthenticated
         ? `${backendURL}${safeClienteId}/?full=true`
         : `${fetchProductoURL}${ids.join(',')}`;
-      const { productos = [] } = await (await fetch(url)).json();
+      
+      // 🔐 JWT: fetchGet agrega token automáticamente si el usuario está logueado
+      const { productos = [] } = await (await fetchGet(url)).json();
       const inCart = await getCartIds();
 
       dom.wishlistContent.innerHTML = productos.length
@@ -412,13 +410,9 @@ export function initWishlist({
 
     if (isAuthenticated && clienteId && ids.length) {
       ids.forEach(id => {
-        fetch(`${backendURL}${safeClienteId}/`, {
-          method  : 'DELETE',
-          headers : {
-            'Content-Type': 'application/json',
-            ...(csrfToken && { 'X-CSRFToken': csrfToken })
-          },
-          body    : JSON.stringify({ producto_id: id })
+        // 🔐 JWT: fetchDelete agrega token automáticamente
+        fetchDelete(`${backendURL}${clienteId}/`, {
+          body: JSON.stringify({ producto_id: id })
         }).catch(console.error);
       });
     }

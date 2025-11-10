@@ -2,7 +2,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Cliente, ContactoCliente
-from .decorators import login_required_user, login_required_client, jwt_role_required
+from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
 from django.db.models import Prefetch
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password 
@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
 # ========= GET ALL CLIENTS ========= #
-#@jwt_role_required()
+@admin_required()
 @require_GET
 def get_all_clients(request):
     try:
@@ -29,6 +29,7 @@ def get_all_clients(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 # ========= GET CLIENT BY ID ========= #
+@jwt_role_required()
 def detalle_client(request, id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -91,7 +92,8 @@ def create_client(request):
 
 # ========= UPDATE CLIENT ========= #
 @csrf_exempt
-@require_http_methods(["POST"])
+@jwt_role_required()
+@require_http_methods(["POST", "PUT"])
 def update_client(request, id):
     try:
         cliente = Cliente.objects.get(id=id)
@@ -143,6 +145,8 @@ def update_client(request, id):
         return JsonResponse({'error': str(err)}, status=500)
 
 # ========= DELETE CLIENT ========= #
+@csrf_exempt
+@admin_required()
 @require_http_methods(["POST", "DELETE"])
 def delete_client(request, id):
     try:
@@ -161,6 +165,8 @@ def delete_client(request, id):
         return JsonResponse({'error': str(e)}, status=500)
 
 # ========= SEND CONTACT ========= #
+@csrf_exempt
+@jwt_role_required()
 @require_http_methods(["POST"])
 def send_contact(request, id):
     try:
