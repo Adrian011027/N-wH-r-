@@ -21,12 +21,14 @@ from .views.carrito import (
     actualizar_cantidad_producto, detalle_carrito_session,
     vaciar_carrito_guest, actualizar_cantidad_guest, eliminar_item_guest,
     mostrar_confirmacion_compra, mostrar_formulario_confirmacion,
+    enviar_ticket_whatsapp, enviar_ticket_email,
 )
 
 # ─────────── Clientes ───────────
 from .views.client import (
     detalle_client, get_all_clients,
     create_client, update_client, delete_client, send_contact,
+    editar_perfil,
 )
 
 # ─────────── Usuarios (admin) ───────────
@@ -116,6 +118,7 @@ urlpatterns = [
     path("clientes/crear/",           create_client,   name="create_client"),
     path("clientes/update/<int:id>/", update_client,   name="update_client"),
     path("clientes/delete/<int:id>/", delete_client,   name="delete_client"),
+    path("perfil/<int:id>/",          editar_perfil,   name="editar_perfil"),
     path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
     path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
 
@@ -150,6 +153,10 @@ urlpatterns = [
     path("orden/procesando/link/<str:token>/",  procesar_por_link,               name="procesar_por_link"),
     path("orden/delete/<int:id>/",              eliminar_orden,                  name="eliminar_orden"),
     path("orden/delete/<int:orden_id>/<int:producto_id>", eliminar_producto,     name="eliminar_producto"),
+    
+    # ---------- Envío de Tickets ----------
+    path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),
+    path("api/orden/<int:carrito_id>/ticket/email/",    enviar_ticket_email,    name="enviar_ticket_email"),
 
        # ---------- Dashboard ----------
     path("dashboard/login/",                     login_user_page,           name="login_user"),

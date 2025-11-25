@@ -76,7 +76,43 @@
   transition: transform .3s ease, opacity .3s ease;
   opacity: 0;
   transform: translateY(20px);
+  position: relative;
+}
 
+/* --- Botón de Wishlist (corazón) --- */
+.wishlist-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.wishlist-btn i {
+  font-size: 20px;
+  color: #1d1d1d;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active i {
+  color: #e74c3c;
+}
+
+.wishlist-btn:hover i {
+  color: #e74c3c;
 }
 
 .categorias-dama .categoria-card img,

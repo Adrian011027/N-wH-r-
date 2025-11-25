@@ -13,7 +13,7 @@ from django.conf import settings
 from store.models import BlacklistedToken
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
-from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
+from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, decode_jwt
 from .decorators import jwt_role_required
 
 
@@ -76,7 +76,7 @@ def login_user(request):
     except Usuario.DoesNotExist:
         return JsonResponse({"error": "Credenciales inválidas"}, status=401)
 
-    access  = generate_access_token(user.id, user.role)
+    access  = generate_access_token(user.id, user.role, user.username)
     refresh = generate_refresh_token(user.id)
     return JsonResponse({"access": access, "refresh": refresh}, status=200)
 
@@ -98,7 +98,7 @@ def login_client(request):
     except Cliente.DoesNotExist:
         return JsonResponse({"error": "Usuario no registrado"}, status=404)
 
-    access  = generate_access_token(cliente.id, "cliente")
+    access  = generate_access_token(cliente.id, "cliente", cliente.username)
     refresh = generate_refresh_token(cliente.id)
     return JsonResponse({"access": access, "refresh": refresh, "username": username}, status=200)
 
@@ -256,3 +256,51 @@ def logout_user(request):
         return JsonResponse({"error": "Refresh token inválido"}, status=401)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+# ───────────────────────────────────────────────
+# Dashboard Views
+# ───────────────────────────────────────────────
+def login_user_page(request):
+    """Página de login para el dashboard admin"""
+    return render(request, "dashboard/auth/login.html")
+
+
+def lista_productos(request):
+    """Lista de productos en el dashboard"""
+    productos = Producto.objects.select_related("categoria").prefetch_related("variantes").all()
+    return render(request, "dashboard/productos/lista.html", {"productos": productos})
+
+
+def alta(request):
+    """Formulario para crear producto"""
+    categorias = Categoria.objects.all()
+    return render(request, "dashboard/productos/registro.html", {"categorias": categorias})
+
+
+def editar_producto(request, id):
+    """Formulario para editar producto"""
+    producto = get_object_or_404(Producto.objects.prefetch_related("variantes"), id=id)
+    categorias = Categoria.objects.all()
+    return render(request, "dashboard/productos/editar.html", {
+        "producto": producto,
+        "categorias": categorias
+    })
+
+
+def dashboard_clientes(request):
+    """Lista de clientes en el dashboard"""
+    clientes = Cliente.objects.all()
+    return render(request, "dashboard/clientes/lista.html", {"clientes": clientes})
+
+
+def editar_cliente(request, id):
+    """Formulario para editar cliente"""
+    cliente = get_object_or_404(Cliente, id=id)
+    return render(request, "dashboard/clientes/editar.html", {"cliente": cliente})
+
+
+def dashboard_categorias(request):
+    """Panel de categorías en el dashboard"""
+    categorias = Categoria.objects.all()
+    return render(request, "dashboard/categorias/lista.html", {"categorias": categorias})

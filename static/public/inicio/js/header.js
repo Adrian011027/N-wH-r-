@@ -9,9 +9,30 @@ function decodeJWT(token) {
 }
 
 export function setupHeaderScroll() {
+  const header = document.querySelector("header");
+  const logo = document.getElementById("Logo");
+  
   window.addEventListener("scroll", () => {
-    document.querySelector("header")
-      .classList.toggle("scrolled", window.scrollY > 10);
+    const scrollY = window.scrollY;
+    
+    // Toggle clase scrolled
+    header.classList.toggle("scrolled", scrollY > 10);
+    
+    // Reducción gradual del logo SOLO EN WEB (desktop)
+    if (logo && window.innerWidth > 768) {
+      const maxScroll = 200;
+      const minSize = 130;
+      const maxSize = 200;
+      
+      if (scrollY <= maxScroll) {
+        const progress = scrollY / maxScroll;
+        const newSize = maxSize - (progress * (maxSize - minSize));
+        logo.style.width = `${newSize}px`;
+      } else {
+        logo.style.width = `${minSize}px`;
+      }
+    }
+    // En mobile y tablet, no aplicar ningún cambio de tamaño (usa el CSS)
   });
 }
 
@@ -73,6 +94,17 @@ export function setupHeaderPanels() {
       window.renderWishlistPanel?.();
     });
 
+    // Perfil - redirigir con ID del cliente
+    document.getElementById("link-perfil")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const userId = localStorage.getItem("user_id");
+      if (userId) {
+        window.location.href = `/perfil/${userId}/`;
+      } else {
+        alert("No se pudo obtener el ID del usuario");
+      }
+    });
+
     // Contacto
     document.querySelector('#cliente-panel .quick-links a[href="/contacto/"]')
       ?.addEventListener("click", (e) => {
@@ -105,6 +137,11 @@ export function setupHeaderPanels() {
         if (decoded) {
           localStorage.setItem("user_id", decoded.user_id || "");
           localStorage.setItem("role", decoded.role || "cliente");
+        }
+        
+        // Guardar username si viene en la respuesta
+        if (data.username) {
+          localStorage.setItem("username", data.username);
         }
 
         closeAllPanels();

@@ -43,11 +43,31 @@ class ClienteManager(BaseUserManager):
         return cliente
 
 class Cliente(AbstractBaseUser):
+    # Información básica
     username   = models.CharField(max_length=255, unique=True)
     correo     = models.EmailField(max_length=255, blank=True)
     nombre     = models.CharField(max_length=255, null=True)
     telefono   = models.CharField(max_length=20, blank=True, null=True)
+    telefono_alternativo = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Dirección de envío
+    calle           = models.CharField(max_length=500, blank=True, null=True)
+    colonia         = models.CharField(max_length=200, blank=True, null=True)
+    codigo_postal   = models.CharField(max_length=5, blank=True, null=True)
+    ciudad          = models.CharField(max_length=200, blank=True, null=True)
+    estado          = models.CharField(max_length=100, blank=True, null=True)
+    referencias     = models.TextField(blank=True, null=True)
+    
+    # Dirección completa (legacy - mantener por compatibilidad)
     direccion  = models.CharField(max_length=500, blank=True, null=True)
+    
+    # Información fiscal
+    tipo_cliente      = models.CharField(max_length=20, default='menudeo', choices=[('menudeo', 'Menudeo'), ('mayoreo', 'Mayoreo')])
+    rfc               = models.CharField(max_length=13, blank=True, null=True)
+    razon_social      = models.CharField(max_length=500, blank=True, null=True)
+    direccion_fiscal  = models.CharField(max_length=500, blank=True, null=True)
+    
+    # Permisos
     is_active  = models.BooleanField(default=True)
     is_admin   = models.BooleanField(default=False)
 
@@ -68,6 +88,17 @@ class Cliente(AbstractBaseUser):
     @property
     def is_staff(self):
         return self.is_admin
+
+    @property
+    def direccion_completa(self):
+        """Devuelve la dirección completa formateada"""
+        if self.calle and self.colonia and self.ciudad:
+            partes = [self.calle, self.colonia]
+            if self.codigo_postal:
+                partes.append(f"CP {self.codigo_postal}")
+            partes.extend([self.ciudad, self.estado])
+            return ", ".join(filter(None, partes))
+        return self.direccion or ""
 
 
 class Usuario(models.Model):

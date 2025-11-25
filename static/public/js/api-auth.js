@@ -12,22 +12,22 @@ const API_URL = 'http://localhost:8000/api';
  * Guardar tokens en localStorage
  */
 export const saveTokens = (accessToken, refreshToken) => {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem('access', accessToken);
+    localStorage.setItem('refresh', refreshToken);
 };
 
 /**
  * Obtener access token
  */
 export const getAccessToken = () => {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access');
 };
 
 /**
  * Obtener refresh token
  */
 export const getRefreshToken = () => {
-    return localStorage.getItem('refresh_token');
+    return localStorage.getItem('refresh');
 };
 
 /**
@@ -49,9 +49,11 @@ export const getUser = () => {
  * Eliminar todos los datos de autenticación
  */
 export const clearAuth = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('access');
+    localStorage.removeItem('refresh');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
 };
 
 // ========================================
@@ -66,7 +68,7 @@ export const clearAuth = () => {
  */
 export const login = async (username, password) => {
     try {
-        const response = await fetch(`${API_URL}/auth/login/`, {
+        const response = await fetch(`/auth/login_client/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,9 +82,13 @@ export const login = async (username, password) => {
             throw new Error(data.error || 'Error al iniciar sesión');
         }
 
-        // Guardar tokens y usuario
-        saveTokens(data.access_token, data.refresh_token);
-        saveUser(data.user);
+        // Guardar tokens
+        saveTokens(data.access, data.refresh);
+        
+        // Guardar info de usuario si viene en la respuesta
+        if (data.username) {
+            localStorage.setItem('username', data.username);
+        }
 
         return data;
     } catch (error) {
@@ -103,12 +109,12 @@ export const refreshAccessToken = async () => {
             throw new Error('No hay refresh token disponible');
         }
 
-        const response = await fetch(`${API_URL}/auth/refresh/`, {
+        const response = await fetch(`/api/auth/refresh/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ refresh_token: refreshToken }),
+            body: JSON.stringify({ refresh: refreshToken }),
         });
 
         const data = await response.json();
@@ -118,13 +124,13 @@ export const refreshAccessToken = async () => {
         }
 
         // Guardar nuevo access token
-        localStorage.setItem('access_token', data.access_token);
-        return data.access_token;
+        localStorage.setItem('access', data.access);
+        return data.access;
     } catch (error) {
         console.error('Error al renovar token:', error);
         // Si falla el refresh, limpiar todo y redirigir al login
         clearAuth();
-        window.location.href = '/login';
+        window.location.href = '/';
         throw error;
     }
 };
@@ -141,7 +147,7 @@ export const verifyToken = async () => {
             throw new Error('No hay token disponible');
         }
 
-        const response = await fetch(`${API_URL}/auth/verify/`, {
+        const response = await fetch(`/api/auth/verify/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -167,15 +173,15 @@ export const verifyToken = async () => {
  */
 export const logout = async () => {
     try {
-        const token = getAccessToken();
+        const refreshToken = getRefreshToken();
 
-        if (token) {
-            await fetch(`${API_URL}/auth/logout/`, {
+        if (refreshToken) {
+            await fetch(`/api/auth/logout/`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ refresh: refreshToken }),
             });
         }
     } catch (error) {
@@ -183,7 +189,7 @@ export const logout = async () => {
     } finally {
         // Siempre limpiar los datos locales
         clearAuth();
-        window.location.href = '/login';
+        window.location.href = '/';
     }
 };
 

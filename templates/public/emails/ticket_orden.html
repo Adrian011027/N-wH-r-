@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket de Compra - NöwHėrē</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 40px 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            max-width: 650px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: #1a1a1a;
+        }
+        .brand {
+            font-size: 36px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .orden-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+        .content {
+            padding: 50px 40px;
+        }
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #999;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .cliente-info {
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+        }
+        .info-label {
+            font-size: 13px;
+            color: #666;
+            min-width: 100px;
+            font-weight: 400;
+        }
+        .info-value {
+            font-size: 14px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        .productos-section {
+            margin: 40px 0;
+        }
+        .producto-item {
+            display: flex;
+            padding: 25px 0;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+        .producto-item:last-child {
+            border-bottom: none;
+        }
+        .producto-info {
+            flex: 1;
+        }
+        .producto-nombre {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        .producto-detalles {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            gap: 15px;
+        }
+        .producto-precio {
+            text-align: right;
+            min-width: 100px;
+        }
+        .precio-unit {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        .precio-subtotal {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        .total-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #1a1a1a;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .total-label {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .total-value {
+            font-size: 13px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+        .total-final {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e8e8e8;
+        }
+        .total-final .total-label {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        .total-final .total-value {
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .footer {
+            background-color: #fafafa;
+            padding: 40px;
+            text-align: center;
+        }
+        .footer-message {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        .btn-track {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #999;
+            line-height: 1.6;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 20px;
+            }
+            .header {
+                padding: 35px 20px;
+            }
+            .producto-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .producto-precio {
+                margin-top: 10px;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="brand">NöwHėrē</div>
+            <div class="orden-badge">Pedido #{{ orden.id }}</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Cliente Info -->
+            <div class="cliente-info">
+                <div class="section-title">Información del Cliente</div>
+                <div class="info-row">
+                    <div class="info-label">Nombre</div>
+                    <div class="info-value">{{ cliente.nombre }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ cliente.correo }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Teléfono</div>
+                    <div class="info-value">{{ cliente.telefono|default:"No proporcionado" }}</div>
+                </div>
+                {% if cliente.direccion %}
+                <div class="info-row">
+                    <div class="info-label">Dirección</div>
+                    <div class="info-value">{{ cliente.direccion }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Productos -->
+            <div class="productos-section">
+                <div class="section-title">Productos</div>
+                {% for item in items %}
+                <div class="producto-item">
+                    <div class="producto-info">
+                        <div class="producto-nombre">{{ item.producto }}</div>
+                        <div class="producto-detalles">
+                            <span>{{ item.categoria }}</span>
+                            <span>•</span>
+                            <span>Talla: {{ item.talla }}</span>
+                            <span>•</span>
+                            <span>Cantidad: {{ item.cantidad }}</span>
+                        </div>
+                    </div>
+                    <div class="producto-precio">
+                        <div class="precio-unit">${{ item.precio_unitario|floatformat:2 }} c/u</div>
+                        <div class="precio-subtotal">${{ item.subtotal|floatformat:2 }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Total -->
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">Piezas totales</div>
+                    <div class="total-value">{{ total_piezas }}</div>
+                </div>
+                <div class="total-row total-final">
+                    <div class="total-label">Total</div>
+                    <div class="total-value">${{ total|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-message">
+                Gracias por tu compra.<br>
+                Nos comunicaremos contigo pronto para confirmar el pago y envío.
+            </div>
+            {% if link_seguimiento %}
+            <a href="{{ link_seguimiento }}" class="btn-track">Seguir mi pedido</a>
+            {% endif %}
+            <div class="footer-note">
+                Este es un correo automático, por favor no responder.<br>
+                Para consultas, contacta a nuestro equipo de soporte.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

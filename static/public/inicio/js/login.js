@@ -35,8 +35,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    // 🔐 JWT: Usa fetch normal para login (endpoint público)
-    const res = await fetch("/api/auth/login/", {
+    // 🔐 JWT: Login de cliente
+    const res = await fetch("/auth/login_client/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,14 +47,16 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const data = await res.json();
 
     if (res.ok) {
-      // Guardar tokens JWT en localStorage
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Guardar tokens JWT en localStorage (estandarizado)
+      localStorage.setItem('access', data.access);
+      localStorage.setItem('refresh', data.refresh);
       
-      // Guardar clienteId si existe
-      if (data.user.cliente_id) {
-        localStorage.setItem("clienteId", data.user.cliente_id);
+      // Guardar user_id y username si existen
+      if (data.user_id) {
+        localStorage.setItem("user_id", data.user_id);
+      }
+      if (data.username) {
+        localStorage.setItem("username", data.username);
       }
 
       // Redirigir al inicio

@@ -188,6 +188,41 @@ export function initWishlist({
       closeSizePicker(pickerOpen, 'down');
     }
 
+    // Eliminar de favoritos
+    if (e.target.closest('.btn-remove-wishlist')) {
+      const btn = e.target.closest('.btn-remove-wishlist');
+      const pid = btn.dataset.id;
+      
+      // Remover visualmente
+      const card = btn.closest('.wishlist-item');
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(20px)';
+      
+      setTimeout(() => {
+        // Actualizar localStorage
+        let list = getList();
+        list = list.filter(x => x !== pid);
+        setList(list);
+        
+        // Actualizar backend si está autenticado
+        if (isAuthenticated && clienteId) {
+          fetchWithAuth(`${backendURL}${clienteId}/`, {
+            method: 'DELETE',
+            body: JSON.stringify({ producto_id: pid })
+          }).catch(console.error);
+        }
+        
+        // Actualizar corazones del catálogo
+        document.querySelectorAll(`${selector}[data-product-id="${pid}"]`)
+          .forEach(heart => toggleBtn(heart, false));
+        
+        // Re-renderizar panel
+        renderWishlistPanel();
+      }, 300);
+      
+      return;
+    }
+
     if (e.target.matches('.btn-carrito-mini')) {
       const pid = e.target.dataset.id;
       if (pickerOpen && pickerOpen.dataset.productId === pid) {
@@ -314,17 +349,22 @@ export function initWishlist({
   const buildCards = (prods, inCart = new Set()) => prods.map(p => `
     <div class="wishlist-item" data-id="${p.id}">
       <div class="wishlist-img-col">
-        <img src="${p.imagen}" alt="${p.nombre}">
+        <img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='/static/images/placeholder.png'">
       </div>
       <div class="wishlist-info-col">
         <h4 class="nombre">${p.nombre}</h4>
-        <p class="precio">$${p.precio}</p>
-        <div class="wishlist-actions">
-          ${inCart.has(String(p.id))
-            ? `<span class="in-cart-note">Ya en carrito</span>`
-            : `<button class="btn-carrito-mini" data-id="${p.id}">Agregar al carrito</button>`
-          }
-        </div>
+        <p class="precio">$${parseFloat(p.precio).toFixed(2)}</p>
+      </div>
+      <div class="wishlist-actions">
+        ${inCart.has(String(p.id))
+          ? `<span class="in-cart-note"><i class="fa-solid fa-check"></i></span>`
+          : `<button class="btn-carrito-mini" data-id="${p.id}" title="Agregar al carrito">
+              <i class="fa-solid fa-cart-plus"></i>
+            </button>`
+        }
+        <button class="btn-remove-wishlist" data-id="${p.id}" title="Eliminar de favoritos">
+          <i class="fa-solid fa-trash"></i>
+        </button>
       </div>
     </div>
   `).join('');

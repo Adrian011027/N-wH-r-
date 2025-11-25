@@ -26,7 +26,22 @@
   {% if pedido_exitoso %}
     <div class="pedido-exitoso">
       ✅ Gracias por tu compra.<br>
-      En breve nos comunicaremos vía <strong>WhatsApp</strong> para confirmar el pago y envío de tus productos.
+      Tu pedido ha sido confirmado exitosamente.
+    </div>
+
+    <div class="pedido-ticket-opciones" style="margin-top: 24px; text-align: center;">
+      <h3 style="margin-bottom: 16px;">¿Cómo deseas recibir tu ticket?</h3>
+      <div class="ticket-botones" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <button id="btn-ticket-whatsapp" class="btn-ticket-opcion" style="flex: 1; max-width: 250px; padding: 16px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+          <i class="fab fa-whatsapp" style="margin-right: 8px;"></i>
+          WhatsApp
+        </button>
+        <button id="btn-ticket-email" class="btn-ticket-opcion" style="flex: 1; max-width: 250px; padding: 16px; background: #0078D4; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+          <i class="fas fa-envelope" style="margin-right: 8px;"></i>
+          Email
+        </button>
+      </div>
+      <p id="mensaje-envio" style="margin-top: 16px; color: green; font-weight: bold;"></p>
     </div>
 
     <div class="carrito-botones centrada" style="margin-top: 32px;">
@@ -79,6 +94,7 @@
 </div>
 
 <!-- Scripts -->
+<script src="{% static 'public/js/fetch-helper.js' %}"></script>
 <script src="{% static 'public/carrito/js/finalizar_compra.js' %}"></script>
 <script type="module" src="{% static 'public/inicio/js/main.js' %}" defer></script>
 {% endblock %}

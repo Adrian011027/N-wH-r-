@@ -2,13 +2,16 @@ import jwt
 import datetime
 from django.conf import settings
 
-def generate_access_token(user_id, role):
+def generate_access_token(user_id, role, username=None):
     payload = {
         "user_id": user_id,
         "role": role,
+        "type": "access",
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2),
         "iat": datetime.datetime.utcnow()
     }
+    if username:
+        payload["username"] = username
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
 def generate_refresh_token(user_id):

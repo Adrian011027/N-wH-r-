@@ -1,5 +1,5 @@
 {% extends 'public/base.html' %}
-{% load static %}  {# <-- ESTA LÍNEA ES NECESARIA PARA USAR {% static %} #}
+{% load static %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'public/cliente/css/main.css' %}">
@@ -7,31 +7,220 @@
 
 {% block content %}
 <main class="fade-in">
+  <div class="profile-header">
+    <h1>Mi Perfil</h1>
+    <p class="subtitle">Gestiona tu información personal y preferencias de compra</p>
+  </div>
 
-  <h1>Editar Perfil</h1>
-  <p class="lead">Actualiza tu información personal. Solo los campos necesarios deben completarse.</p>
+  <!-- Mensajes de éxito/error -->
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  <form method="POST">
+  <form method="POST" id="profile-form" class="profile-form">
     {% csrf_token %}
 
-    <div>
-      <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" name="nombre" value="{{ cliente.nombre }}">
-    </div>
+    <!-- Sección: Información Personal -->
+    <section class="form-section">
+      <h2 class="section-title">
+        <span class="icon">👤</span>
+        Información Personal
+      </h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="nombre">Nombre Completo <span class="required">*</span></label>
+          <input type="text" id="nombre" name="nombre" value="{{ cliente.nombre }}" required>
+        </div>
 
-    <div>
-      <label for="telefono">Teléfono:</label>
-      <input type="text" id="telefono" name="telefono" value="{{ cliente.telefono }}">
-    </div>
+        <div class="form-group">
+          <label for="username">Nombre de Usuario <span class="required">*</span></label>
+          <input type="text" id="username" name="username" value="{{ cliente.username }}" required>
+          <small class="field-hint">No se puede modificar después del registro</small>
+        </div>
 
-    <div>
-      <label for="direccion">Dirección:</label>
-      <input type="text" id="direccion" name="direccion" value="{{ cliente.direccion }}">
-    </div>
+        <div class="form-group">
+          <label for="correo">Correo Electrónico <span class="required">*</span></label>
+          <input type="email" id="correo" name="correo" value="{{ cliente.correo }}" required>
+        </div>
 
-    <div class="actions">
-      <button type="submit" class="btn-primary">Guardar cambios</button>
+        <div class="form-group">
+          <label for="telefono">Teléfono <span class="required">*</span></label>
+          <input type="tel" id="telefono" name="telefono" value="{{ cliente.telefono }}" 
+                 placeholder="3312345678" pattern="[0-9]{10}" required>
+          <small class="field-hint">10 dígitos sin espacios</small>
+        </div>
+
+        <div class="form-group">
+          <label for="telefono_alternativo">Teléfono Alternativo</label>
+          <input type="tel" id="telefono_alternativo" name="telefono_alternativo" 
+                 value="{{ cliente.telefono_alternativo }}" placeholder="3398765432" pattern="[0-9]{10}">
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección: Dirección de Envío -->
+    <section class="form-section">
+      <h2 class="section-title">
+        <span class="icon">📍</span>
+        Dirección de Envío
+      </h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="calle">Calle y Número <span class="required">*</span></label>
+          <input type="text" id="calle" name="calle" value="{{ cliente.calle }}" 
+                 placeholder="Av. Insurgentes 123" required>
+        </div>
+
+        <div class="form-group">
+          <label for="colonia">Colonia <span class="required">*</span></label>
+          <input type="text" id="colonia" name="colonia" value="{{ cliente.colonia }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="codigo_postal">Código Postal <span class="required">*</span></label>
+          <input type="text" id="codigo_postal" name="codigo_postal" 
+                 value="{{ cliente.codigo_postal }}" pattern="[0-9]{5}" 
+                 placeholder="44100" required>
+        </div>
+
+        <div class="form-group">
+          <label for="ciudad">Ciudad <span class="required">*</span></label>
+          <input type="text" id="ciudad" name="ciudad" value="{{ cliente.ciudad }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado <span class="required">*</span></label>
+          <select id="estado" name="estado" required>
+            <option value="">Selecciona un estado</option>
+            <option value="Aguascalientes" {% if cliente.estado == "Aguascalientes" %}selected{% endif %}>Aguascalientes</option>
+            <option value="Baja California" {% if cliente.estado == "Baja California" %}selected{% endif %}>Baja California</option>
+            <option value="Baja California Sur" {% if cliente.estado == "Baja California Sur" %}selected{% endif %}>Baja California Sur</option>
+            <option value="Campeche" {% if cliente.estado == "Campeche" %}selected{% endif %}>Campeche</option>
+            <option value="Chiapas" {% if cliente.estado == "Chiapas" %}selected{% endif %}>Chiapas</option>
+            <option value="Chihuahua" {% if cliente.estado == "Chihuahua" %}selected{% endif %}>Chihuahua</option>
+            <option value="Ciudad de México" {% if cliente.estado == "Ciudad de México" %}selected{% endif %}>Ciudad de México</option>
+            <option value="Coahuila" {% if cliente.estado == "Coahuila" %}selected{% endif %}>Coahuila</option>
+            <option value="Colima" {% if cliente.estado == "Colima" %}selected{% endif %}>Colima</option>
+            <option value="Durango" {% if cliente.estado == "Durango" %}selected{% endif %}>Durango</option>
+            <option value="Guanajuato" {% if cliente.estado == "Guanajuato" %}selected{% endif %}>Guanajuato</option>
+            <option value="Guerrero" {% if cliente.estado == "Guerrero" %}selected{% endif %}>Guerrero</option>
+            <option value="Hidalgo" {% if cliente.estado == "Hidalgo" %}selected{% endif %}>Hidalgo</option>
+            <option value="Jalisco" {% if cliente.estado == "Jalisco" %}selected{% endif %}>Jalisco</option>
+            <option value="México" {% if cliente.estado == "México" %}selected{% endif %}>Estado de México</option>
+            <option value="Michoacán" {% if cliente.estado == "Michoacán" %}selected{% endif %}>Michoacán</option>
+            <option value="Morelos" {% if cliente.estado == "Morelos" %}selected{% endif %}>Morelos</option>
+            <option value="Nayarit" {% if cliente.estado == "Nayarit" %}selected{% endif %}>Nayarit</option>
+            <option value="Nuevo León" {% if cliente.estado == "Nuevo León" %}selected{% endif %}>Nuevo León</option>
+            <option value="Oaxaca" {% if cliente.estado == "Oaxaca" %}selected{% endif %}>Oaxaca</option>
+            <option value="Puebla" {% if cliente.estado == "Puebla" %}selected{% endif %}>Puebla</option>
+            <option value="Querétaro" {% if cliente.estado == "Querétaro" %}selected{% endif %}>Querétaro</option>
+            <option value="Quintana Roo" {% if cliente.estado == "Quintana Roo" %}selected{% endif %}>Quintana Roo</option>
+            <option value="San Luis Potosí" {% if cliente.estado == "San Luis Potosí" %}selected{% endif %}>San Luis Potosí</option>
+            <option value="Sinaloa" {% if cliente.estado == "Sinaloa" %}selected{% endif %}>Sinaloa</option>
+            <option value="Sonora" {% if cliente.estado == "Sonora" %}selected{% endif %}>Sonora</option>
+            <option value="Tabasco" {% if cliente.estado == "Tabasco" %}selected{% endif %}>Tabasco</option>
+            <option value="Tamaulipas" {% if cliente.estado == "Tamaulipas" %}selected{% endif %}>Tamaulipas</option>
+            <option value="Tlaxcala" {% if cliente.estado == "Tlaxcala" %}selected{% endif %}>Tlaxcala</option>
+            <option value="Veracruz" {% if cliente.estado == "Veracruz" %}selected{% endif %}>Veracruz</option>
+            <option value="Yucatán" {% if cliente.estado == "Yucatán" %}selected{% endif %}>Yucatán</option>
+            <option value="Zacatecas" {% if cliente.estado == "Zacatecas" %}selected{% endif %}>Zacatecas</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="referencias">Referencias de Ubicación</label>
+          <textarea id="referencias" name="referencias" rows="2" 
+                    placeholder="Ej: Entre calle 5 de Mayo y Morelos, casa color blanco">{{ cliente.referencias }}</textarea>
+          <small class="field-hint">Ayúdanos a encontrar tu domicilio más fácil</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección: Información Fiscal (para mayoristas) -->
+    <section class="form-section">
+      <h2 class="section-title">
+        <span class="icon">🧾</span>
+        Información Fiscal (Opcional)
+      </h2>
+      <p class="section-description">Completa esta sección si requieres factura o eres comprador mayorista</p>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tipo_cliente">Tipo de Cliente</label>
+          <select id="tipo_cliente" name="tipo_cliente">
+            <option value="menudeo" {% if cliente.tipo_cliente == "menudeo" %}selected{% endif %}>Menudeo</option>
+            <option value="mayoreo" {% if cliente.tipo_cliente == "mayoreo" %}selected{% endif %}>Mayoreo</option>
+          </select>
+          <small class="field-hint">Los precios mayoristas aplican desde 6 piezas</small>
+        </div>
+
+        <div class="form-group">
+          <label for="rfc">RFC</label>
+          <input type="text" id="rfc" name="rfc" value="{{ cliente.rfc }}" 
+                 placeholder="XAXX010101000" pattern="[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}" 
+                 style="text-transform: uppercase;">
+        </div>
+
+        <div class="form-group full-width">
+          <label for="razon_social">Razón Social</label>
+          <input type="text" id="razon_social" name="razon_social" 
+                 value="{{ cliente.razon_social }}" placeholder="Nombre de tu empresa">
+        </div>
+
+        <div class="form-group full-width">
+          <label for="direccion_fiscal">Dirección Fiscal</label>
+          <input type="text" id="direccion_fiscal" name="direccion_fiscal" 
+                 value="{{ cliente.direccion_fiscal }}" 
+                 placeholder="Si es diferente a tu dirección de envío">
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección: Seguridad -->
+    <section class="form-section">
+      <h2 class="section-title">
+        <span class="icon">🔒</span>
+        Cambiar Contraseña
+      </h2>
+      <p class="section-description">Deja en blanco si no deseas cambiar tu contraseña</p>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="password_actual">Contraseña Actual</label>
+          <input type="password" id="password_actual" name="password_actual" 
+                 placeholder="Tu contraseña actual">
+        </div>
+
+        <div class="form-group">
+          <label for="password_nueva">Nueva Contraseña</label>
+          <input type="password" id="password_nueva" name="password_nueva" 
+                 placeholder="Mínimo 8 caracteres" minlength="8">
+        </div>
+
+        <div class="form-group">
+          <label for="password_confirmar">Confirmar Nueva Contraseña</label>
+          <input type="password" id="password_confirmar" name="password_confirmar" 
+                 placeholder="Repite la nueva contraseña">
+        </div>
+      </div>
+    </section>
+
+    <!-- Botones de acción -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="window.history.back()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn-primary">
+        <span class="btn-icon">💾</span>
+        Guardar Cambios
+      </button>
     </div>
   </form>
 </main>
+
+<script src="{% static 'public/cliente/js/perfil.js' %}"></script>
 {% endblock %}
