@@ -13,6 +13,7 @@ import { setupContactPanel }             from './contact-panel.js';
 import { setupLoginPanel }               from './usuario.js';
 import { setupClientePanel }             from './logged.js';
 import { initWishlist }                  from './wishlist.js';
+import { setupCategoriaCards, setupIntroAnimation } from './categorias-gral.js';
 
 /* —— Datos globales JWT —— */
 const IS_AUTH = !!localStorage.getItem("access");
@@ -77,9 +78,8 @@ async function validarSesion() {
   }
 
   try {
-    const res = await fetch(`/clientes/${33}`, {
-      headers: { Authorization: `Bearer ${access}` },
-    });
+    // Use fetchGet helper which automatically adds JWT token
+    const res = await fetchGet(`/clientes/${USER_ID || 33}`);
 
     if (!res.ok) throw new Error("Token inválido");
     const data = await res.json();

@@ -2,14 +2,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
-from ..models import Usuario
+from ..models import Usuario, Cliente
 import json
 import jwt
-from datetime import datetime, timedelta
 from django.conf import settings
-
-# Clave secreta para JWT (agrégala en settings.py)
-SECRET_KEY = getattr(settings, 'JWT_SECRET_KEY', 'tu-clave-secreta-segura-cambiar-en-produccion')
+from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
 
 
 @csrf_exempt
@@ -34,13 +31,13 @@ def login(request):
         if not check_password(password, user.password):
             return JsonResponse({'error': 'Credenciales inválidas'}, status=401)
 
-        # Generar tokens
-        access_token = generate_access_token(user)
-        refresh_token = generate_refresh_token(user)
+        # Generar tokens usando jwt_helpers
+        access_token = generate_access_token(user.id, user.role, user.username)
+        refresh_token = generate_refresh_token(user.id)
 
         return JsonResponse({
-            'access_token': access_token,
-            'refresh_token': refresh_token,
+            'access': access_token,
+            'refresh': refresh_token,
             'user': {
                 'id': user.id,
                 'username': user.username,
@@ -58,26 +55,50 @@ def login(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def refresh_token(request):
-    """Renovar access token usando refresh token"""
+    """Renovar access token usando refresh token (soporta Usuario y Cliente)"""
     try:
         data = json.loads(request.body)
-        refresh_token = data.get("refresh_token")
+        # Soportar tanto 'refresh' como 'refresh_token' para compatibilidad
+        refresh_token_str = data.get("refresh") or data.get("refresh_token")
 
-        if not refresh_token:
+        if not refresh_token_str:
             return JsonResponse({'error': 'Refresh token requerido'}, status=400)
 
-        # Verificar refresh token
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=['HS256'])
+        # Verificar refresh token usando settings.SECRET_KEY
+        payload = jwt.decode(refresh_token_str, settings.SECRET_KEY, algorithms=['HS256'])
         
         # Verificar que sea un refresh token
         if payload.get('type') != 'refresh':
             return JsonResponse({'error': 'Token inválido'}, status=401)
         
-        user = Usuario.objects.get(id=payload['user_id'])
-        access_token = generate_access_token(user)
+        user_id = payload['user_id']
+        
+        # Intentar obtener el role del payload o asumir según la tabla
+        role = payload.get('role', 'cliente')
+        username = payload.get('username', '')
+        
+        # Verificar que el usuario o cliente existe
+        if role == 'cliente':
+            from ..models import Cliente
+            try:
+                user = Cliente.objects.get(id=user_id)
+                username = user.username
+            except Cliente.DoesNotExist:
+                return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+        else:
+            try:
+                user = Usuario.objects.get(id=user_id)
+                role = user.role
+                username = user.username
+            except Usuario.DoesNotExist:
+                return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+        
+        # Generar nuevo access token usando jwt_helpers
+        from store.utils.jwt_helpers import generate_access_token
+        access_token = generate_access_token(user_id, role, username)
 
         return JsonResponse({
-            'access_token': access_token,
+            'access': access_token,
             'message': 'Token renovado exitosamente'
         }, status=200)
 
@@ -85,8 +106,6 @@ def refresh_token(request):
         return JsonResponse({'error': 'Refresh token expirado. Por favor, inicia sesión nuevamente'}, status=401)
     except jwt.InvalidTokenError:
         return JsonResponse({'error': 'Refresh token inválido'}, status=401)
-    except Usuario.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
@@ -96,16 +115,32 @@ def refresh_token(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def logout(request):
-    """Cerrar sesión (el frontend debe eliminar los tokens)"""
-    return JsonResponse({
-        'message': 'Sesión cerrada exitosamente. Por favor elimina los tokens del cliente.'
-    }, status=200)
+    """Cerrar sesión - invalidar refresh token en blacklist"""
+    try:
+        data = json.loads(request.body or "{}")
+        refresh = data.get("refresh")
+
+        if refresh:
+            from ..models import BlacklistedToken
+            # Decodificar para verificar que es válido antes de añadir a blacklist
+            try:
+                payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+                if payload.get("type") == "refresh":
+                    BlacklistedToken.objects.create(token=refresh)
+            except jwt.InvalidTokenError:
+                pass  # Token inválido, no hace falta añadir a blacklist
+        
+        return JsonResponse({
+            'message': 'Sesión cerrada exitosamente.'
+        }, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def verify_token(request):
-    """Verificar si un token es válido"""
+    """Verificar si un token es válido (soporta Usuario y Cliente)"""
     try:
         auth_header = request.headers.get('Authorization')
         
@@ -113,19 +148,26 @@ def verify_token(request):
             return JsonResponse({'valid': False, 'error': 'Token no proporcionado'}, status=401)
         
         token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         
         if payload.get('type') != 'access':
             return JsonResponse({'valid': False, 'error': 'Token inválido'}, status=401)
         
-        user = Usuario.objects.get(id=payload['user_id'])
+        user_id = payload['user_id']
+        role = payload.get('role', 'cliente')
+        
+        # Verificar según el role
+        if role == 'cliente':
+            user = Cliente.objects.get(id=user_id)
+        else:
+            user = Usuario.objects.get(id=user_id)
         
         return JsonResponse({
             'valid': True,
             'user': {
                 'id': user.id,
-                'username': user.username,
-                'role': user.role
+                'username': user.username if hasattr(user, 'username') else user.nombre,
+                'role': role
             }
         }, status=200)
         
@@ -133,31 +175,7 @@ def verify_token(request):
         return JsonResponse({'valid': False, 'error': 'Token expirado'}, status=401)
     except jwt.InvalidTokenError:
         return JsonResponse({'valid': False, 'error': 'Token inválido'}, status=401)
-    except Usuario.DoesNotExist:
+    except (Usuario.DoesNotExist, Cliente.DoesNotExist):
         return JsonResponse({'valid': False, 'error': 'Usuario no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'valid': False, 'error': str(e)}, status=500)
-
-
-def generate_access_token(user):
-    """Generar access token con expiración de 1 hora"""
-    payload = {
-        'user_id': user.id,
-        'username': user.username,
-        'role': user.role,
-        'exp': datetime.utcnow() + timedelta(hours=1),
-        'iat': datetime.utcnow(),
-        'type': 'access'
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-
-
-def generate_refresh_token(user):
-    """Generar refresh token con expiración de 7 días"""
-    payload = {
-        'user_id': user.id,
-        'exp': datetime.utcnow() + timedelta(days=7),
-        'iat': datetime.utcnow(),
-        'type': 'refresh'
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')

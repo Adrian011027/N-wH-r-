@@ -1,16 +1,99 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Cliente, ContactoCliente
-from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
+from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required, auth_required_hybrid
 from django.db.models import Prefetch
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password 
 import json, re
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 # Regex simple y seguro para validar correos
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
+
+# ========= EDITAR PERFIL (VISTA) ========= #
+@auth_required_hybrid()
+def editar_perfil(request, id):
+    """Vista para editar el perfil del cliente"""
+    cliente = get_object_or_404(Cliente, id=id)
+    
+    if request.method == 'GET':
+        return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+    
+    elif request.method == 'POST':
+        try:
+            # Información personal
+            cliente.nombre = request.POST.get('nombre', '').strip()
+            correo = request.POST.get('correo', '').strip().lower()
+            
+            # Validar correo
+            if correo != cliente.correo:
+                if not re.match(EMAIL_REGEX, correo):
+                    messages.error(request, 'Correo electrónico inválido')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                if Cliente.objects.filter(correo=correo).exclude(id=id).exists():
+                    messages.error(request, 'Este correo ya está registrado')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                cliente.correo = correo
+            
+            cliente.telefono = request.POST.get('telefono', '').strip()
+            cliente.telefono_alternativo = request.POST.get('telefono_alternativo', '').strip()
+            
+            # Dirección de envío
+            cliente.calle = request.POST.get('calle', '').strip()
+            cliente.colonia = request.POST.get('colonia', '').strip()
+            cliente.codigo_postal = request.POST.get('codigo_postal', '').strip()
+            cliente.ciudad = request.POST.get('ciudad', '').strip()
+            cliente.estado = request.POST.get('estado', '').strip()
+            cliente.referencias = request.POST.get('referencias', '').strip()
+            
+            # Actualizar dirección completa (legacy)
+            if cliente.calle and cliente.colonia:
+                cliente.direccion = f"{cliente.calle}, {cliente.colonia}, {cliente.ciudad}, {cliente.estado}"
+            
+            # Información fiscal
+            cliente.tipo_cliente = request.POST.get('tipo_cliente', 'menudeo')
+            cliente.rfc = request.POST.get('rfc', '').strip().upper()
+            cliente.razon_social = request.POST.get('razon_social', '').strip()
+            cliente.direccion_fiscal = request.POST.get('direccion_fiscal', '').strip()
+            
+            # Cambio de contraseña
+            password_actual = request.POST.get('password_actual', '')
+            password_nueva = request.POST.get('password_nueva', '')
+            password_confirmar = request.POST.get('password_confirmar', '')
+            
+            if password_actual or password_nueva or password_confirmar:
+                if not password_actual:
+                    messages.error(request, 'Debes ingresar tu contraseña actual')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                
+                if not check_password(password_actual, cliente.password):
+                    messages.error(request, 'La contraseña actual es incorrecta')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                
+                if not password_nueva:
+                    messages.error(request, 'Debes ingresar una nueva contraseña')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                
+                if len(password_nueva) < 8:
+                    messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                
+                if password_nueva != password_confirmar:
+                    messages.error(request, 'Las contraseñas no coinciden')
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                
+                cliente.password = make_password(password_nueva)
+            
+            cliente.save()
+            messages.success(request, '¡Perfil actualizado exitosamente!')
+            return redirect('editar_perfil', id=id)
+            
+        except Exception as e:
+            messages.error(request, f'Error al actualizar el perfil: {str(e)}')
+            return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
 
 # ========= GET ALL CLIENTS ========= #
 @admin_required()

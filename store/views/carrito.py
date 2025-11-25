@@ -620,30 +620,48 @@ def finalizar_compra(request, carrito_id):
 
         print("✅ WhatsApp enviado. SID:", msg.sid)
 
-        # Vaciar carrito
-        carrito.items.all().delete()
-        carrito.status = "vacio"
-        carrito.save(update_fields=["status"])
-
-        # Bandera de éxito y redirección
-        request.session["pedido_exitoso"] = True
-        return redirect(reverse("mostrar_confirmacion_compra", args=[carrito.id]))
-
+    except ImportError as e:
+        logger.warning("⚠️ Twilio no está instalado: %s", e)
+        print("⚠️ Twilio no instalado. Pedido creado sin envío de WhatsApp.")
     except Exception as e:
-        import traceback                      # ← importar aquí
+        import traceback
         logger.error("❌ Error Twilio: %s", e)
         traceback.print_exc()
-        return JsonResponse({"error": "Fallo al enviar WhatsApp."}, status=500)
+        print(f"⚠️ Error al enviar WhatsApp: {e}. Continuando con el proceso...")
+        # No retornar error 500, continuar con el flujo
 
+    # Vaciar carrito (siempre, independiente de si se envió WhatsApp)
+    carrito.items.all().delete()
+    carrito.status = "vacio"
+    carrito.save(update_fields=["status"])
+
+    # Verificar si es petición AJAX/JSON
+    if request.headers.get('Content-Type') == 'application/json' or request.headers.get('Accept') == 'application/json':
+        return JsonResponse({
+            "success": True,
+            "message": "Pedido confirmado exitosamente",
+            "redirect": reverse("mostrar_confirmacion_compra", args=[carrito.id])
+        }, status=200)
+    
+    # Bandera de éxito y redirección tradicional
+    request.session["pedido_exitoso"] = True
+    return redirect(reverse("mostrar_confirmacion_compra", args=[carrito.id]))
 
 
 @require_http_methods(["GET"])
 def mostrar_confirmacion_compra(request, carrito_id):
     # Obtener sin eliminar
-    pedido_exitoso = request.session.get("pedido_exitoso", False)
-
+    pedido_exitoso = request.session.pop("pedido_exitoso", False)
+    
+    # Si no hay flag de sesión, asumimos que viene de un redirect AJAX exitoso
+    # y mostramos la confirmación de todas formas
     if not pedido_exitoso:
-        return redirect(reverse("ver_carrito"))
+        # Verificar que el carrito existe y está vacío (fue procesado)
+        carrito = get_object_or_404(Carrito, id=carrito_id)
+        if carrito.status != "vacio":
+            return redirect(reverse("ver_carrito"))
+        # Si está vacío, es porque se procesó, mostrar confirmación
+        pedido_exitoso = True
 
     carrito = get_object_or_404(Carrito, id=carrito_id)
 
@@ -752,3 +770,257 @@ def mostrar_formulario_confirmacion(request, carrito_id):
     }
 
     return render(request, "public/carrito/finalizar_compra.html", context)
+
+
+# ═════════════════════════════════════════════════════════════
+# ENVÍO DE TICKETS (WhatsApp y Email)
+# ═════════════════════════════════════════════════════════════
+
+@csrf_exempt
+@jwt_role_required()
+@require_http_methods(["POST"])
+def enviar_ticket_whatsapp(request, carrito_id):
+    """Envía el ticket de la orden por WhatsApp"""
+    try:
+        from ..models import Orden
+        
+        # Buscar la orden asociada al carrito
+        orden = Orden.objects.filter(carrito_id=carrito_id).first()
+        if not orden:
+            return JsonResponse({"error": "No se encontró la orden"}, status=404)
+        
+        carrito = get_object_or_404(Carrito, id=carrito_id)
+        cliente = carrito.cliente
+        
+        # Obtener productos de la orden
+        items = []
+        total_amount = 0
+        total_piezas = 0
+        
+        for detalle in orden.detalles.select_related('variante__producto__categoria').prefetch_related('variante__attrs__atributo_valor__atributo').all():
+            variante = detalle.variante
+            producto = variante.producto
+            
+            # Obtener talla de los atributos de la variante
+            talla = "Única"
+            for var_attr in variante.attrs.all():
+                if 'talla' in var_attr.atributo_valor.atributo.nombre.lower():
+                    talla = var_attr.atributo_valor.valor
+                    break
+            
+            subtotal = detalle.cantidad * detalle.precio_unitario
+            
+            items.append({
+                "producto": producto.nombre,
+                "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
+                "talla": talla,
+                "cantidad": detalle.cantidad,
+                "precio_unitario": float(detalle.precio_unitario),
+                "subtotal": float(subtotal),
+            })
+            total_amount += float(subtotal)
+            total_piezas += detalle.cantidad
+        
+        # Generar link de procesamiento
+        from django.core.signing import Signer
+        from django.urls import reverse
+        signer = Signer()
+        token = signer.sign(str(orden.id))
+        link = request.build_absolute_uri(reverse('procesar_por_link', args=[token]))
+        
+        # Verificar configuración de Twilio
+        from django.conf import settings
+        if not all([
+            getattr(settings, 'TWILIO_ACCOUNT_SID', None),
+            getattr(settings, 'TWILIO_AUTH_TOKEN', None),
+            getattr(settings, 'TWILIO_WHATSAPP_FROM', None)
+        ]):
+            return JsonResponse({
+                "error": "Twilio no está configurado en el servidor"
+            }, status=503)
+        
+        # Enviar WhatsApp
+        from twilio.rest import Client
+        twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        
+        # Formatear teléfono
+        raw_tel = cliente.telefono or ""
+        cleaned = "".join(filter(str.isdigit, raw_tel))
+        if len(cleaned) == 10:
+            cleaned = f"+521{cleaned}"
+        elif cleaned.startswith("52") and len(cleaned) == 12:
+            cleaned = f"+{cleaned}"
+        else:
+            cleaned = settings.TWILIO_ADMIN_PHONE or "+5213322118360"
+        
+        # Construir mensaje
+        body_lines = [
+            f"🧾 TICKET DE COMPRA - NöwHėrē",
+            f"Pedido #{orden.id}",
+            "",
+            f"👤 Cliente: {cliente.nombre}",
+            f"📧 Email: {cliente.correo}",
+            f"📞 Teléfono: {cliente.telefono or 'No disponible'}",
+            "",
+            "📦 PRODUCTOS:",
+            ""
+        ]
+        
+        for idx, item in enumerate(items, start=1):
+            body_lines.extend([
+                f"{idx}. {item['producto']}",
+                f"   Categoría: {item['categoria']}",
+                f"   Talla: {item['talla']}",
+                f"   Cantidad: {item['cantidad']} x ${item['precio_unitario']}",
+                f"   Subtotal: ${item['subtotal']}",
+                ""
+            ])
+        
+        body_lines.extend([
+            f"💰 TOTAL: ${total_amount:.2f}",
+            f"📦 Total de piezas: {total_piezas}",
+            "",
+            "Gracias por tu compra. Nos comunicaremos contigo pronto.",
+            "",
+            f"👉 Link de seguimiento:",
+            link
+        ])
+        
+        message_body = "\n".join(body_lines)
+        
+        msg = twilio_client.messages.create(
+            from_=settings.TWILIO_WHATSAPP_FROM,
+            to=cleaned,
+            body=message_body
+        )
+        
+        return JsonResponse({
+            "success": True,
+            "message": "Ticket enviado por WhatsApp exitosamente",
+            "sid": msg.sid
+        }, status=200)
+        
+    except ImportError:
+        return JsonResponse({
+            "error": "Twilio no está instalado en el servidor"
+        }, status=503)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            "error": f"Error al enviar WhatsApp: {str(e)}"
+        }, status=500)
+
+
+@csrf_exempt
+@jwt_role_required()
+@require_http_methods(["POST"])
+def enviar_ticket_email(request, carrito_id):
+    """Envía el ticket de la orden por Email"""
+    try:
+        from ..models import Orden
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        
+        # Buscar la orden asociada al carrito
+        orden = Orden.objects.filter(carrito_id=carrito_id).first()
+        if not orden:
+            return JsonResponse({"error": "No se encontró la orden"}, status=404)
+        
+        carrito = get_object_or_404(Carrito, id=carrito_id)
+        cliente = carrito.cliente
+        
+        if not cliente.correo:
+            return JsonResponse({
+                "error": "El cliente no tiene email registrado"
+            }, status=400)
+        
+        # Obtener productos de la orden
+        items = []
+        total_amount = 0
+        total_piezas = 0
+        
+        for detalle in orden.detalles.select_related('variante__producto__categoria').prefetch_related('variante__attrs__atributo_valor__atributo').all():
+            variante = detalle.variante
+            producto = variante.producto
+            
+            # Obtener talla de los atributos de la variante
+            talla = "Única"
+            for var_attr in variante.attrs.all():
+                if 'talla' in var_attr.atributo_valor.atributo.nombre.lower():
+                    talla = var_attr.atributo_valor.valor
+                    break
+            
+            subtotal = detalle.cantidad * detalle.precio_unitario
+            
+            items.append({
+                "producto": producto.nombre,
+                "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
+                "talla": talla,
+                "cantidad": detalle.cantidad,
+                "precio_unitario": float(detalle.precio_unitario),
+                "subtotal": float(subtotal),
+            })
+            total_amount += float(subtotal)
+            total_piezas += detalle.cantidad
+        
+        # Generar link de seguimiento
+        from django.core.signing import Signer
+        from django.urls import reverse
+        signer = Signer()
+        token = signer.sign(str(orden.id))
+        link = request.build_absolute_uri(reverse('procesar_por_link', args=[token]))
+        
+        # Contexto para el email
+        context = {
+            "cliente": cliente,
+            "orden": orden,
+            "items": items,
+            "total": total_amount,
+            "total_piezas": total_piezas,
+            "link_seguimiento": link
+        }
+        
+        # Renderizar HTML y texto plano
+        html_message = render_to_string('public/emails/ticket_orden.html', context)
+        plain_message = f"""
+TICKET DE COMPRA - NöwHėrē
+Pedido #{orden.id}
+
+Cliente: {cliente.nombre}
+Email: {cliente.correo}
+Teléfono: {cliente.telefono or 'No disponible'}
+
+PRODUCTOS:
+{"".join([f"- {item['producto']} ({item['categoria']}) - Talla: {item['talla']} - Cantidad: {item['cantidad']} x ${item['precio_unitario']} = ${item['subtotal']}" + chr(10) for item in items])}
+TOTAL: ${total_amount:.2f}
+Total de piezas: {total_piezas}
+
+Gracias por tu compra.
+
+Link de seguimiento: {link}
+        """.strip()
+        
+        # Enviar email
+        send_mail(
+            subject=f'Ticket de compra #{orden.id} - NöwHėrē',
+            message=plain_message,
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nowhere.com'),
+            recipient_list=[cliente.correo],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        return JsonResponse({
+            "success": True,
+            "message": f"Ticket enviado por email a {cliente.correo}"
+        }, status=200)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            "error": f"Error al enviar email: {str(e)}"
+        }, status=500)

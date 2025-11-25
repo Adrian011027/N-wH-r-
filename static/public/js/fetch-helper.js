@@ -6,14 +6,14 @@
  * Obtener el token de acceso desde localStorage
  */
 function getAccessToken() {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access');
 }
 
 /**
  * Obtener el refresh token desde localStorage
  */
 function getRefreshToken() {
-    return localStorage.getItem('refresh_token');
+    return localStorage.getItem('refresh');
 }
 
 /**
@@ -40,7 +40,7 @@ async function refreshAccessToken() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ refresh_token: refreshToken }),
+            body: JSON.stringify({ refresh: refreshToken }),
         });
 
         if (!response.ok) {
@@ -48,14 +48,15 @@ async function refreshAccessToken() {
         }
 
         const data = await response.json();
-        localStorage.setItem('access_token', data.access_token);
-        return data.access_token;
+        localStorage.setItem('access', data.access);
+        return data.access;
     } catch (error) {
         console.error('Error al renovar token:', error);
         // Si falla, limpiar tokens y redirigir
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
         return null;
     }
 }

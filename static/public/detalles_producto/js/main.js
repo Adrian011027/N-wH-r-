@@ -28,14 +28,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* ====== reintento post-login ====== */
   const prelogin = sessionStorage.getItem('prelogin_carrito');
-  if (cliId && prelogin) {
+  if (CLIENTE_ID && prelogin) {
     try {
       const { producto_id, items } = JSON.parse(prelogin);
       if (producto_id === prodId && Array.isArray(items)) {
         let total = 0;
         for (const item of items) {
           // 🔐 JWT: fetchPost agrega token automáticamente
-          const res = await fetchPost(`/api/carrito/create/${cliId}/`, {
+          const res = await fetchPost(`/api/carrito/create/${CLIENTE_ID}/`, {
             producto_id,
             talla: item.talla,
             cantidad: item.cantidad
@@ -187,8 +187,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   for (const item of seleccion) {
     try {
       let endpoint = '';
-      if (cliId) {
-        endpoint = `/api/carrito/create/${cliId}/`;
+      if (CLIENTE_ID) {
+        endpoint = `/api/carrito/create/${CLIENTE_ID}/`;
       } else {
         endpoint = `/api/carrito/create/0/`;  // ✅ ESTA es la ruta correcta
       }
@@ -212,15 +212,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-
   msg.style.color = 'green';
   msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
+  document.dispatchEvent(new CustomEvent('carrito-actualizado'));
 });
-
-    msg.style.color = 'green';
-    msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
-    document.dispatchEvent(new CustomEvent('carrito-actualizado'));
-  });
 
   /* animación de secciones */
   document.querySelectorAll('.detalle-section')
