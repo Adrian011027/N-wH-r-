@@ -64,6 +64,11 @@ from .views.views import (
     dashboard_clientes, editar_cliente, dashboard_categorias, login_user_page,    
 )
 
+# ─────────── Búsqueda y Filtros ───────────
+from .views.search import (
+    search_products, get_filter_options, search_page
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -75,6 +80,11 @@ urlpatterns = [
     path("",                           index,          name="index"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
+    path("buscar/",                    search_page,    name="search_page"),
+
+    # ---------- Búsqueda y Filtros API ----------
+    path("api/search/",                search_products,     name="search_products"),
+    path("api/search/filters/",        get_filter_options,  name="filter_options"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),

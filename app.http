@@ -1,9 +1,11 @@
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTc1NjUwLCJpYXQiOjE3NjQxNjg0NTAsInVzZXJuYW1lIjoiYW5nZWwifQ.2xlZ15EhWp_6cUS6luj1qxIWmGwpiDvDUTkTwFyadbU
+@token_user=
 ### LOGIN ADMIN
 POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
 {
-  "username": "jona.emir@hotmail.com",
+  "username": "angel",
   "password": "123456"
 }
 
@@ -13,8 +15,8 @@ POST http://127.0.0.1:8000/auth/login_client/
 Content-Type: application/json
 
 {
-  "username": "cliente1",
-  "password": "mipassword"
+  "username": "jona.emir@hotmail.com",
+  "password": "123456"
 }
 
 ###

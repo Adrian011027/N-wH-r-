@@ -1,0 +1,206 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Buscar Productos - NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/busqueda/css/search.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="search-section">
+  <div class="search-container">
+    
+    {# ========== BARRA DE BÚSQUEDA ========== #}
+    <div class="search-header">
+      <div class="search-bar-wrapper">
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Buscar productos por nombre o descripción..."
+          autocomplete="off"
+        >
+        <button id="searchBtn" class="search-btn" aria-label="Buscar">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+    </div>
+
+    {# ========== FILTROS Y RESULTADOS ========== #}
+    <div class="search-content">
+      
+      {# ===== PANEL DE FILTROS ===== #}
+      <aside class="filters-sidebar" id="filtersSidebar">
+        <div class="filters-header">
+          <h3>Filtros</h3>
+          <button id="clearFilters" class="btn-clear">Limpiar</button>
+        </div>
+
+        {# Filtro: Categoría #}
+        <div class="filter-group">
+          <h4>Categoría</h4>
+          <select id="filterCategoria" class="filter-select">
+            <option value="">Todas las categorías</option>
+            {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# Filtro: Género #}
+        <div class="filter-group">
+          <h4>Género</h4>
+          <div class="filter-radio-group">
+            <label class="radio-label">
+              <input type="radio" name="genero" value="" checked>
+              <span>Todos</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="genero" value="M">
+              <span>Mujer</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="genero" value="H">
+              <span>Hombre</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="genero" value="UNISEX">
+              <span>Unisex</span>
+            </label>
+          </div>
+        </div>
+
+        {# Filtro: Precio #}
+        <div class="filter-group">
+          <h4>Rango de Precio</h4>
+          <div class="price-inputs">
+            <input 
+              type="number" 
+              id="precioMin" 
+              class="price-input" 
+              placeholder="Mín" 
+              min="0"
+              value="{{ precio_min|floatformat:0 }}"
+            >
+            <span>-</span>
+            <input 
+              type="number" 
+              id="precioMax" 
+              class="price-input" 
+              placeholder="Máx" 
+              min="0"
+              value="{{ precio_max|floatformat:0 }}"
+            >
+          </div>
+          <div class="price-range-slider">
+            <input 
+              type="range" 
+              id="rangeMin" 
+              class="range-slider" 
+              min="0" 
+              max="{{ precio_max|floatformat:0 }}"
+              value="{{ precio_min|floatformat:0 }}"
+            >
+            <input 
+              type="range" 
+              id="rangeMax" 
+              class="range-slider" 
+              min="0" 
+              max="{{ precio_max|floatformat:0 }}"
+              value="{{ precio_max|floatformat:0 }}"
+            >
+          </div>
+        </div>
+
+        {# Filtro: Tallas #}
+        <div class="filter-group">
+          <h4>Tallas</h4>
+          <div class="tallas-grid">
+            {% for talla in tallas %}
+              <label class="talla-checkbox">
+                <input type="checkbox" name="talla" value="{{ talla }}">
+                <span>{{ talla }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Filtro: Disponibilidad #}
+        <div class="filter-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="soloOferta" name="oferta">
+            <span>Solo en oferta</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="soloDisponibles" name="disponibles" checked>
+            <span>Solo disponibles</span>
+          </label>
+        </div>
+
+        {# Botón Aplicar Filtros #}
+        <button id="applyFilters" class="btn-apply">Aplicar Filtros</button>
+      </aside>
+
+      {# ===== RESULTADOS ===== #}
+      <main class="results-main">
+        
+        {# Barra de control #}
+        <div class="results-toolbar">
+          <div class="results-info">
+            <span id="resultsCount">0 productos encontrados</span>
+          </div>
+          
+          <div class="results-controls">
+            <select id="sortSelect" class="sort-select">
+              <option value="nuevo">Más recientes</option>
+              <option value="precio_asc">Precio: Menor a mayor</option>
+              <option value="precio_desc">Precio: Mayor a menor</option>
+              <option value="nombre_asc">Nombre: A-Z</option>
+              <option value="nombre_desc">Nombre: Z-A</option>
+            </select>
+            
+            <button id="toggleFilters" class="btn-toggle-filters" aria-label="Mostrar filtros">
+              <i class="fa-solid fa-filter"></i>
+            </button>
+          </div>
+        </div>
+
+        {# Grid de productos #}
+        <div id="productosGrid" class="productos-grid">
+          {# Los productos se cargarán dinámicamente con JavaScript #}
+        </div>
+
+        {# Paginación #}
+        <div id="pagination" class="pagination" style="display: none;">
+          <button id="prevPage" class="page-btn" disabled>
+            <i class="fa-solid fa-chevron-left"></i> Anterior
+          </button>
+          <span id="pageInfo" class="page-info">Página 1 de 1</span>
+          <button id="nextPage" class="page-btn" disabled>
+            Siguiente <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        {# Loading spinner #}
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+          <div class="spinner"></div>
+          <p>Cargando productos...</p>
+        </div>
+
+        {# Sin resultados #}
+        <div id="noResults" class="no-results" style="display: none;">
+          <i class="fa-regular fa-face-frown"></i>
+          <h3>No se encontraron productos</h3>
+          <p>Intenta ajustar los filtros o buscar con otros términos</p>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'public/busqueda/js/search.js' %}"></script>
+{% endblock %}

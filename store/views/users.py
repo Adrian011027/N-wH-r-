@@ -10,7 +10,7 @@ import json
 # ───────────────────────────────────────────────
 # Obtener todos los usuarios (solo admin)
 # ───────────────────────────────────────────────
-#@admin_required()
+@admin_required()
 @require_GET
 def get_user(request):
     """Obtener lista de todos los usuarios - Solo administradores"""
@@ -73,7 +73,7 @@ def create_user(request):
 # Actualizar usuario (solo admin)
 # ───────────────────────────────────────────────
 @csrf_exempt
-#@admin_required()
+@admin_required()
 @require_http_methods(["POST", "PUT"])
 def update_user(request, id):
     """Actualizar usuario - Solo administradores"""

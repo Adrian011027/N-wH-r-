@@ -1,0 +1,123 @@
+### ========================================
+### TESTS - Sistema de Búsqueda y Filtros
+### ========================================
+
+### 1. Búsqueda simple por texto
+GET http://127.0.0.1:8000/api/search/?q=tenis
+Accept: application/json
+
+###
+
+### 2. Filtrar por categoría
+GET http://127.0.0.1:8000/api/search/?categoria=1
+Accept: application/json
+
+###
+
+### 3. Filtrar por género
+GET http://127.0.0.1:8000/api/search/?genero=M
+Accept: application/json
+
+###
+
+### 4. Filtrar por rango de precio
+GET http://127.0.0.1:8000/api/search/?precio_min=500&precio_max=2000
+Accept: application/json
+
+###
+
+### 5. Filtrar por tallas específicas
+GET http://127.0.0.1:8000/api/search/?tallas=25,26,27
+Accept: application/json
+
+###
+
+### 6. Solo productos en oferta
+GET http://127.0.0.1:8000/api/search/?en_oferta=true
+Accept: application/json
+
+###
+
+### 7. Ordenar por precio ascendente
+GET http://127.0.0.1:8000/api/search/?ordenar=precio_asc
+Accept: application/json
+
+###
+
+### 8. Ordenar por precio descendente
+GET http://127.0.0.1:8000/api/search/?ordenar=precio_desc
+Accept: application/json
+
+###
+
+### 9. Búsqueda con filtros múltiples
+GET http://127.0.0.1:8000/api/search/?q=nike&categoria=1&genero=M&precio_min=500&precio_max=2000&tallas=25,26&en_oferta=true&ordenar=precio_asc
+Accept: application/json
+
+###
+
+### 10. Paginación - Página 2
+GET http://127.0.0.1:8000/api/search/?page=2&per_page=10
+Accept: application/json
+
+###
+
+### 11. Obtener opciones de filtros disponibles
+GET http://127.0.0.1:8000/api/search/filters/
+Accept: application/json
+
+###
+
+### 12. Buscar en descripción
+GET http://127.0.0.1:8000/api/search/?q=correr
+Accept: application/json
+
+###
+
+### 13. Solo productos disponibles (con stock)
+GET http://127.0.0.1:8000/api/search/?disponibles=true
+Accept: application/json
+
+###
+
+### 14. Incluir productos sin stock
+GET http://127.0.0.1:8000/api/search/?disponibles=false
+Accept: application/json
+
+###
+
+### 15. Ordenar por nombre A-Z
+GET http://127.0.0.1:8000/api/search/?ordenar=nombre_asc
+Accept: application/json
+
+###
+
+### 16. Ordenar por más recientes
+GET http://127.0.0.1:8000/api/search/?ordenar=nuevo
+Accept: application/json
+
+###
+
+### 17. Búsqueda compleja para mujer en oferta
+GET http://127.0.0.1:8000/api/search/?genero=M&en_oferta=true&precio_max=1500&ordenar=precio_asc&disponibles=true
+Accept: application/json
+
+###
+
+### 18. Búsqueda por talla específica y género
+GET http://127.0.0.1:8000/api/search/?genero=H&tallas=26
+Accept: application/json
+
+###
+
+### 19. Productos más caros primero
+GET http://127.0.0.1:8000/api/search/?ordenar=precio_desc&per_page=5
+Accept: application/json
+
+###
+
+### 20. Página 1 con 20 productos
+GET http://127.0.0.1:8000/api/search/?page=1&per_page=20
+Accept: application/json
+
+###

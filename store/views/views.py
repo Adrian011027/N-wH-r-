@@ -14,7 +14,7 @@ from store.models import BlacklistedToken
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, decode_jwt
-from .decorators import jwt_role_required
+from .decorators import jwt_role_required, login_required_user
 
 
 # ───────────────────────────────────────────────
@@ -65,6 +65,10 @@ def genero_view(request, genero):
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_user(request):
+    """
+    Login de administrador con JWT + sesión Django.
+    Retorna tokens JWT y establece sesión para vistas HTML del dashboard.
+    """
     data = json.loads(request.body or "{}")
     username = data.get("username")
     password = data.get("password")
@@ -76,9 +80,25 @@ def login_user(request):
     except Usuario.DoesNotExist:
         return JsonResponse({"error": "Credenciales inválidas"}, status=401)
 
+    # Verificar que sea admin
+    if user.role != "admin":
+        return JsonResponse({"error": "Acceso denegado. Solo administradores."}, status=403)
+
+    # Generar tokens JWT
     access  = generate_access_token(user.id, user.role, user.username)
     refresh = generate_refresh_token(user.id)
-    return JsonResponse({"access": access, "refresh": refresh}, status=200)
+    
+    # Establecer sesión Django para vistas HTML
+    request.session["user_id"] = user.id
+    request.session["username"] = user.username
+    request.session["role"] = user.role
+    
+    return JsonResponse({
+        "access": access,
+        "refresh": refresh,
+        "username": user.username,
+        "user_id": user.id
+    }, status=200)
 
 
 # ───────────────────────────────────────────────
@@ -106,7 +126,7 @@ def login_client(request):
 # ───────────────────────────────────────────────
 # CRUD Categorías (solo admin con JWT)
 # ───────────────────────────────────────────────
-@jwt_role_required
+@jwt_role_required()
 @require_GET
 def get_categorias(request):
     return JsonResponse(
@@ -116,7 +136,7 @@ def get_categorias(request):
 
 
 @csrf_exempt
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["POST"])
 def create_categoria(request):
     if request.user_role != "admin":
@@ -131,7 +151,7 @@ def create_categoria(request):
 
 
 @csrf_exempt
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["POST"])
 def update_categoria(request, id):
     if request.user_role != "admin":
@@ -148,7 +168,7 @@ def update_categoria(request, id):
 
 
 @csrf_exempt
-@jwt_role_required
+@jwt_role_required()
 @require_http_methods(["DELETE"])
 def delete_categoria(request, id):
     if request.user_role != "admin":
@@ -266,18 +286,21 @@ def login_user_page(request):
     return render(request, "dashboard/auth/login.html")
 
 
+@login_required_user
 def lista_productos(request):
     """Lista de productos en el dashboard"""
     productos = Producto.objects.select_related("categoria").prefetch_related("variantes").all()
     return render(request, "dashboard/productos/lista.html", {"productos": productos})
 
 
+@login_required_user
 def alta(request):
     """Formulario para crear producto"""
     categorias = Categoria.objects.all()
     return render(request, "dashboard/productos/registro.html", {"categorias": categorias})
 
 
+@login_required_user
 def editar_producto(request, id):
     """Formulario para editar producto"""
     producto = get_object_or_404(Producto.objects.prefetch_related("variantes"), id=id)
@@ -288,18 +311,21 @@ def editar_producto(request, id):
     })
 
 
+@login_required_user
 def dashboard_clientes(request):
     """Lista de clientes en el dashboard"""
     clientes = Cliente.objects.all()
     return render(request, "dashboard/clientes/lista.html", {"clientes": clientes})
 
 
+@login_required_user
 def editar_cliente(request, id):
     """Formulario para editar cliente"""
     cliente = get_object_or_404(Cliente, id=id)
     return render(request, "dashboard/clientes/editar.html", {"cliente": cliente})
 
 
+@login_required_user
 def dashboard_categorias(request):
     """Panel de categorías en el dashboard"""
     categorias = Categoria.objects.all()
