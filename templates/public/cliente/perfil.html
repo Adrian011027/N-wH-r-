@@ -38,8 +38,15 @@
 
         <div class="form-group">
           <label for="username">Nombre de Usuario <span class="required">*</span></label>
-          <input type="text" id="username" name="username" value="{{ cliente.username }}" required>
-          <small class="field-hint">No se puede modificar después del registro</small>
+          {% if puede_cambiar_username %}
+          <input type="text" id="username" name="username" value="{{ cliente.username }}" 
+                 required minlength="3" pattern="[a-zA-Z0-9._]+">
+          <small class="field-hint">Solo letras, números, puntos y guiones bajos. Puedes cambiarlo 1 vez al mes.</small>
+          {% else %}
+          <input type="text" id="username" name="username" value="{{ cliente.username }}" 
+                 required readonly class="input-readonly">
+          <small class="field-hint warning">⏳ Podrás cambiar tu nombre de usuario en {{ dias_restantes }} días</small>
+          {% endif %}
         </div>
 
         <div class="form-group">

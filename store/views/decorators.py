@@ -159,6 +159,75 @@ def admin_required():
     return jwt_role_required(['admin'])
 
 
+def admin_required_hybrid():
+    """
+    Decorador híbrido para APIs de admin que acepta:
+    1. JWT en header Authorization
+    2. Sesión Django (para el dashboard)
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped_view(request, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            
+            # Intento 1: JWT
+            if auth_header:
+                try:
+                    parts = auth_header.split(' ')
+                    if len(parts) == 2 and parts[0].lower() == 'bearer':
+                        token = parts[1]
+                        SECRET_KEY = settings.SECRET_KEY
+                        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                        
+                        if payload.get('type') != 'access':
+                            return JsonResponse({'error': 'Tipo de token inválido'}, status=401)
+                        
+                        user_role = payload.get('role', 'cliente')
+                        if user_role != 'admin':
+                            return JsonResponse({'error': 'Solo administradores'}, status=403)
+                        
+                        user_id = payload['user_id']
+                        try:
+                            user = Usuario.objects.get(id=user_id)
+                            request.jwt_user = user
+                        except Usuario.DoesNotExist:
+                            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+                        
+                        request.user_id = user_id
+                        request.user_role = user_role
+                        request.username = payload.get('username', '')
+                        
+                        return view_func(request, *args, **kwargs)
+                        
+                except jwt.ExpiredSignatureError:
+                    return JsonResponse({'error': 'Token expirado'}, status=401)
+                except jwt.InvalidTokenError as e:
+                    return JsonResponse({'error': 'Token inválido', 'detail': str(e)}, status=401)
+            
+            # Intento 2: Sesión Django
+            user_id = request.session.get("user_id")
+            if user_id:
+                try:
+                    user = Usuario.objects.get(id=user_id)
+                    if user.role == 'admin':
+                        request.user_id = user_id
+                        request.user_role = 'admin'
+                        request.username = user.username
+                        request.jwt_user = user
+                        return view_func(request, *args, **kwargs)
+                except Usuario.DoesNotExist:
+                    pass
+            
+            # No autenticado
+            return JsonResponse({
+                'error': 'Autenticación requerida',
+                'detail': 'Inicie sesión como administrador'
+            }, status=401)
+        
+        return wrapped_view
+    return decorator
+
+
 # ───────────────────────────────────────────────
 # Decorador híbrido: JWT o Cookie
 # ───────────────────────────────────────────────

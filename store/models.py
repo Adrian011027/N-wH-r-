@@ -50,6 +50,9 @@ class Cliente(AbstractBaseUser):
     telefono   = models.CharField(max_length=20, blank=True, null=True)
     telefono_alternativo = models.CharField(max_length=20, blank=True, null=True)
     
+    # Control de cambio de username (1 vez por mes)
+    ultima_modificacion_username = models.DateTimeField(null=True, blank=True)
+    
     # Dirección de envío
     calle           = models.CharField(max_length=500, blank=True, null=True)
     colonia         = models.CharField(max_length=200, blank=True, null=True)

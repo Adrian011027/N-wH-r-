@@ -28,7 +28,7 @@ from .views.carrito import (
 from .views.client import (
     detalle_client, get_all_clients,
     create_client, update_client, delete_client, send_contact,
-    editar_perfil,
+    editar_perfil, mis_pedidos, get_ordenes_cliente,
 )
 
 # ─────────── Usuarios (admin) ───────────
@@ -49,7 +49,8 @@ from .views.wishlist import (
 
 # ─────────── Orden ───────────
 from .views.orden import (
-    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto
+    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto,
+    dashboard_ordenes, get_all_ordenes, cambiar_estado_orden,
 )
 
 
@@ -129,6 +130,8 @@ urlpatterns = [
     path("clientes/update/<int:id>/", update_client,   name="update_client"),
     path("clientes/delete/<int:id>/", delete_client,   name="delete_client"),
     path("perfil/<int:id>/",          editar_perfil,   name="editar_perfil"),
+    path("pedidos/",                  mis_pedidos,     name="mis_pedidos"),
+    path("api/cliente/ordenes/",      get_ordenes_cliente, name="get_ordenes_cliente"),
     path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
     path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
 
@@ -175,7 +178,12 @@ urlpatterns = [
     path("dashboard/productos/editar/<int:id>/", editar_producto,      name="editar_producto"),
     path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes"),
     path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente"),
-    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),  # NUEVO PANEL
+    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),
+    path("dashboard/ordenes/",                   dashboard_ordenes,    name="dashboard_ordenes"),
+    
+    # ---------- API Admin Órdenes ----------
+    path("api/admin/ordenes/",                   get_all_ordenes,       name="get_all_ordenes"),
+    path("api/admin/ordenes/<int:id>/estado/",   cambiar_estado_orden,  name="cambiar_estado_orden"),
 ]
 
 if settings.DEBUG:

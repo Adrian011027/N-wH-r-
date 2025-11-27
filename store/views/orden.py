@@ -2,12 +2,156 @@
 import json
 from django.forms import model_to_dict
 from django.http import JsonResponse, Http404
-from django.shortcuts import get_object_or_404
-from ..models import  Carrito, Orden, OrdenDetalle, Variante
+from django.shortcuts import get_object_or_404, render
+from ..models import  Carrito, Orden, OrdenDetalle, Variante, Cliente
 from django.db import models, transaction
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_GET
 from django.views.decorators.csrf import csrf_exempt
-from .decorators import jwt_role_required, admin_required
+from .decorators import jwt_role_required, admin_required, login_required_user, admin_required_hybrid
+
+
+# ───────────────────────────────────────────────
+# DASHBOARD ADMIN - Gestión de Órdenes
+# ───────────────────────────────────────────────
+
+@login_required_user
+def dashboard_ordenes(request):
+    """Vista HTML del panel de órdenes para admin"""
+    return render(request, "dashboard/ordenes/lista.html")
+
+
+@csrf_exempt
+@admin_required_hybrid()
+@require_GET
+def get_all_ordenes(request):
+    """API: Obtener todas las órdenes con filtros opcionales"""
+    try:
+        # Filtros opcionales
+        status_filter = request.GET.get('status', '')
+        cliente_filter = request.GET.get('cliente', '')
+        fecha_desde = request.GET.get('desde', '')
+        fecha_hasta = request.GET.get('hasta', '')
+        
+        ordenes = Orden.objects.all().select_related('cliente').prefetch_related(
+            'detalles__variante__producto',
+            'detalles__variante__attrs__atributo_valor__atributo'
+        ).order_by('-created_at')
+        
+        # Aplicar filtros
+        if status_filter:
+            ordenes = ordenes.filter(status__iexact=status_filter)
+        
+        if cliente_filter:
+            ordenes = ordenes.filter(
+                models.Q(cliente__username__icontains=cliente_filter) |
+                models.Q(cliente__nombre__icontains=cliente_filter) |
+                models.Q(cliente__correo__icontains=cliente_filter)
+            )
+        
+        if fecha_desde:
+            ordenes = ordenes.filter(created_at__date__gte=fecha_desde)
+        
+        if fecha_hasta:
+            ordenes = ordenes.filter(created_at__date__lte=fecha_hasta)
+        
+        data = []
+        for orden in ordenes:
+            items = []
+            for detalle in orden.detalles.all():
+                variante = detalle.variante
+                producto = variante.producto
+                
+                atributos = []
+                for attr in variante.attrs.all():
+                    atributos.append({
+                        'nombre': attr.atributo_valor.atributo.nombre,
+                        'valor': attr.atributo_valor.valor
+                    })
+                
+                items.append({
+                    'producto_id': producto.id,
+                    'producto_nombre': producto.nombre,
+                    'producto_imagen': producto.imagen.url if producto.imagen else None,
+                    'variante_id': variante.id,
+                    'cantidad': detalle.cantidad,
+                    'precio_unitario': float(detalle.precio_unitario),
+                    'subtotal': float(detalle.precio_unitario * detalle.cantidad),
+                    'atributos': atributos
+                })
+            
+            data.append({
+                'id': orden.id,
+                'cliente': {
+                    'id': orden.cliente.id,
+                    'username': orden.cliente.username,
+                    'nombre': orden.cliente.nombre or orden.cliente.username,
+                    'correo': orden.cliente.correo or '',
+                    'telefono': orden.cliente.telefono or '',
+                    'direccion': orden.cliente.direccion_completa or orden.cliente.direccion or ''
+                },
+                'status': orden.status,
+                'total_amount': float(orden.total_amount),
+                'payment_method': orden.payment_method,
+                'created_at': orden.created_at.strftime('%d/%m/%Y %H:%M'),
+                'created_at_iso': orden.created_at.isoformat(),
+                'items': items,
+                'total_items': sum(item['cantidad'] for item in items)
+            })
+        
+        # Estadísticas
+        stats = {
+            'total': Orden.objects.count(),
+            'pendientes': Orden.objects.filter(status__iexact='pendiente').count(),
+            'procesando': Orden.objects.filter(status__in=['procesando', 'proces']).count(),
+            'enviados': Orden.objects.filter(status__iexact='enviado').count(),
+            'entregados': Orden.objects.filter(status__iexact='entregado').count(),
+            'cancelados': Orden.objects.filter(status__iexact='cancelado').count(),
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'ordenes': data,
+            'stats': stats,
+            'total': len(data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@admin_required_hybrid()
+@require_http_methods(["POST", "PUT"])
+def cambiar_estado_orden(request, id):
+    """API: Cambiar el estado de una orden"""
+    try:
+        data = json.loads(request.body or '{}')
+        nuevo_estado = data.get('status', '').lower()
+        
+        estados_validos = ['pendiente', 'procesando', 'enviado', 'entregado', 'cancelado']
+        if nuevo_estado not in estados_validos:
+            return JsonResponse({
+                'success': False, 
+                'error': f'Estado inválido. Debe ser uno de: {", ".join(estados_validos)}'
+            }, status=400)
+        
+        orden = get_object_or_404(Orden, id=id)
+        estado_anterior = orden.status
+        orden.status = nuevo_estado
+        orden.save(update_fields=['status'])
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje': f'Orden #{id} actualizada a "{nuevo_estado}"',
+            'orden_id': id,
+            'estado_anterior': estado_anterior,
+            'estado_nuevo': nuevo_estado
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
 @jwt_role_required()

@@ -139,9 +139,15 @@ export function setupHeaderPanels() {
           localStorage.setItem("role", decoded.role || "cliente");
         }
         
-        // Guardar username si viene en la respuesta
+        // Guardar username, nombre y correo si vienen en la respuesta
         if (data.username) {
           localStorage.setItem("username", data.username);
+        }
+        if (data.nombre) {
+          localStorage.setItem("nombre", data.nombre);
+        }
+        if (data.correo) {
+          localStorage.setItem("correo", data.correo);
         }
 
         closeAllPanels();

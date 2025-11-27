@@ -58,6 +58,12 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       if (data.username) {
         localStorage.setItem("username", data.username);
       }
+      if (data.nombre) {
+        localStorage.setItem("nombre", data.nombre);
+      }
+      if (data.correo) {
+        localStorage.setItem("correo", data.correo);
+      }
 
       // Redirigir al inicio
       window.location.href = "/";

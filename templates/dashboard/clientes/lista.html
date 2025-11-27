@@ -1,43 +1,238 @@
 {% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Clientes - Dashboard{% endblock %}
 
 {% block content %}
-<h1>👥 Lista de Clientes</h1>
+<link rel="stylesheet" href="{% static 'dashboard/css/clientes/main.css' %}?v=1">
 
-<table>
-  <thead>
-    <tr>
-      <th>Usuario</th>
-      <th>Correo</th>
-      <th>Nombre</th>
-      <th>Teléfono</th>
-      <th>Dirección</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
+<div class="clientes-page">
+  <!-- Header -->
+  <div class="clientes-header">
+    <div class="header-info">
+      <h1>👥 Clientes</h1>
+      <p class="subtitle">Gestiona los clientes registrados en tu tienda</p>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="clientes-stats">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <span class="stat-number">{{ clientes|length }}</span>
+        <span class="stat-label">Total Clientes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros / Búsqueda -->
+  <div class="clientes-filters">
+    <div class="search-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="M21 21l-4.35-4.35"></path>
+      </svg>
+      <input type="text" id="search-cliente" placeholder="Buscar por nombre, usuario, correo o teléfono..." onkeyup="filtrarClientes()">
+    </div>
+  </div>
+
+  <!-- Grid de clientes -->
+  {% if clientes %}
+  <div class="clientes-grid" id="clientes-grid">
     {% for cliente in clientes %}
-    <tr>
-      <td>{{ cliente.username }}</td>
-      <td>{{ cliente.correo }}</td>
-      <td>{{ cliente.nombre }}</td>
-      <td>{{ cliente.telefono }}</td>
-      <td>{{ cliente.direccion }}</td>
-      <td>
-        <a href="{% url 'editar_cliente' cliente.id %}">✏️ Editar</a>
-
-        <!-- Formulario para eliminar -->
-        <form action="{% url 'delete_client' cliente.id %}" method="post" style="display:inline">
-          {% csrf_token %}
-          <button onclick="return confirm('¿Eliminar este cliente?')">🗑️ Borrar</button>
-        </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6">No hay clientes registrados.</td>
-    </tr>
+    <div class="cliente-card" data-search="{{ cliente.nombre|lower }} {{ cliente.username|lower }} {{ cliente.correo|lower }} {{ cliente.telefono|lower }}">
+      <div class="cliente-card-header">
+        <div class="cliente-avatar">
+          {{ cliente.nombre|slice:":1"|default:cliente.username|slice:":1" }}
+        </div>
+        <div class="cliente-header-info">
+          <h3 class="cliente-nombre">{{ cliente.nombre|default:"Sin nombre" }}</h3>
+          <span class="cliente-username">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            @{{ cliente.username }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="cliente-card-body">
+        <div class="cliente-info-list">
+          <div class="cliente-info-item">
+            <div class="info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div class="info-content">
+              <div class="info-label">Correo electrónico</div>
+              <div class="info-value {% if not cliente.correo %}empty{% endif %}">
+                {{ cliente.correo|default:"No proporcionado" }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="cliente-info-item">
+            <div class="info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+            </div>
+            <div class="info-content">
+              <div class="info-label">Teléfono</div>
+              <div class="info-value {% if not cliente.telefono %}empty{% endif %}">
+                {{ cliente.telefono|default:"No proporcionado" }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="cliente-info-item">
+            <div class="info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div class="info-content">
+              <div class="info-label">Dirección</div>
+              <div class="info-value {% if not cliente.direccion %}empty{% endif %}">
+                {{ cliente.direccion|default:"No proporcionada" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cliente-card-actions">
+        <a href="{% url 'editar_cliente' cliente.id %}" class="btn-action btn-editar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Editar
+        </a>
+        <button type="button" class="btn-action btn-eliminar" onclick="confirmarEliminar({{ cliente.id }}, '{{ cliente.nombre|default:cliente.username }}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Eliminar
+        </button>
+      </div>
+    </div>
     {% endfor %}
-  </tbody>
-</table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+    <h3>No hay clientes registrados</h3>
+    <p>Los clientes aparecerán aquí cuando se registren en la tienda</p>
+  </div>
+  {% endif %}
 
+  <!-- Estado de "no resultados" para la búsqueda -->
+  <div id="no-results" class="empty-state" style="display: none;">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="M21 21l-4.35-4.35"></path>
+    </svg>
+    <h3>Sin resultados</h3>
+    <p>No se encontraron clientes con ese criterio de búsqueda</p>
+  </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div id="delete-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-body">
+      <div class="modal-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </div>
+      <h3>¿Eliminar cliente?</h3>
+      <p>Estás a punto de eliminar a <strong id="delete-nombre"></strong>. Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-modal-cancel" onclick="cerrarModal()">Cancelar</button>
+      <form id="delete-form" method="post" style="flex: 1;">
+        {% csrf_token %}
+        <button type="submit" class="btn-modal-confirm" style="width: 100%;">Eliminar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// Filtrar clientes
+function filtrarClientes() {
+  const query = document.getElementById('search-cliente').value.toLowerCase();
+  const cards = document.querySelectorAll('.cliente-card');
+  const grid = document.getElementById('clientes-grid');
+  const noResults = document.getElementById('no-results');
+  let found = 0;
+
+  cards.forEach(card => {
+    const searchData = card.dataset.search;
+    if (searchData.includes(query)) {
+      card.style.display = 'block';
+      found++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  if (grid) {
+    if (found === 0 && query !== '') {
+      grid.style.display = 'none';
+      noResults.style.display = 'block';
+    } else {
+      grid.style.display = 'grid';
+      noResults.style.display = 'none';
+    }
+  }
+}
+
+// Modal de confirmación
+function confirmarEliminar(id, nombre) {
+  document.getElementById('delete-nombre').textContent = nombre;
+  document.getElementById('delete-form').action = `/api/clientes/eliminar/${id}/`;
+  document.getElementById('delete-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal() {
+  document.getElementById('delete-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') cerrarModal();
+});
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('delete-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'delete-modal') cerrarModal();
+});
+</script>
 {% endblock %}

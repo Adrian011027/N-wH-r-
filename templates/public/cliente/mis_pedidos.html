@@ -1,0 +1,98 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Mis Pedidos - NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/cliente/css/mis_pedidos.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="pedidos-page">
+  <div class="pedidos-container">
+    <!-- Header -->
+    <div class="pedidos-header">
+      <a href="/" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" 
+             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver
+      </a>
+      <h1>Mis Pedidos</h1>
+      <p class="pedidos-subtitle">Historial de todas tus compras</p>
+    </div>
+
+    <!-- Estado: No logueado -->
+    <div id="not-logged" class="pedidos-empty" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" 
+           stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+      <h2>Inicia sesión para ver tus pedidos</h2>
+      <p>Necesitas una cuenta para ver tu historial de compras</p>
+      <a href="/" class="btn-primary" onclick="mostrarLoginPanel(); return false;">Iniciar Sesión</a>
+    </div>
+
+    <!-- Estado: Cargando -->
+    <div id="loading-state" class="pedidos-loading">
+      <div class="spinner"></div>
+      <p>Cargando tus pedidos...</p>
+    </div>
+
+    <!-- Estado: Sin pedidos -->
+    <div id="empty-state" class="pedidos-empty" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" 
+           stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2"/>
+        <path d="M3 9h18"/>
+        <circle cx="8" cy="15" r="1"/>
+        <circle cx="16" cy="15" r="1"/>
+      </svg>
+      <h2>Aún no tienes pedidos</h2>
+      <p>¡Explora nuestra colección y encuentra tus favoritos!</p>
+      <a href="/" class="btn-primary">Ir a comprar</a>
+    </div>
+
+    <!-- Estado: Error -->
+    <div id="error-state" class="pedidos-error" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" 
+           stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v4M12 16h.01"/>
+      </svg>
+      <h2>Error al cargar pedidos</h2>
+      <p id="error-message">Ocurrió un error inesperado</p>
+      <button class="btn-secondary" onclick="cargarPedidos()">Reintentar</button>
+    </div>
+
+    <!-- Lista de pedidos -->
+    <div id="pedidos-list" class="pedidos-list" style="display: none;">
+      <!-- Los pedidos se cargan dinámicamente -->
+    </div>
+  </div>
+</main>
+
+<!-- Modal de detalle de pedido -->
+<div id="orden-modal" class="orden-modal">
+  <div class="orden-modal-content">
+    <div class="orden-modal-header">
+      <h2>Detalle del Pedido <span id="modal-orden-id"></span></h2>
+      <button class="close-modal" onclick="cerrarModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" 
+             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="orden-modal-body" id="modal-body">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'public/cliente/js/mis_pedidos.js' %}"></script>
+{% endblock %}

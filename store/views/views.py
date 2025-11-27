@@ -67,18 +67,28 @@ def genero_view(request, genero):
 def login_user(request):
     """
     Login de administrador con JWT + sesión Django.
+    Permite login con usuario o correo (case-insensitive).
     Retorna tokens JWT y establece sesión para vistas HTML del dashboard.
     """
     data = json.loads(request.body or "{}")
-    username = data.get("username")
+    identifier = data.get("username", "").strip()  # Puede ser username o correo
     password = data.get("password")
 
+    if not identifier or not password:
+        return JsonResponse({"error": "Usuario/correo y contraseña requeridos"}, status=400)
+
+    # Buscar por username o correo (case-insensitive)
     try:
-        user = Usuario.objects.get(username=username)
-        if not check_password(password, user.password):
-            return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
+        user = Usuario.objects.get(username__iexact=identifier)
     except Usuario.DoesNotExist:
-        return JsonResponse({"error": "Credenciales inválidas"}, status=401)
+        try:
+            user = Usuario.objects.get(email__iexact=identifier)
+        except Usuario.DoesNotExist:
+            return JsonResponse({"error": "Credenciales inválidas"}, status=401)
+
+    # Validar contraseña (case-sensitive)
+    if not check_password(password, user.password):
+        return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
 
     # Verificar que sea admin
     if user.role != "admin":
@@ -107,20 +117,40 @@ def login_user(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_client(request):
+    """
+    Login de cliente con JWT.
+    Permite login con usuario o correo (case-insensitive).
+    La contraseña sí es case-sensitive.
+    """
     data = json.loads(request.body or "{}")
-    username = data.get("username")
+    identifier = data.get("username", "").strip()  # Puede ser username o correo
     password = data.get("password")
 
+    if not identifier or not password:
+        return JsonResponse({"error": "Usuario/correo y contraseña requeridos"}, status=400)
+
+    # Buscar por username o correo (case-insensitive)
     try:
-        cliente = Cliente.objects.get(username=username)
-        if not check_password(password, cliente.password):
-            return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
+        cliente = Cliente.objects.get(username__iexact=identifier)
     except Cliente.DoesNotExist:
-        return JsonResponse({"error": "Usuario no registrado"}, status=404)
+        try:
+            cliente = Cliente.objects.get(correo__iexact=identifier)
+        except Cliente.DoesNotExist:
+            return JsonResponse({"error": "Usuario no registrado"}, status=404)
+
+    # Validar contraseña (case-sensitive)
+    if not check_password(password, cliente.password):
+        return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
 
     access  = generate_access_token(cliente.id, "cliente", cliente.username)
     refresh = generate_refresh_token(cliente.id)
-    return JsonResponse({"access": access, "refresh": refresh, "username": username}, status=200)
+    return JsonResponse({
+        "access": access, 
+        "refresh": refresh, 
+        "username": cliente.username,
+        "nombre": cliente.nombre or cliente.username,
+        "correo": cliente.correo or ""
+    }, status=200)
 
 
 # ───────────────────────────────────────────────

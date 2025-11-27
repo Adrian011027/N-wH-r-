@@ -16,6 +16,7 @@
   <!-- CSS Global -->
   <link rel="stylesheet" href="{% static 'public/inicio/css/index.css' %}">
   <link rel="stylesheet" href="{% static 'public/inicio/css/wishlist.css' %}">
+  <link rel="stylesheet" href="{% static 'public/inicio/css/search-overlay.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
   {% block extra_css %}{% endblock %}
 
@@ -78,6 +79,9 @@
 
   <!-- JS Principal -->
   <script type="module" src="{% static 'public/inicio/js/main.js' %}"></script>
+  
+  <!-- Search Overlay -->
+  <script src="{% static 'public/inicio/js/search-overlay.js' %}"></script>
   
   <!-- JWT Helper para todas las peticiones -->
   <script src="{% static 'public/js/fetch-helper.js' %}"></script>

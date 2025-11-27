@@ -235,4 +235,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
         });
     }
+
+    // ✅ Actualizar localStorage con los datos del formulario cuando hay mensaje de éxito
+    const successMessage = document.querySelector('.alert-success');
+    if (successMessage) {
+        const nombreInput = document.getElementById('nombre');
+        const correoInput = document.getElementById('correo');
+        
+        if (nombreInput && nombreInput.value) {
+            localStorage.setItem('nombre', nombreInput.value);
+        }
+        if (correoInput && correoInput.value) {
+            localStorage.setItem('correo', correoInput.value);
+        }
+    }
 });

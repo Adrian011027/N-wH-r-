@@ -1,7 +1,7 @@
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
-from ..models import Cliente, ContactoCliente
+from ..models import Cliente, ContactoCliente, Orden, OrdenDetalle
 from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required, auth_required_hybrid
 from django.db.models import Prefetch
 from django.contrib.auth.hashers import make_password
@@ -9,9 +9,93 @@ from django.contrib.auth.hashers import check_password
 import json, re
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.utils import timezone
+from datetime import timedelta
 
 # Regex simple y seguro para validar correos
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
+
+
+# ========= MIS PEDIDOS (VISTA HTML) ========= #
+def mis_pedidos(request):
+    """Vista pública para mostrar el historial de pedidos del cliente"""
+    return render(request, 'public/cliente/mis_pedidos.html')
+
+
+# ========= API: OBTENER ÓRDENES DEL CLIENTE ========= #
+@csrf_exempt
+@jwt_role_required()
+@require_GET
+def get_ordenes_cliente(request):
+    """API para obtener las órdenes del cliente autenticado"""
+    try:
+        cliente_id = request.user_id
+        cliente = get_object_or_404(Cliente, id=cliente_id)
+        
+        ordenes = Orden.objects.filter(cliente=cliente).order_by('-created_at').prefetch_related(
+            'detalles__variante__producto',
+            'detalles__variante__attrs__atributo_valor__atributo'
+        )
+        
+        data = []
+        for orden in ordenes:
+            items = []
+            for detalle in orden.detalles.all():
+                variante = detalle.variante
+                producto = variante.producto
+                
+                # Obtener atributos (talla, color, etc.)
+                atributos = []
+                for attr in variante.attrs.all():
+                    atributos.append({
+                        'nombre': attr.atributo_valor.atributo.nombre,
+                        'valor': attr.atributo_valor.valor
+                    })
+                
+                items.append({
+                    'producto_id': producto.id,
+                    'producto_nombre': producto.nombre,
+                    'producto_imagen': producto.imagen.url if producto.imagen else None,
+                    'variante_id': variante.id,
+                    'cantidad': detalle.cantidad,
+                    'precio_unitario': float(detalle.precio_unitario),
+                    'subtotal': float(detalle.precio_unitario * detalle.cantidad),
+                    'atributos': atributos
+                })
+            
+            data.append({
+                'id': orden.id,
+                'status': orden.status,
+                'status_display': get_status_display(orden.status),
+                'total_amount': float(orden.total_amount),
+                'payment_method': orden.payment_method,
+                'created_at': orden.created_at.strftime('%d/%m/%Y %H:%M'),
+                'items': items,
+                'total_items': sum(item['cantidad'] for item in items)
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'ordenes': data,
+            'total': len(data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def get_status_display(status):
+    """Convierte el código de estado a texto legible"""
+    status_map = {
+        'pendiente': {'text': 'Pendiente', 'color': '#f59e0b', 'icon': 'clock'},
+        'procesando': {'text': 'Procesando', 'color': '#3b82f6', 'icon': 'settings'},
+        'proces': {'text': 'Procesando', 'color': '#3b82f6', 'icon': 'settings'},
+        'enviado': {'text': 'Enviado', 'color': '#8b5cf6', 'icon': 'truck'},
+        'entregado': {'text': 'Entregado', 'color': '#10b981', 'icon': 'check'},
+        'cancelado': {'text': 'Cancelado', 'color': '#ef4444', 'icon': 'x'},
+    }
+    return status_map.get(status.lower(), {'text': status.capitalize(), 'color': '#6b7280', 'icon': 'info'})
+
 
 # ========= EDITAR PERFIL (VISTA) ========= #
 @auth_required_hybrid()
@@ -19,8 +103,22 @@ def editar_perfil(request, id):
     """Vista para editar el perfil del cliente"""
     cliente = get_object_or_404(Cliente, id=id)
     
+    # Calcular si puede cambiar username
+    puede_cambiar_username = True
+    dias_restantes = 0
+    
+    if cliente.ultima_modificacion_username:
+        tiempo_transcurrido = timezone.now() - cliente.ultima_modificacion_username
+        if tiempo_transcurrido < timedelta(days=30):
+            puede_cambiar_username = False
+            dias_restantes = 30 - tiempo_transcurrido.days
+    
     if request.method == 'GET':
-        return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+        return render(request, 'public/cliente/perfil.html', {
+            'cliente': cliente,
+            'puede_cambiar_username': puede_cambiar_username,
+            'dias_restantes': dias_restantes
+        })
     
     elif request.method == 'POST':
         try:
@@ -28,14 +126,55 @@ def editar_perfil(request, id):
             cliente.nombre = request.POST.get('nombre', '').strip()
             correo = request.POST.get('correo', '').strip().lower()
             
+            # Validar y cambiar username
+            nuevo_username = request.POST.get('username', '').strip()
+            if nuevo_username and nuevo_username != cliente.username:
+                # Verificar si puede cambiar
+                if not puede_cambiar_username:
+                    messages.error(request, f'Solo puedes cambiar tu nombre de usuario una vez al mes. Faltan {dias_restantes} días.')
+                    return render(request, 'public/cliente/perfil.html', {
+                        'cliente': cliente,
+                        'puede_cambiar_username': puede_cambiar_username,
+                        'dias_restantes': dias_restantes
+                    })
+                
+                # Validar que no exista
+                if Cliente.objects.filter(username=nuevo_username).exclude(id=id).exists():
+                    messages.error(request, 'Este nombre de usuario ya está en uso')
+                    return render(request, 'public/cliente/perfil.html', {
+                        'cliente': cliente,
+                        'puede_cambiar_username': puede_cambiar_username,
+                        'dias_restantes': dias_restantes
+                    })
+                
+                # Validar formato (alfanumérico, puntos, guiones bajos)
+                if not re.match(r'^[a-zA-Z0-9._]+$', nuevo_username):
+                    messages.error(request, 'El nombre de usuario solo puede contener letras, números, puntos y guiones bajos')
+                    return render(request, 'public/cliente/perfil.html', {
+                        'cliente': cliente,
+                        'puede_cambiar_username': puede_cambiar_username,
+                        'dias_restantes': dias_restantes
+                    })
+                
+                if len(nuevo_username) < 3:
+                    messages.error(request, 'El nombre de usuario debe tener al menos 3 caracteres')
+                    return render(request, 'public/cliente/perfil.html', {
+                        'cliente': cliente,
+                        'puede_cambiar_username': puede_cambiar_username,
+                        'dias_restantes': dias_restantes
+                    })
+                
+                cliente.username = nuevo_username
+                cliente.ultima_modificacion_username = timezone.now()
+            
             # Validar correo
             if correo != cliente.correo:
                 if not re.match(EMAIL_REGEX, correo):
                     messages.error(request, 'Correo electrónico inválido')
-                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente, 'puede_cambiar_username': puede_cambiar_username, 'dias_restantes': dias_restantes})
                 if Cliente.objects.filter(correo=correo).exclude(id=id).exists():
                     messages.error(request, 'Este correo ya está registrado')
-                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
+                    return render(request, 'public/cliente/perfil.html', {'cliente': cliente, 'puede_cambiar_username': puede_cambiar_username, 'dias_restantes': dias_restantes})
                 cliente.correo = correo
             
             cliente.telefono = request.POST.get('telefono', '').strip()
