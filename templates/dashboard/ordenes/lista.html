@@ -1,0 +1,151 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Órdenes - Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/ordenes/main.css' %}?v=2">
+
+<div class="ordenes-page">
+  <!-- Header -->
+  <div class="ordenes-header">
+    <div class="header-title">
+      <h1>📋 Gestión de Órdenes</h1>
+      <p class="subtitle">Administra y da seguimiento a los pedidos de tus clientes</p>
+    </div>
+    <button class="btn-refresh" onclick="cargarOrdenes()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" 
+           stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M23 4v6h-6M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="ordenes-stats" id="ordenes-stats">
+    <div class="stat-card total">
+      <span class="stat-number" id="stat-total">0</span>
+      <span class="stat-label">Total Órdenes</span>
+    </div>
+    <div class="stat-card pendiente">
+      <span class="stat-number" id="stat-pendientes">0</span>
+      <span class="stat-label">Pendientes</span>
+    </div>
+    <div class="stat-card procesando">
+      <span class="stat-number" id="stat-procesando">0</span>
+      <span class="stat-label">Procesando</span>
+    </div>
+    <div class="stat-card enviado">
+      <span class="stat-number" id="stat-enviados">0</span>
+      <span class="stat-label">Enviados</span>
+    </div>
+    <div class="stat-card entregado">
+      <span class="stat-number" id="stat-entregados">0</span>
+      <span class="stat-label">Entregados</span>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="ordenes-filtros">
+    <div class="filtro-grupo">
+      <label>Estado</label>
+      <select id="filtro-status" onchange="cargarOrdenes()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="procesando">Procesando</option>
+        <option value="enviado">Enviado</option>
+        <option value="entregado">Entregado</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+    <div class="filtro-grupo" style="flex: 1; min-width: 200px;">
+      <label>Buscar Cliente</label>
+      <input type="text" id="filtro-cliente" placeholder="Nombre, usuario o email..." 
+             onkeyup="debounceCargar()">
+    </div>
+    <div class="filtro-grupo">
+      <label>Desde</label>
+      <input type="date" id="filtro-desde" onchange="cargarOrdenes()">
+    </div>
+    <div class="filtro-grupo">
+      <label>Hasta</label>
+      <input type="date" id="filtro-hasta" onchange="cargarOrdenes()">
+    </div>
+    <button class="btn-limpiar" onclick="limpiarFiltros()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+      Limpiar
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-state" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando órdenes...</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-state" class="error-state" style="display: none;">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 16px;">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="15" y1="9" x2="9" y2="15"></line>
+      <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>
+    <p id="error-message">Error al cargar las órdenes</p>
+    <button onclick="cargarOrdenes()">Reintentar</button>
+  </div>
+
+  <!-- Tabla de órdenes -->
+  <div id="ordenes-container" class="ordenes-table-container" style="display: none;">
+    <table class="ordenes-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Productos</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ordenes-tbody">
+        <!-- Filas dinámicas -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Sin resultados -->
+  <div id="empty-state" class="empty-state" style="display: none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="none" 
+         stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="M3 9h18"/>
+    </svg>
+    <h2>No hay órdenes</h2>
+    <p>No se encontraron órdenes con los filtros seleccionados</p>
+  </div>
+</div>
+
+<!-- Modal de detalle -->
+<div id="orden-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Detalle de Orden <span id="modal-orden-id"></span></h2>
+      <button class="modal-close" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast de notificación -->
+<div id="toast" class="toast"></div>
+
+<script src="{% static 'dashboard/js/ordenes/lista.js' %}?v=2" defer></script>
+{% endblock %}

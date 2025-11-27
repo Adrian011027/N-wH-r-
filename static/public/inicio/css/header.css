@@ -36,7 +36,7 @@ header.scrolled {
 /* Alineación específica */
 .header-left    { 
   justify-content: flex-start; 
-  gap: 4px; 
+  gap: 18px; 
   z-index: 200; 
 }
 .header-center  { 
@@ -44,20 +44,39 @@ header.scrolled {
 }
 
 .header-right   { 
-  justify-content: 
-  flex-end; gap: 12px; 
+  justify-content: flex-end; 
+  gap: 12px; 
 }
 
-/* Reducir gap en mobile */
-@media (max-width: 480px) {
-  .header-right {
-    gap: 8px;
-  }
+/* Iconos del header */
+.user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
-/* Opcional: SVGs del header derecho */
-.header-right svg {
+.user-icon:hover {
+  opacity: 0.7;
+}
+
+.user-icon svg {
+  width: 20px;
+  height: 20px;
   display: block;
+}
+
+/* Botones de búsqueda: desktop vs mobile */
+.search-mobile {
+  display: flex !important; /* Visible siempre (izquierda) */
+}
+
+.search-desktop {
+  display: none !important; /* Oculto siempre (derecha) */
 }
 
 /* Texto Menú / Cerrar */
@@ -182,8 +201,8 @@ header.scrolled {
 /* 1. modifica tu regla existente */
 .burger{
   position: relative;
-  width: 12px;
-  height: 9px;
+  width: 18px;
+  height: 13px;
   cursor: pointer;
   border: none;
   background: none;
@@ -207,10 +226,10 @@ header.scrolled {
 .burger span:nth-of-type(2){top:50%; transform:translateY(-50%);}
 .burger span:nth-of-type(3){bottom:0;}
 
-/* Animación a “X” cuando el botón tiene .active  */
-.burger.active span:nth-of-type(1){transform:translateY(4px) rotate(45deg);}
+/* Animación a "X" cuando el botón tiene .active  */
+.burger.active span:nth-of-type(1){transform:translateY(6px) rotate(45deg);}
 .burger.active span:nth-of-type(2){opacity:0;}
-.burger.active span:nth-of-type(3){transform:translateY(-4px) rotate(-45deg);}
+.burger.active span:nth-of-type(3){transform:translateY(-6px) rotate(-45deg);}
 
 /* ────────────────────────────────────────────────
    3. Overlay de fondo
@@ -419,13 +438,16 @@ header.scrolled #Logo {
 
 /* Celulares grandes (≤ 768px) */
 @media (max-width: 768px) {
-  /* Header */
-  .header-left {
-    width: auto;
+  header {
+    padding: 10px 16px;
   }
 
   #Logo {
-    width: 120px;
+    width: 130px;
+  }
+  
+  .header-right {
+    gap: 10px;
   }
 
   /* Contact panel */
@@ -433,13 +455,14 @@ header.scrolled #Logo {
     width: 100vw;
     padding: 20px 30px;
   }
-  .nav-menu{
+  
+  .nav-menu {
     width: 100%;
     padding: 20px 30px;
-}
+  }
 
   .contact-header h2 {
-    font-size: 10px;
+    font-size: 24px;
   }
 
   .btn-contacto {
@@ -448,7 +471,7 @@ header.scrolled #Logo {
   }
 
   .contact-content {
-    font-size: 11px;
+    font-size: 14px;
   }
 
   .contact-content input,
@@ -459,89 +482,68 @@ header.scrolled #Logo {
 
   .contact-list a,
   .contact-line {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 
-/* Celulares pequeños (≤ 480px) */
+/* Celulares (≤ 480px) */
 @media (max-width: 480px) {
-
-   #btn-contacto {
+  /* Ocultar botón contacto */
+  #btn-contacto,
+  .btn-contacto {
     display: none !important;
   }
 
   header {
-    position: fixed; /* Para que el logo centrado funcione */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    flex-wrap: nowrap;
+    padding: 10px 15px;
   }
 
-  /* Lados con ancho automático */
+  /* Mantener flex: 1 para que el logo quede centrado naturalmente */
   .header-left,
+  .header-center,
   .header-right {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    min-width: 0;
+    flex: 1;
   }
 
-  /* Logo tamaño fijo en mobile */
   #Logo {
-    width: 120px !important;
+    width: 100px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .user-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
-  /* Logo centrado absoluto */
-  .header-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: max-content;
-    pointer-events: none;
+  /* 🔍 Intercambiar búsqueda: mostrar en izquierda, ocultar en derecha */
+  .search-mobile {
+    display: flex !important;
   }
-
-  .header-center a,
-  .header-center img {
-    pointer-events: auto;
+  
+  .search-desktop {
+    display: none !important;
   }
-
-  /* Si usas texto en lugar de imagen */
-  .header-center h1 {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-
-
 
   /* Contact panel */
   .contact-panel {
-    width: 50vw;
+    width: 100vw;
     padding: 15px 20px;
   }
 
-  .nav-menu{
+  .nav-menu {
     width: 100%;
     padding: 45px 20px;
   }
 
   .contact-header h2 {
-    font-size: 14px;
-  }
-
-  .btn-contacto {
-    font-size: 9px;
+    font-size: 20px;
   }
 
   .contact-content {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .contact-content input,
@@ -557,7 +559,35 @@ header.scrolled #Logo {
   .contact-line,
   .contact-line i,
   .contact-list a {
-    font-size: 10px;
+    font-size: 12px;
+  }
+  
+  .menu-label {
+    display: none;
+  }
+}
+
+/* Celulares pequeños (≤ 380px) */
+@media (max-width: 380px) {
+  header {
+    padding: 8px 12px;
+  }
+  
+  #Logo {
+    width: 85px;
+  }
+  
+  .header-right {
+    gap: 6px;
+  }
+  
+  .user-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .user-icon {
+    padding: 4px;
   }
 }
 

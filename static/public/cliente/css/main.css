@@ -139,6 +139,18 @@ label {
   font-style: italic;
 }
 
+.field-hint.warning {
+  color: #e67e22;
+  font-weight: 500;
+}
+
+/* Input readonly */
+.input-readonly {
+  background-color: #f5f5f5 !important;
+  color: #888 !important;
+  cursor: not-allowed;
+}
+
 /* ========== INPUTS ========== */
 input[type="text"],
 input[type="email"],

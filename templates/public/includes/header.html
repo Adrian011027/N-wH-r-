@@ -6,6 +6,16 @@
       <span></span><span></span><span></span>
     </button>
     <span class="menu-label"></span>
+    
+    <!-- 🔍 Búsqueda (solo móvil) -->
+    <button id="btn-search-mobile" class="user-icon search-mobile" aria-label="Buscar productos">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+           fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+    </button>
   </div>
 
   <div class="header-center">
@@ -17,9 +27,8 @@
   <div class="header-right fade-in">
     <button id="btn-contacto" class="btn-contacto">Contáctanos</button>
 
-    <!-- 🔍 Búsqueda -->
-    <button id="btn-search" class="user-icon" aria-label="Buscar productos"
-            onclick="window.location.href='{% url 'search_page' %}'">
+    <!-- 🔍 Búsqueda (solo desktop) -->
+    <button id="btn-search" class="user-icon search-desktop" aria-label="Buscar productos">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
            fill="none" stroke="currentColor" stroke-width="1.5"
            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -149,28 +158,77 @@
 
 <!-- CLIENTE PANEL -->
 <div id="cliente-panel" class="login-panel">
-  <div class="login-header">
-    <h2>Mi Perfil</h2>
+  <div class="cliente-header">
+    <h2 id="cliente-header-title">Mi Perfil</h2>
     <span id="close-cliente-panel" class="close-btn">×</span>
   </div>
+  
   <div class="login-section">
     <h3>Información de la cuenta</h3>
-    <p><i class="fa-regular fa-user"></i> <strong>Usuario:</strong> <span id="cliente-username"></span></p>
-    <p><i class="fa-regular fa-envelope"></i> <strong>Email:</strong> (pendiente)</p>
+    <p class="info-line">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+      </svg>
+      <span id="cliente-username"></span>
+    </p>
+    <p class="info-line">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <path d="M22 6L12 13 2 6"/>
+      </svg>
+      <span id="cliente-email"></span>
+    </p>
   </div>
+  
   <hr>
+  
   <div class="login-section quick-links">
-    <a href="#" id="link-perfil"><i class="fa-regular fa-id-card"></i> Editar perfil</a>
-    <a href="/pedidos/"><i class="fa-solid fa-box"></i> Mis pedidos</a>
-    <a href="#" id="link-wishlist" class="open-wishlist"><i class="fa-regular fa-heart"></i> Wishlist</a>
-    <a href="/direccion/"><i class="fa-solid fa-location-dot"></i> Dirección</a>
-    <a href="/contacto/"><i class="fa-regular fa-paper-plane"></i> Contáctanos</a>
-  </div>
-  <hr>
-  <div class="login-section">
-    <a href="#" id="link-logout" class="logout-btn">
-      <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+    <a href="#" id="link-perfil">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="14" y2="12"/>
+        <line x1="4" y1="18" x2="18" y2="18"/>
+        <circle cx="18" cy="6" r="2"/>
+        <circle cx="12" cy="12" r="2"/>
+        <circle cx="16" cy="18" r="2"/>
+      </svg>
+      Editar perfil
     </a>
+    <a href="{% url 'mis_pedidos' %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2"/>
+        <path d="M3 9h18"/>
+        <circle cx="8" cy="15" r="1"/>
+        <circle cx="16" cy="15" r="1"/>
+      </svg>
+      Mis pedidos
+    </a>
+    <a href="#" id="link-wishlist" class="open-wishlist">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+      </svg>
+      Wishlist
+    </a>
+    <a href="/contacto/">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <path d="M22 6L12 13 2 6"/>
+      </svg>
+      Contáctanos
+    </a>
+  </div>
+  
+  <hr>
+  
+  <div class="login-section">
+    <a href="#" id="link-logout" class="logout-btn">Cerrar sesión</a>
   </div>
 </div>
 
@@ -182,6 +240,107 @@
   </div>
   <div class="wishlist-content">
     <p>Cargando tus productos favoritos...</p>
+  </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay" class="search-overlay">
+  <div class="search-overlay-container">
+    <!-- Header del buscador -->
+    <div class="search-overlay-header">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input 
+          type="text" 
+          id="search-overlay-input" 
+          class="search-overlay-input" 
+          placeholder="Buscar productos..."
+          autocomplete="off"
+          autofocus
+        >
+        <button id="search-clear-btn" class="search-clear-btn" style="display: none;" aria-label="Limpiar búsqueda">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+               stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <button id="search-close-btn" class="search-close-btn" aria-label="Cerrar búsqueda">
+        Cancelar
+      </button>
+    </div>
+
+    <!-- Contenido del buscador -->
+    <div class="search-overlay-content">
+      <!-- Estado inicial: Sugerencias -->
+      <div id="search-suggestions" class="search-suggestions">
+        <h3>Búsquedas populares</h3>
+        <div class="suggestion-tags">
+          <button class="suggestion-tag" data-query="Tacones">Tacones</button>
+          <button class="suggestion-tag" data-query="Botas">Botas</button>
+          <button class="suggestion-tag" data-query="Sandalias">Sandalias</button>
+          <button class="suggestion-tag" data-query="Tenis">Tenis</button>
+          <button class="suggestion-tag" data-query="Flats">Flats</button>
+        </div>
+        <h3>Categorías</h3>
+        <div class="search-categories">
+          <a href="{% url 'coleccion_genero' 'dama' %}" class="search-category-link">
+            <span>Dama</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" 
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </a>
+          <a href="{% url 'coleccion_genero' 'caballero' %}" class="search-category-link">
+            <span>Caballero</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" 
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </a>
+          <a href="{% url 'coleccion_genero' 'accesorios' %}" class="search-category-link">
+            <span>Accesorios</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" 
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Estado: Cargando -->
+      <div id="search-loading" class="search-loading" style="display: none;">
+        <div class="search-spinner"></div>
+        <p>Buscando...</p>
+      </div>
+
+      <!-- Estado: Resultados -->
+      <div id="search-results" class="search-results" style="display: none;">
+        <div class="search-results-header">
+          <span id="search-results-count">0 resultados</span>
+          <a href="#" id="search-view-all" class="search-view-all">Ver todos</a>
+        </div>
+        <div id="search-results-grid" class="search-results-grid">
+          <!-- Productos se cargan dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Estado: Sin resultados -->
+      <div id="search-no-results" class="search-no-results" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" 
+             stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+          <path d="M8 8l6 6M14 8l-6 6"/>
+        </svg>
+        <h3>No encontramos resultados</h3>
+        <p>Intenta con otros términos de búsqueda</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -211,10 +370,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnUser)  btnUser.style.display = "inline-flex";
     if (btnLogin) btnLogin.style.display = "none";
 
-    // opcional: mostrar nombre en panel
-    const username = localStorage.getItem("username") || "";
-    if (username) {
-      document.getElementById("cliente-username").textContent = username;
+    // opcional: mostrar nombre y email en panel
+    const nombre = localStorage.getItem("nombre") || localStorage.getItem("username") || "";
+    const correo = localStorage.getItem("correo") || "";
+    if (nombre) {
+      document.getElementById("cliente-username").textContent = nombre;
+    }
+    if (correo) {
+      document.getElementById("cliente-email").textContent = correo;
+    } else {
+      document.getElementById("cliente-email").textContent = "(sin email)";
     }
 
     // acción al abrir panel de usuario
@@ -231,6 +396,8 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.removeItem("user_id");
       localStorage.removeItem("role");
       localStorage.removeItem("username");
+      localStorage.removeItem("nombre");
+      localStorage.removeItem("correo");
       window.location.reload();
     });
 
