@@ -1,7 +1,7 @@
 from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
-from ..models import Atributo, AtributoValor, Producto, Categoria, Variante
+from ..models import Producto, Categoria, Variante
 from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
 from django.db.models import Prefetch
 from decimal import Decimal
@@ -12,31 +12,25 @@ from django.views.decorators.csrf import csrf_exempt
 
 def detalle_producto(request, id):
     producto = get_object_or_404(
-        Producto.objects.prefetch_related(
-            Prefetch(
-                "variantes__attrs__atributo_valor__atributo",
-                # solo cargamos los atributos vinculados
-            )
-        ),
-        id=id,
+        Producto.objects.prefetch_related("variantes"),
+        id=id
     )
 
-    # ─── 1. Lista de tallas disponibles ───────────────────────────
-    atributo_talla = Atributo.objects.filter(nombre__iexact="Talla").first()
+    # ─── 1. Tallas y colores disponibles ───────────────────────────
     tallas = set()
+    colores = set()
 
     variantes_serializadas = []    # para el JS
     for v in producto.variantes.all():
-        attrs = {av.atributo_valor.atributo.nombre: av.atributo_valor.valor
-                 for av in v.attrs.all()}
-
-        talla = attrs.get("Talla")
-        if talla:
-            tallas.add(talla)
+        if v.talla:
+            tallas.add(v.talla)
+        if v.color:
+            colores.add(v.color)
 
         variantes_serializadas.append({
             "id"    : v.id,
-            "talla" : talla,
+            "talla" : v.talla,
+            "color" : v.color,
             "precio": float(v.precio or producto.precio),
             "stock" : v.stock,
         })
@@ -51,7 +45,8 @@ def detalle_producto(request, id):
         {
             "producto"       : producto,
             "origen"         : origen,
-            "tallas"         : sorted(tallas, key=lambda x: float(x)),
+            "tallas"         : sorted(tallas, key=lambda x: (len(x), x)),
+            "colores"        : sorted(colores),
             "variantes_json" : json.dumps(variantes_serializadas),
         },
     )
@@ -62,23 +57,20 @@ def detalle_producto(request, id):
 @require_GET
 def get_all_products(request):
 
-    productos = Producto.objects.prefetch_related('variantes__attrs__atributo_valor__atributo')
+    productos = Producto.objects.prefetch_related('variantes')
     data = []
     for p in productos:
         variantes = []
         for v in p.variantes.all():
-            # recoger los atributos de la variante (talla, color…)
-            attrs = {
-                attr.atributo_valor.atributo.nombre: attr.atributo_valor.valor
-                for attr in v.attrs.all()
-            }
             variantes.append({
                 'id': v.id,
                 'sku': v.sku,
+                'talla': v.talla,
+                'color': v.color,
+                'otros': v.otros,
                 'precio': float(v.precio or p.precio),
                 'precio_mayorista': float(v.precio_mayorista or p.precio_mayorista),
                 'stock': v.stock,
-                'atributos': attrs,
             })
 
         data.append({
@@ -162,9 +154,7 @@ def create_product(request):
         imagen=imagen,
     )
 
-    # Atributo "Talla"
-    atributo_talla, _ = Atributo.objects.get_or_create(nombre="Talla")
-
+    # Sistema nuevo: Variantes con talla y color directos
     # Variantes múltiples (tallas + stocks)
     if tallas and stocks and len(tallas) == len(stocks):
         try:
@@ -173,19 +163,20 @@ def create_product(request):
             return JsonResponse({"error": "Stock debe ser numérico"}, status=400)
 
         for talla, stock in zip(tallas, stocks):
-            valor, _ = AtributoValor.objects.get_or_create(atributo=atributo_talla, valor=talla)
-            variante = Variante.objects.create(
+            Variante.objects.create(
                 producto=producto,
+                talla=talla,
+                color=data.get("color", "N/A") if request.content_type.startswith("application/json") else request.POST.get("color", "N/A"),
                 precio=precio,
                 precio_mayorista=precio_mayorista,
                 stock=stock,
             )
-            variante.attrs.create(atributo_valor=valor)
 
     # Variante simple (stock único)
     else:
         stock_unico = data.get("stock") if request.content_type.startswith("application/json") else request.POST.get("stock")
-        talla_unica = data.get("talla", "Única") if request.content_type.startswith("application/json") else request.POST.get("talla", "Única")
+        talla_unica = data.get("talla", "UNICA") if request.content_type.startswith("application/json") else request.POST.get("talla", "UNICA")
+        color_unico = data.get("color", "N/A") if request.content_type.startswith("application/json") else request.POST.get("color", "N/A")
 
         if stock_unico is None:
             return JsonResponse({"error": "Falta campo 'stock'"}, status=400)
@@ -195,14 +186,14 @@ def create_product(request):
         except:
             return JsonResponse({"error": "stock debe ser numérico"}, status=400)
 
-        valor, _ = AtributoValor.objects.get_or_create(atributo=atributo_talla, valor=talla_unica)
-        variante = Variante.objects.create(
+        Variante.objects.create(
             producto=producto,
+            talla=talla_unica,
+            color=color_unico,
             precio=precio,
             precio_mayorista=precio_mayorista,
             stock=stock_unico,
         )
-        variante.attrs.create(atributo_valor=valor)
 
     return JsonResponse(
         {"id": producto.id, "message": "Producto y variantes creados"},
@@ -260,11 +251,14 @@ def update_variant(request, variante_id):
         variante.stock = int(request.POST['stock'])
     if 'precio' in request.POST:
         variante.precio = request.POST['precio']
-
     if 'precio_mayorista' in request.POST:
         variante.precio_mayorista = request.POST['precio_mayorista']
     if 'sku' in request.POST:
         variante.sku = request.POST['sku']
+    if 'talla' in request.POST:
+        variante.talla = request.POST['talla']
+    if 'color' in request.POST:
+        variante.color = request.POST['color']
 
     variante.save()
     return JsonResponse(

@@ -232,7 +232,7 @@ function verDetalle(ordenId) {
             <div class="modal-producto-info">
               <h4 class="modal-producto-nombre">${item.producto_nombre}</h4>
               <p class="modal-producto-attrs">
-                ${item.atributos.map(a => `${a.nombre}: ${a.valor}`).join(' · ') || 'Sin variantes'}
+                ${[item.talla ? `Talla: ${item.talla}` : '', item.color && item.color !== 'N/A' ? `Color: ${item.color}` : ''].filter(Boolean).join(' · ') || 'Sin variantes'}
               </p>
               <div class="modal-producto-precio">
                 <span>${item.cantidad} × $${item.precio_unitario.toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>

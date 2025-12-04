@@ -64,16 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   (async () => {
     try {
       const urlCategorias = form.dataset.catsUrl;
-      const token = localStorage.getItem('access');
-      if (!token) throw new Error('No tienes sesión activa');
-
-      const res = await fetch(urlCategorias, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error('No se pudo obtener la lista de categorías');
-      const cats = await res.json();
+      const cats = await authFetchJSON(urlCategorias);
 
       categoriaSelect.innerHTML = '<option value="">Seleccionar...</option>';
       cats.forEach(c => {
@@ -103,22 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
 
     const formData = new FormData(form);
-    const token = localStorage.getItem('access');
-    
-    if (!token) {
-      mensaje.className = 'form-message error';
-      mensaje.textContent = '❌ No tienes sesión iniciada.';
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-      return;
-    }
 
     try {
-      const resp = await fetch(form.getAttribute('action'), {
+      const resp = await authFetch(form.getAttribute('action'), {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData
       });
 

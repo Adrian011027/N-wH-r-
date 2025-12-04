@@ -33,8 +33,7 @@ def get_all_ordenes(request):
         fecha_hasta = request.GET.get('hasta', '')
         
         ordenes = Orden.objects.all().select_related('cliente').prefetch_related(
-            'detalles__variante__producto',
-            'detalles__variante__attrs__atributo_valor__atributo'
+            'detalles__variante__producto'
         ).order_by('-created_at')
         
         # Aplicar filtros
@@ -61,22 +60,16 @@ def get_all_ordenes(request):
                 variante = detalle.variante
                 producto = variante.producto
                 
-                atributos = []
-                for attr in variante.attrs.all():
-                    atributos.append({
-                        'nombre': attr.atributo_valor.atributo.nombre,
-                        'valor': attr.atributo_valor.valor
-                    })
-                
                 items.append({
                     'producto_id': producto.id,
                     'producto_nombre': producto.nombre,
                     'producto_imagen': producto.imagen.url if producto.imagen else None,
                     'variante_id': variante.id,
+                    'talla': variante.talla,
+                    'color': variante.color,
                     'cantidad': detalle.cantidad,
                     'precio_unitario': float(detalle.precio_unitario),
-                    'subtotal': float(detalle.precio_unitario * detalle.cantidad),
-                    'atributos': atributos
+                    'subtotal': float(detalle.precio_unitario * detalle.cantidad)
                 })
             
             data.append({
@@ -181,22 +174,14 @@ def get_orden(request, id):
     # 3. Recorrer cada OrdenDetalle para poblar "items"
     for det in orden.detalles.select_related("variante", "variante__producto"):
         variante = det.variante
-        # Supongo que Variante tiene una relación a atributos; ajústalo a tu modelo real
-        try:
-            atributos = [
-                f"{attr.nombre}: {attr.valor}"
-                for attr in variante.atributos.all()
-            ]
-        except Exception:
-            atributos = []
-
         data["items"].append({
             "producto":        variante.producto.nombre,
             "variante_id":     variante.id,
+            "talla":           variante.talla,
+            "color":           variante.color,
             "cantidad":        det.cantidad,
             "precio_unitario": float(det.precio_unitario),
-            "subtotal":        float(det.precio_unitario * det.cantidad),
-            "atributos":       atributos,
+            "subtotal":        float(det.precio_unitario * det.cantidad)
         })
 
     # 4. Devolver JSON con indentación y caracteres unicode

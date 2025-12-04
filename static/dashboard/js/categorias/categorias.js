@@ -4,19 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputNombre = document.getElementById("nombre-categoria");
   const editForm = document.getElementById("edit-form");
 
-  /* ─────────── Helpers JWT ─────────── */
-  function getAccessToken() {
-    return localStorage.getItem("access");
-  }
-
-  function getAuthHeaders() {
-    const token = getAccessToken();
-    return {
-      "Authorization": `Bearer ${token}`,
-      "Content-Type": "application/json"
-    };
-  }
-
   /* ─────────── Estados de vista ─────────── */
   function mostrarEstado(estado) {
     document.getElementById('loading-state').style.display = 'none';
@@ -38,25 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ─────────── Render grid ─────────── */
   function cargarCategorias() {
-    const token = getAccessToken();
-    if (!token) {
-      console.error("No hay token de acceso. Redirigiendo al login...");
-      window.location.href = "/dashboard/login/";
-      return;
-    }
-
     mostrarEstado('loading');
 
-    fetch("/api/categorias/", {
-      headers: getAuthHeaders()
-    })
+    authFetch("/api/categorias/")
       .then((res) => {
-        if (res.status === 401 || res.status === 403) {
-          console.error("Token inválido o expirado. Redirigiendo al login...");
-          localStorage.clear();
-          window.location.href = "/dashboard/login/";
-          return;
-        }
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
@@ -123,9 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = '<div class="spinner-small"></div>';
     btn.disabled = true;
 
-    fetch("/api/categorias/crear/", {
+    authFetch("/api/categorias/crear/", {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre }),
     })
       .then((res) => {
@@ -187,9 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = '<div class="spinner-small"></div> Guardando...';
     btn.disabled = true;
 
-    fetch(`/api/categorias/actualizar/${id}/`, {
+    authFetch(`/api/categorias/actualizar/${id}/`, {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre }),
     })
       .then((res) => {
@@ -215,9 +187,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.eliminarCategoria = (id, nombre) => {
     if (!confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?`)) return;
     
-    fetch(`/api/categorias/eliminar/${id}/`, {
+    authFetch(`/api/categorias/eliminar/${id}/`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
     })
       .then((res) => {
         if (!res.ok) throw new Error('Error al eliminar');

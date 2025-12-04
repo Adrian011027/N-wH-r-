@@ -12,6 +12,10 @@
 
   <!-- CSRF token (disponible en meta y cookie) -->
   <meta name="csrf-token" content="{{ csrf_token }}">
+  
+  <!-- Auth Helper - Sistema JWT centralizado -->
+  <script src="{% static 'dashboard/js/auth-helper.js' %}"></script>
+  
   <script>
     // Asegura que el token esté disponible como cookie para uso en JavaScript
     if (!document.cookie.includes('csrftoken')) {
