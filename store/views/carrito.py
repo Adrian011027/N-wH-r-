@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from store.views.decorators      import login_required_client, jwt_role_required
 from store.views.orden import crear_orden_desde_payload
 from ..models import (
-    Cliente, Carrito, Producto, AtributoValor,
+    Cliente, Carrito, Producto,
     Variante, CarritoProducto, Orden
 )
 from django.urls import reverse
@@ -121,29 +121,18 @@ def create_carrito(request, cliente_id):
 
     # ── Variante según talla ───────────────────────────────────
     if talla_val:
-        atributo_valor = get_object_or_404(
-            AtributoValor,
-            atributo__nombre__iexact="Talla",
-            valor__iexact=talla_val
-        )
+        # Sistema nuevo: buscar directamente por talla
         variante = get_object_or_404(
-            Variante.objects.prefetch_related("attrs"),
+            Variante,
             producto=producto,
-            attrs__atributo_valor=atributo_valor
+            talla__iexact=talla_val
         )
     else:
+        # Sin talla especificada → buscar variante única
         variante = (
             Variante.objects
             .filter(producto=producto)
-            .annotate(
-                es_unica=models.Count(
-                    "attrs",
-                    filter=models.Q(
-                        attrs__atributo_valor__atributo__nombre__iexact="Talla"
-                    )
-                )
-            )
-            .filter(es_unica=0)      # sin talla → única
+            .filter(models.Q(talla="UNICA") | models.Q(talla="N/A"))
             .first()
         )
         if not variante:
@@ -175,7 +164,9 @@ def create_carrito(request, cliente_id):
         "producto"  : producto.nombre,
         "variante"  : {
             "sku"      : variante.sku,
-            "atributos": [str(av) for av in variante.attrs.all()]
+            "talla"    : variante.talla,
+            "color"    : variante.color,
+            "otros"    : variante.otros
         },
         "cantidad"  : cp.cantidad,
         "subtotal"  : subtotal
@@ -202,7 +193,6 @@ def _build_detalle_response(carrito):
         CarritoProducto.objects
         .filter(carrito=carrito)
         .select_related("variante__producto")
-        .prefetch_related("variante__attrs__atributo_valor")
     )
 
     total_piezas    = sum(cp.cantidad for cp in qs)
@@ -226,10 +216,12 @@ def _build_detalle_response(carrito):
                 var.precio_mayorista if var.precio_mayorista > 0 else prod.precio_mayorista
             ),
             "cantidad"       : cp.cantidad,
-            "atributos"      : [str(av) for av in var.attrs.all()],
+            "talla"          : var.talla,
+            "color"          : var.color,
+            "otros"          : var.otros,
             "subtotal"       : round(precio_unit * cp.cantidad, 2),
             "variante_id"    : var.id,
-            "imagen"           : prod.imagen.url if prod.imagen else None,  
+            "imagen"         : prod.imagen.url if prod.imagen else None,  
         })
 
     return JsonResponse({
@@ -377,7 +369,6 @@ def _carrito_to_template(carrito):
     qs             = (
         carrito.items
         .select_related("variante__producto")
-        .prefetch_related("variante__attrs__atributo_valor")
     )
     total_piezas   = sum(it.cantidad for it in qs)
     aplicar_mayoro = total_piezas >= 6
@@ -390,19 +381,12 @@ def _carrito_to_template(carrito):
             if aplicar_mayoro else
             float(var.precio if var.precio else prod.precio)
         )
-        talla = next(
-            (
-                str(av.atributo_valor.valor)
-                for av in var.attrs.all()
-                if av.atributo_valor.atributo.nombre.lower() == "talla"
-            ),
-            "Única",
-        )
         items.append({
             "nombre"          : prod.nombre,
             "precio"          : precio_unit,
             "cantidad"        : it.cantidad,
-            "talla"           : talla,
+            "talla"           : var.talla or "Única",
+            "color"           : var.color,
             "imagen"          : prod.imagen.url if prod.imagen else None,
             "variante_id"     : var.id,
             "precio_mayorista": float(
@@ -472,7 +456,7 @@ def finalizar_compra(request, carrito_id):
         CarritoProducto.objects
         .filter(carrito=carrito)
         .select_related('variante__producto__categoria')
-        .prefetch_related('variante__attrs__atributo_valor')
+        # Variantes ahora tienen talla/color directamente
     )
 
     items         = []
@@ -492,7 +476,9 @@ def finalizar_compra(request, carrito_id):
             "cantidad"   : cp.cantidad,
             "precio_unitario": float(precio_unit),
             "subtotal"   : float(subtotal),
-            "atributos"  : [str(av) for av in var.attrs.all()],
+            "talla"      : var.talla,
+            "color"      : var.color,
+            "otros"      : var.otros,
         })
 
         total_amount += subtotal
@@ -559,10 +545,7 @@ def finalizar_compra(request, carrito_id):
             "📦 Detalles:"
         ]
         for idx, it in enumerate(items, start=1):
-            talla = next(
-                (a.split(":",1)[1].strip() for a in it["atributos"] if a.lower().startswith("talla")),
-                "Única"
-            )
+            talla = it.get('talla', 'Única')
             body_lines.extend([
                 f"{idx}️⃣ *{it['producto']}*",
                 f"  🔸 Categoría: {it['categoria']}",     # ← NUEVO
@@ -668,7 +651,6 @@ def mostrar_confirmacion_compra(request, carrito_id):
     qs = (
         carrito.items
         .select_related("variante__producto")
-        .prefetch_related("variante__attrs__atributo_valor")
     )
 
     total = 0
@@ -678,21 +660,14 @@ def mostrar_confirmacion_compra(request, carrito_id):
     for it in qs:
         prod = it.variante.producto
         var = it.variante
-        atributos = [str(av) for av in var.attrs.all()]
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
         imagen = prod.imagen.url if prod.imagen else "/static/img/no-image.jpg"
 
         items.append({
             "nombre": prod.nombre,
-            "talla": next(
-                (
-                    av.atributo_valor.valor
-                    for av in var.attrs.all()
-                    if av.atributo_valor.atributo.nombre.lower() == "talla"
-                ),
-                "Única"
-            ),
+            "talla": var.talla or "Única",
+            "color": var.color,
             "cantidad": it.cantidad,
             "precio_unitario": precio,
             "subtotal": subtotal,
@@ -727,7 +702,6 @@ def mostrar_formulario_confirmacion(request, carrito_id):
     qs = (
         carrito.items
         .select_related("variante__producto")
-        .prefetch_related("variante__attrs__atributo_valor")
     )
 
     total = 0
@@ -737,21 +711,14 @@ def mostrar_formulario_confirmacion(request, carrito_id):
     for it in qs:
         prod = it.variante.producto
         var = it.variante
-        atributos = [str(av) for av in var.attrs.all()]
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
         imagen = prod.imagen.url if prod.imagen else "/static/img/no-image.jpg"
 
         items.append({
             "nombre": prod.nombre,
-            "talla": next(
-                (
-                    av.atributo_valor.valor
-                    for av in var.attrs.all()
-                    if av.atributo_valor.atributo.nombre.lower() == "talla"
-                ),
-                "Única"
-            ),
+            "talla": var.talla or "Única",
+            "color": var.color,
             "cantidad": it.cantidad,
             "precio_unitario": precio,
             "subtotal": subtotal,
@@ -797,16 +764,12 @@ def enviar_ticket_whatsapp(request, carrito_id):
         total_amount = 0
         total_piezas = 0
         
-        for detalle in orden.detalles.select_related('variante__producto__categoria').prefetch_related('variante__attrs__atributo_valor__atributo').all():
+        for detalle in orden.detalles.select_related('variante__producto__categoria').all():
             variante = detalle.variante
             producto = variante.producto
             
-            # Obtener talla de los atributos de la variante
-            talla = "Única"
-            for var_attr in variante.attrs.all():
-                if 'talla' in var_attr.atributo_valor.atributo.nombre.lower():
-                    talla = var_attr.atributo_valor.valor
-                    break
+            # Obtener talla directamente de la variante
+            talla = variante.talla or "Única"
             
             subtotal = detalle.cantidad * detalle.precio_unitario
             
@@ -814,6 +777,7 @@ def enviar_ticket_whatsapp(request, carrito_id):
                 "producto": producto.nombre,
                 "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
                 "talla": talla,
+                "color": variante.color,
                 "cantidad": detalle.cantidad,
                 "precio_unitario": float(detalle.precio_unitario),
                 "subtotal": float(subtotal),
@@ -942,16 +906,12 @@ def enviar_ticket_email(request, carrito_id):
         total_amount = 0
         total_piezas = 0
         
-        for detalle in orden.detalles.select_related('variante__producto__categoria').prefetch_related('variante__attrs__atributo_valor__atributo').all():
+        for detalle in orden.detalles.select_related('variante__producto__categoria').all():
             variante = detalle.variante
             producto = variante.producto
             
-            # Obtener talla de los atributos de la variante
-            talla = "Única"
-            for var_attr in variante.attrs.all():
-                if 'talla' in var_attr.atributo_valor.atributo.nombre.lower():
-                    talla = var_attr.atributo_valor.valor
-                    break
+            # Obtener talla directamente de la variante
+            talla = variante.talla or "Única"
             
             subtotal = detalle.cantidad * detalle.precio_unitario
             
@@ -959,6 +919,7 @@ def enviar_ticket_email(request, carrito_id):
                 "producto": producto.nombre,
                 "categoria": producto.categoria.nombre if producto.categoria else "Sin categoría",
                 "talla": talla,
+                "color": variante.color,
                 "cantidad": detalle.cantidad,
                 "precio_unitario": float(detalle.precio_unitario),
                 "subtotal": float(subtotal),

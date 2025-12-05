@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db.models import Q, Min, Max, Prefetch, Count
-from ..models import Producto, Categoria, Variante, Atributo, AtributoValor
+from ..models import Producto, Categoria, Variante
 from decimal import Decimal
 import json
 
@@ -86,8 +86,7 @@ def search_products(request):
         if tallas_list:
             # Filtrar productos que tengan variantes con esas tallas
             productos = productos.filter(
-                variantes__attrs__atributo_valor__atributo__nombre__iexact='Talla',
-                variantes__attrs__atributo_valor__valor__in=tallas_list,
+                variantes__talla__in=tallas_list,
                 variantes__stock__gt=0
             ).distinct()
     
@@ -135,21 +134,16 @@ def search_products(request):
         
         for v in p.variantes.all():
             if v.stock > 0:
-                attrs = {
-                    av.atributo_valor.atributo.nombre: av.atributo_valor.valor
-                    for av in v.attrs.all()
-                }
-                
-                talla = attrs.get('Talla', '')
-                if talla:
-                    tallas_disponibles.add(talla)
+                if v.talla:
+                    tallas_disponibles.add(v.talla)
                 
                 variantes_data.append({
                     'id': v.id,
-                    'talla': talla,
+                    'talla': v.talla,
+                    'color': v.color,
+                    'otros': v.otros,
                     'precio': float(v.precio or p.precio),
-                    'stock': v.stock,
-                    'atributos': attrs
+                    'stock': v.stock
                 })
         
         data.append({
@@ -198,10 +192,9 @@ def get_filter_options(request):
     )
     
     # Tallas disponibles
-    tallas_queryset = AtributoValor.objects.filter(
-        atributo__nombre__iexact='Talla',
-        variante__stock__gt=0
-    ).values_list('valor', flat=True).distinct()
+    tallas_queryset = Variante.objects.filter(
+        stock__gt=0
+    ).exclude(talla='').values_list('talla', flat=True).distinct()
     
     tallas = sorted(
         list(set(tallas_queryset)),
@@ -229,18 +222,14 @@ def search_page(request):
     categorias = Categoria.objects.all()
     
     # Obtener tallas disponibles
-    atributo_talla = Atributo.objects.filter(nombre__iexact='Talla').first()
-    tallas = []
-    if atributo_talla:
-        tallas_queryset = AtributoValor.objects.filter(
-            atributo=atributo_talla,
-            variante__stock__gt=0
-        ).values_list('valor', flat=True).distinct()
-        
-        tallas = sorted(
-            list(set(tallas_queryset)),
-            key=lambda x: float(x) if x.replace('.','').isdigit() else x
-        )
+    tallas_queryset = Variante.objects.filter(
+        stock__gt=0
+    ).exclude(talla='').values_list('talla', flat=True).distinct()
+    
+    tallas = sorted(
+        list(set(tallas_queryset)),
+        key=lambda x: float(x) if x.replace('.','').isdigit() else x
+    )
     
     # Rango de precios
     precios = Producto.objects.aggregate(

@@ -9,7 +9,7 @@ from django.views.decorators.http  import require_http_methods
 from django.utils.decorators       import method_decorator
 from .decorators import jwt_role_required
 
-from ..models import Cliente, Wishlist, Producto, VarianteAtributo
+from ..models import Cliente, Wishlist, Producto
 
 logger = logging.getLogger(__name__)
 
@@ -113,13 +113,13 @@ def producto_tallas(request, id_producto):
         raise Http404("Producto no encontrado")
 
     tallas_qs = (
-        VarianteAtributo.objects
+        Variante.objects
         .filter(
-            variante__producto  = producto,
-            variante__stock__gt = 0,
-            atributo_valor__atributo__nombre__iexact = "talla"
+            producto=producto,
+            stock__gt=0
         )
-        .values_list("atributo_valor__valor", flat=True)
+        .exclude(talla='')
+        .values_list("talla", flat=True)
         .distinct()
     )
 

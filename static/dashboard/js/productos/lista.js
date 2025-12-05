@@ -8,25 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFiltros();
 });
 
-/* ---------- Helpers JWT ---------- */
-function getAccessToken() {
-  return localStorage.getItem("access");
-}
-
 /* ---------- CARGA Y RENDER ---------- */
 async function cargarProductos() {
   const container = document.getElementById('productos-container');
   
   try {
-    const res = await fetch('/api/productos/', {
-      headers: {
-        "Authorization": `Bearer ${getAccessToken()}`,
-        "Content-Type": "application/json",
-      }
-    });
-    
-    if (!res.ok) throw new Error('Error al obtener productos');
-    const productos = await res.json();
+    const productos = await authFetchJSON('/api/productos/');
     
     todosLosProductos = productos;
     
@@ -266,7 +253,7 @@ function verVariantes(id) {
         <tbody>
           ${producto.variantes.map(v => `
             <tr>
-              <td><span class="talla-badge">${v.atributos?.Talla || '—'}</span></td>
+              <td><span class="talla-badge">${v.talla || '—'}</span></td>
               <td><strong>$${parseFloat(v.precio).toLocaleString()}</strong></td>
               <td>$${parseFloat(v.precio_mayorista || 0).toLocaleString()}</td>
               <td>${v.stock} unidades</td>
@@ -303,12 +290,8 @@ async function eliminarProducto(id, btnEl) {
   const card = btnEl.closest('.producto-card');
   
   try {
-    const res = await fetch(`/api/productos/delete/${id}/`, {
-      method: 'DELETE',
-      headers: {
-        "Authorization": `Bearer ${getAccessToken()}`,
-        "Content-Type": "application/json",
-      }
+    const res = await authFetch(`/api/productos/delete/${id}/`, {
+      method: 'DELETE'
     });
     
     if (!res.ok) {

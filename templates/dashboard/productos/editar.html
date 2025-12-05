@@ -159,12 +159,21 @@
               <div class="variante-edit-card">
                 <input type="hidden" name="variante_id" value="{{ variante.id }}">
                 
-                <div class="variante-header">
-                  <span class="talla-badge-large">{{ variante.attrs.first.atributo_valor.valor|default:"—" }}</span>
-                  <span class="variante-label">Talla</span>
-                </div>
-                
-                <div class="variante-fields">
+                <div class="variante-fields-full">
+                  <div class="variante-field">
+                    <label>Talla</label>
+                    <input type="text" name="variante_talla_{{ variante.id }}" 
+                           value="{{ variante.talla|default:'Única' }}" 
+                           placeholder="Ej: 38, M, L, XL">
+                  </div>
+                  
+                  <div class="variante-field">
+                    <label>Color</label>
+                    <input type="text" name="variante_color_{{ variante.id }}" 
+                           value="{{ variante.color|default:'Sin especificar' }}" 
+                           placeholder="Ej: Negro, Rojo">
+                  </div>
+                  
                   <div class="variante-field">
                     <label>Precio</label>
                     <div class="input-with-icon small">

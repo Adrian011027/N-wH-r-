@@ -7,7 +7,7 @@ def generate_access_token(user_id, role, username=None):
         "user_id": user_id,
         "role": role,
         "type": "access",
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2),
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
         "iat": datetime.datetime.utcnow()
     }
     if username:

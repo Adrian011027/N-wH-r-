@@ -21,9 +21,12 @@ from .decorators import jwt_role_required, login_required_user
 # Home pública
 # ───────────────────────────────────────────────
 def index(request):
-    qs_h = Producto.objects.filter(genero__iexact="H", variantes__stock__gt=0) \
+    # Productos Hombre (incluye Unisex)
+    qs_h = Producto.objects.filter(genero__in=["H", "U"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all()))
-    qs_m = Producto.objects.filter(genero__iexact="M", variantes__stock__gt=0) \
+    
+    # Productos Mujer (incluye Unisex)
+    qs_m = Producto.objects.filter(genero__in=["M", "U"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all()))
 
     cab_home  = sample(list(qs_h), min(4, qs_h.count()))
@@ -48,7 +51,8 @@ def genero_view(request, genero):
     if not genero_cod:
         return HttpResponseNotFound("Género no válido")
 
-    qs = Producto.objects.filter(genero__iexact=genero_cod, variantes__stock__gt=0) \
+    # Incluir productos Unisex en ambas secciones
+    qs = Producto.objects.filter(genero__in=[genero_cod, "U"], variantes__stock__gt=0) \
         .select_related("categoria").distinct()
     categorias = sorted({p.categoria.nombre for p in qs})
     return render(request, "public/catalogo/productos_genero.html", {

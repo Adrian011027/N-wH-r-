@@ -1213,6 +1213,13 @@
   flex: 1;
 }
 
+.variante-fields-full {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 0.8fr;
+  gap: 12px;
+  width: 100%;
+}
+
 .variante-field {
   flex: 1;
 }

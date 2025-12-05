@@ -33,8 +33,7 @@ def get_ordenes_cliente(request):
         cliente = get_object_or_404(Cliente, id=cliente_id)
         
         ordenes = Orden.objects.filter(cliente=cliente).order_by('-created_at').prefetch_related(
-            'detalles__variante__producto',
-            'detalles__variante__attrs__atributo_valor__atributo'
+            'detalles__variante__producto'
         )
         
         data = []
@@ -44,23 +43,16 @@ def get_ordenes_cliente(request):
                 variante = detalle.variante
                 producto = variante.producto
                 
-                # Obtener atributos (talla, color, etc.)
-                atributos = []
-                for attr in variante.attrs.all():
-                    atributos.append({
-                        'nombre': attr.atributo_valor.atributo.nombre,
-                        'valor': attr.atributo_valor.valor
-                    })
-                
                 items.append({
                     'producto_id': producto.id,
                     'producto_nombre': producto.nombre,
                     'producto_imagen': producto.imagen.url if producto.imagen else None,
                     'variante_id': variante.id,
+                    'talla': variante.talla,
+                    'color': variante.color,
                     'cantidad': detalle.cantidad,
                     'precio_unitario': float(detalle.precio_unitario),
-                    'subtotal': float(detalle.precio_unitario * detalle.cantidad),
-                    'atributos': atributos
+                    'subtotal': float(detalle.precio_unitario * detalle.cantidad)
                 })
             
             data.append({

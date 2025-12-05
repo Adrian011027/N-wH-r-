@@ -20,8 +20,6 @@ async function cargarOrdenes() {
   mostrarEstado('loading');
   
   try {
-    const token = localStorage.getItem('access');
-    
     // Construir query params
     const params = new URLSearchParams();
     
@@ -37,17 +35,7 @@ async function cargarOrdenes() {
     
     const url = `/api/admin/ordenes/${params.toString() ? '?' + params.toString() : ''}`;
     
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    if (response.status === 401 || response.status === 403) {
-      window.location.href = '/dashboard/login/';
-      return;
-    }
+    const response = await authFetch(url);
     
     const data = await response.json();
     
@@ -239,14 +227,9 @@ document.addEventListener('click', (e) => {
 // Cambiar estado
 async function cambiarEstado(ordenId, nuevoEstado) {
   try {
-    const token = localStorage.getItem('access');
-    
-    const response = await fetch(`/api/admin/ordenes/${ordenId}/estado/`, {
+    const response = await authFetch(`/api/admin/ordenes/${ordenId}/estado/`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: nuevoEstado })
     });
     
@@ -352,7 +335,7 @@ function verDetalle(ordenId) {
             <div class="modal-producto-info">
               <h4 class="modal-producto-nombre">${item.producto_nombre}</h4>
               <p class="modal-producto-attrs">
-                ${item.atributos.map(a => `${a.nombre}: ${a.valor}`).join(' · ') || 'Sin variantes'}
+                ${[item.talla ? `Talla: ${item.talla}` : '', item.color && item.color !== 'N/A' ? `Color: ${item.color}` : ''].filter(Boolean).join(' · ') || 'Sin variantes'}
               </p>
               <div class="modal-producto-precio">
                 <span class="qty">${item.cantidad} × $${item.precio_unitario.toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>

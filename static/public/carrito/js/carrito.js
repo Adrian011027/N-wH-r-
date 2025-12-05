@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="item-detalles">
           <h4>${item.producto}</h4>
-          <span>${item.atributos?.join(', ') || 'Talla única'}</span>
+          <span>${item.talla ? `Talla: ${item.talla}` : 'Talla única'}${item.color && item.color !== 'N/A' ? ` · Color: ${item.color}` : ''}</span>
 
           <div class="item-precio-cantidad">
             <div class="item-precio">

@@ -38,22 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData(form);
     const productoId = formData.get('id');
 
-    const token = localStorage.getItem('access');
-    if (!token) {
-      mensaje.className = 'form-message error';
-      mensaje.textContent = '❌ No tienes sesión iniciada.';
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-      return;
-    }
-
     try {
       /* 1. Actualiza el producto principal ----------------------- */
-      const resProd = await fetch(`/api/productos/update/${productoId}/`, {
+      const resProd = await authFetch(`/api/productos/update/${productoId}/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData
       });
 
@@ -68,14 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const stock = form.querySelector(`[name="variante_stock_${vId}"]`)?.value;
         const precio = form.querySelector(`[name="variante_precio_${vId}"]`)?.value;
         const precio_mayorista = form.querySelector(`[name="variante_precio_mayorista_${vId}"]`)?.value;
+        const talla = form.querySelector(`[name="variante_talla_${vId}"]`)?.value;
+        const color = form.querySelector(`[name="variante_color_${vId}"]`)?.value;
 
-        await fetch(`/api/variantes/update/${vId}/`, {
+        await authFetch(`/api/variantes/update/${vId}/`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: new URLSearchParams({ stock, precio, precio_mayorista })
+          body: new URLSearchParams({ stock, precio, precio_mayorista, talla, color })
         });
       }
 

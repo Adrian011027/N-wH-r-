@@ -147,64 +147,115 @@ class Producto(models.Model):
 
 
 # ——————————————————————————————————————
-# Sistema de variantes (tallas, colores, etc.)
+# Sistema de variantes simplificado (moda/calzado)
 # ——————————————————————————————————————
-
-class Atributo(models.Model):
-    """
-    Define un tipo de atributo de variante (ej. 'Talla', 'Color').
-    """
-    nombre = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nombre
-
-class AtributoValor(models.Model):
-    """
-    Valores específicos de un atributo (ej. talla '38', color 'Rojo').
-    """
-    atributo = models.ForeignKey(Atributo, on_delete=models.CASCADE, related_name="valores")
-    valor     = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.atributo.nombre}: {self.valor}"
 
 class Variante(models.Model):
     """
-    Cada Variante es una versión de Producto con atributos (talla, color…)
-    y su propio stock/precio/SKU si fuera necesario.
+    Variante de producto con talla, color y atributos extras en JSON.
+    Optimizado para e-commerce de moda, calzado y accesorios.
+    
+    Ejemplos:
+    - Zapatos: talla="38", color="Negro", otros={"material": "Piel", "suela": "Goma"}
+    - Bolsa: talla="UNICA", color="Rojo", otros={"dimensiones": "35x28x12cm"}
+    - Playera: talla="M", color="Blanco", otros={"material": "Algodón 100%"}
     """
-    producto   = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="variantes")
-    sku        = models.CharField(max_length=100, blank=True, null=True,
-                                  help_text="Código interno o UPC opcional")
-    precio     = models.DecimalField(max_digits=10, decimal_places=2,
-                                     blank=True, null=True,
-                                     help_text="Si varía de precio respecto al Producto")
-    precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    stock      = models.IntegerField(default=0)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="variantes")
+    sku = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True,
+        help_text="Código interno o UPC (ej: NIKE-AIR-38-BLK)"
+    )
+    
+    # Campos directos para filtros rápidos
+    talla = models.CharField(
+        max_length=20, 
+        default="UNICA",
+        db_index=True,
+        help_text="Talla del producto (ej: 38, M, L, UNICA, N/A)"
+    )
+    color = models.CharField(
+        max_length=50, 
+        default="N/A",
+        db_index=True,
+        help_text="Color principal del producto"
+    )
+    
+    # Atributos adicionales en JSON (flexible, sin migraciones)
+    otros = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text="Atributos extras en JSON: material, dimensiones, peso, etc."
+    )
+    
+    # Precio y stock
+    precio = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        blank=True, 
+        null=True,
+        help_text="Precio específico de esta variante (si difiere del producto base)"
+    )
+    precio_mayorista = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Precio para clientes mayoristas"
+    )
+    stock = models.IntegerField(
+        default=0,
+        db_index=True,
+        help_text="Cantidad disponible en inventario"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['talla', 'color', 'stock']),
+            models.Index(fields=['producto', 'stock']),
+        ]
+        ordering = ['talla', 'color']
     
     def __str__(self):
-        # Obtenemos directamente el valor de cada atributo
-        valores = [str(av.atributo_valor) for av in self.attrs.all()]
-        attrs   = ", ".join(valores)
-        return f"{self.producto.nombre} ({attrs})" if attrs else self.producto.nombre
-
-
-class VarianteAtributo(models.Model):
-    """
-    Relaciona cada Variante con sus valores de atributo.
-    """
-    variante       = models.ForeignKey(Variante, on_delete=models.CASCADE, related_name="attrs")
-    atributo_valor = models.ForeignKey(AtributoValor, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ("variante", "atributo_valor")
-
-    def __str__(self):
-        # Devolvemos solo el texto del AtributoValor
-        return str(self.atributo_valor)
+        """Representación legible: Producto (Talla: X, Color: Y)"""
+        partes = []
+        if self.talla and self.talla != "UNICA":
+            partes.append(f"Talla: {self.talla}")
+        if self.color and self.color != "N/A":
+            partes.append(f"Color: {self.color}")
+        
+        if partes:
+            return f"{self.producto.nombre} ({', '.join(partes)})"
+        return f"{self.producto.nombre}"
+    
+    @property
+    def precio_final(self):
+        """Retorna el precio de la variante o del producto base"""
+        return self.precio if self.precio else self.producto.precio
+    
+    @property
+    def precio_mayorista_final(self):
+        """Retorna el precio mayorista de la variante o del producto base"""
+        return self.precio_mayorista if self.precio_mayorista else self.producto.precio_mayorista
+    
+    @property
+    def disponible(self):
+        """Indica si hay stock disponible"""
+        return self.stock > 0
+    
+    def reducir_stock(self, cantidad):
+        """Reduce el stock de manera segura"""
+        if self.stock >= cantidad:
+            self.stock -= cantidad
+            self.save()
+            return True
+        return False
+    
+    def aumentar_stock(self, cantidad):
+        """Aumenta el stock"""
+        self.stock += cantidad
+        self.save()
 
 # ——————————————————————————————————————
 # Carrito, Wishlist y Órdenes
