@@ -1,0 +1,742 @@
+/* ========== HEADER ========== */
+
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: transparent;
+  backdrop-filter: none;
+  transition:
+    background 0.4s ease,
+    backdrop-filter 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+
+
+header.scrolled {
+  /* Mantener transparente, sin efectos */
+}
+
+/* ========== HEADER BLOCKS ========== */
+.header-left,
+.header-center,
+.header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Alineación específica */
+.header-left    { 
+  justify-content: flex-start; 
+  gap: 18px; 
+  z-index: 200; 
+}
+.header-center  { 
+  justify-content: center; 
+}
+
+.header-right   { 
+  justify-content: flex-end; 
+  gap: 12px; 
+}
+
+/* Iconos del header */
+.user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.user-icon:hover {
+  opacity: 0.7;
+}
+
+.user-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* Botones de búsqueda: desktop vs mobile */
+.search-mobile {
+  display: flex !important; /* Visible siempre (izquierda) */
+}
+
+.search-desktop {
+  display: none !important; /* Oculto siempre (derecha) */
+}
+
+/* Texto Menú / Cerrar */
+.menu-label{
+  display:inline-block;
+  padding-left:10px ;
+  width:40px;
+  font-size:12px;
+  font-weight:400;
+  line-height:1;
+  color:#1D1D1D;
+  user-select:none;
+}
+
+.menu-label::before{content:"Menú"; transition:.3s;}
+/* cambia a “Cerrar” cuando el botón tiene la clase .active */
+
+
+.close-menu{
+  position: absolute;      /* lo fijamos dentro del panel */
+  top: 16px;               /* ajusta según tu padding */
+  left: 22px;
+  font-size: 28px;         /* tamaño de la “×” */
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 800;            /* mayor que los links (700) */
+}
+
+/* El botón cuando está dentro del panel */
+.nav-menu .burger{
+  position: absolute;       /* vive dentro del panel */
+  top: 18px;                /* ajusta a tu gusto */
+  left: 18px;
+  z-index: 800;             /* por encima de los links (panel = 700) */
+}
+
+/* ────────────────────────────────────────────────
+   4. NAV MENU lateral
+────────────────────────────────────────────────── */
+.nav-menu{
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  /* ✅ Cambios clave */
+  width: 100vw;          /* nunca excede el ancho de pantalla           */
+  max-width: 450px;      /* sigue topado en escritorio                   */
+  height: 100vh;
+
+  background: #FFF;
+  box-shadow: 2px 0 12px rgba(0,0,0,.2);
+  transform: translateX(-100%);   /* oculto a la izquierda */
+  transition: transform .4s ease;
+
+  display: flex;
+  flex-direction: column;
+  padding: 40px 16px;
+  z-index: 700;
+}
+/* visible cuando añadimos .open desde JS */
+.nav-menu.open{ transform: translateX(0); }
+
+/* Lista de enlaces (sin cambios) */
+.menu{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:6px;
+}
+.menu li a{
+  display:block;
+  padding:8px 0;
+  color:#1D1D1D;
+  text-decoration:none;
+  font-size:18px;
+  font-weight:500;
+}
+
+/* Estado inicial de los <li> (invisibles y desplazados) */
+.menu li {
+  opacity: 0;
+  transform: translateY(8px);           /* o X si quieres que entren de lado */
+}
+
+/* Keyframes de la animación */
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cuando el menú tenga .open, dispara la animación */
+.nav-menu.open .menu li {
+  animation: fadeSlideIn .35s ease forwards;
+}
+
+/* Retrasos en cascada */
+.nav-menu.open .menu li:nth-child(1) { animation-delay: .25s; }
+.nav-menu.open .menu li:nth-child(2) { animation-delay: .35s; }
+.nav-menu.open .menu li:nth-child(3) { animation-delay: .45s; }
+.nav-menu.open .menu li:nth-child(4) { animation-delay: .55s; }
+.nav-menu.open .menu li:nth-child(5) { animation-delay: .65s; }
+
+
+/* ────────────────────────────────────────────────
+   5. Bloquear interacción con secciones detrás
+      (opcional, como hacías antes)
+────────────────────────────────────────────────── */
+/* si tu hero-banner y carousel están *después* del nav-menu
+   en el DOM: */
+.nav-menu.open ~ .hero-banner,
+.nav-menu.open ~ .carousel-container{
+  pointer-events:none;
+}
+/* ────────────────────────────────────────────────
+   2. Botón HAMBURGUESA
+────────────────────────────────────────────────── */
+/* 1. modifica tu regla existente */
+.burger{
+  position: relative;
+  width: 18px;
+  height: 13px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  display: block;
+  z-index: 601;               /* ← AÑADE ESTA LÍNEA */
+}
+
+
+
+.burger span{
+  position:absolute;
+  width:100%;
+  height:1px;
+  background:#1D1D1D;
+  transition:.25s;
+}
+.burger span:nth-of-type(1),
+.burger span:nth-of-type(3){background:#000;}
+.burger span:nth-of-type(1){top:0;}
+.burger span:nth-of-type(2){top:50%; transform:translateY(-50%);}
+.burger span:nth-of-type(3){bottom:0;}
+
+/* Animación a "X" cuando el botón tiene .active  */
+.burger.active span:nth-of-type(1){transform:translateY(6px) rotate(45deg);}
+.burger.active span:nth-of-type(2){opacity:0;}
+.burger.active span:nth-of-type(3){transform:translateY(-6px) rotate(-45deg);}
+
+/* ────────────────────────────────────────────────
+   3. Overlay de fondo
+────────────────────────────────────────────────── */
+.page-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s;
+  z-index:200;
+}
+/* visible cuando añadimos .active desde JS */
+.page-overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+
+/* ----- Logo ----- */
+#Logo {
+  width: 200px;
+  transition: width 0.3s ease, opacity 1s ease, transform 1s ease;
+}
+
+/* Logo más pequeño al hacer scroll - se aplicará gradualmente desde JS */
+header.scrolled #Logo {
+  width: 130px;
+}
+
+/* ========== EFECTO FADE-IN (logo, burger, usuario) ========== */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-in.fade-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/*---Todo el css del boton de cotacto*/
+.btn-contacto {
+  background: none;
+  border: none;
+  color: #1D1D1D;
+  font-size: 12px;      /* 👈 Aquí defines el tamaño de letra */
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+/* Panel lateral derecho (CONTACTO) */
+.contact-panel{
+  position: fixed;
+  top: 0;
+  right: 0;                       /* ancla al borde derecho */
+  width: 100vw;
+  max-width: 480px;
+  height: 100%;
+  box-sizing:border-box;
+  background: #fff;
+  box-shadow: -2px 0 12px rgba(0,0,0,.2);
+  padding: 60px 60px;
+  z-index: 999;
+
+  display: flex;
+  flex-direction: column;
+
+  /* ⬇️  Nuevo: sale de pantalla con transform   */
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
+}
+
+/* Cuando lo abras con JS añadiendo la clase .open */
+.contact-panel.open{
+  transform: none;                /* visible */
+}
+
+
+.contact-header {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-header h2 {
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: #000;
+  margin: 0;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.close-btn {
+  font-size: 28px;
+  cursor: pointer;
+  font-weight: 300;
+  transition: opacity 0.2s;
+}
+
+.close-btn:hover {
+  opacity: 0.6;
+}
+
+.contact-content {
+  margin-top: 0;
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.contact-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-content input,
+.contact-content textarea {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+
+.contact-content button {
+  background-color: black;
+  color: white;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.contact-content {
+  font-size: 19px;
+  line-height: 1.6;
+}
+
+.contact-content p {
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.contact-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px ;
+  font-size: 14px;
+}
+
+.contact-line i {
+  font-size: 14px;
+  color: #1D1D1D;
+}
+
+.contact-line a {
+  color: #1D1D1D;
+  text-decoration: none;
+}
+
+.contact-line a:hover {
+  text-decoration: underline;
+}
+
+.contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.contact-list li {
+  margin-bottom: 6px;
+}
+
+.contact-list a {
+  text-decoration: none;
+  color: #1D1D1D;
+  font-size: 13px;
+}
+
+.contact-list a:hover {
+  text-decoration: underline;
+}
+
+.contact-content p strong {
+  margin-top: 30px; /* No es tan recomendable */
+}
+
+/* ========== MEDIA QUERIES ORGANIZADAS ========== */
+
+/* Tablets (≤ 1024px) */
+@media (max-width: 1024px) {
+  header {
+    padding: 10px 20px;
+  }
+}
+
+/* Celulares grandes (≤ 768px) */
+@media (max-width: 768px) {
+  header {
+    padding: 10px 16px;
+  }
+
+  #Logo {
+    width: 130px;
+  }
+  
+  .header-right {
+    gap: 10px;
+  }
+
+  /* Contact panel */
+  .contact-panel {
+    width: 100vw;
+    padding: 20px 30px;
+  }
+  
+  .nav-menu {
+    width: 100%;
+    padding: 20px 30px;
+  }
+
+  .contact-header h2 {
+    font-size: 24px;
+  }
+
+  .btn-contacto {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .contact-content {
+    font-size: 14px;
+  }
+
+  .contact-content input,
+  .contact-content textarea {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .contact-list a,
+  .contact-line {
+    font-size: 13px;
+  }
+}
+
+/* Celulares (≤ 480px) */
+@media (max-width: 480px) {
+  /* Ocultar botón contacto */
+  #btn-contacto,
+  .btn-contacto {
+    display: none !important;
+  }
+
+  header {
+    padding: 10px 15px;
+  }
+
+  /* Mantener flex: 1 para que el logo quede centrado naturalmente */
+  .header-left,
+  .header-center,
+  .header-right {
+    flex: 1;
+  }
+
+  #Logo {
+    width: 100px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .user-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 🔍 Intercambiar búsqueda: mostrar en izquierda, ocultar en derecha */
+  .search-mobile {
+    display: flex !important;
+  }
+  
+  .search-desktop {
+    display: none !important;
+  }
+
+  /* Contact panel */
+  .contact-panel {
+    width: 100vw;
+    padding: 15px 20px;
+  }
+
+  .nav-menu {
+    width: 100%;
+    padding: 45px 20px;
+  }
+
+  .contact-header h2 {
+    font-size: 20px;
+  }
+
+  .contact-content {
+    font-size: 12px;
+  }
+
+  .contact-content input,
+  .contact-content textarea {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .contact-content button {
+    padding: 10px;
+  }
+
+  .contact-line,
+  .contact-line i,
+  .contact-list a {
+    font-size: 12px;
+  }
+  
+  .menu-label {
+    display: none;
+  }
+}
+
+/* Celulares pequeños (≤ 380px) */
+@media (max-width: 380px) {
+  header {
+    padding: 8px 12px;
+  }
+  
+  #Logo {
+    width: 85px;
+  }
+  
+  .header-right {
+    gap: 6px;
+  }
+  
+  .user-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .user-icon {
+    padding: 4px;
+  }
+}
+
+/*Estilos para logged*/
+/* Panel CLIENTE (izquierda) */
+.cliente-panel{
+  position: fixed;
+  top: 0;
+  left: 0;                        /* ancla al borde izquierdo */
+  width:100vw;
+  max-width:300px;
+  box-sizing:border-box;
+  height: 100%;
+  background: #fff;
+  box-shadow: 2px 0 12px rgba(0,0,0,.15);
+  padding: 60px 20px;
+  overflow-y: auto;
+  z-index: 998;
+
+  /* nuevo */
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+
+.cliente-panel.active{           /* visible */
+  transform: none;
+}
+
+
+.cliente-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cliente-info p {
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+.panel-link {
+  display: block;
+  margin: 6px 0;
+  color: #1d1d1d;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.panel-link:hover {
+  color: #000;
+  text-decoration: underline;
+}
+
+.quick-links a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.quick-links a i {
+  min-width: 18px;
+  font-size: 1rem;
+}
+
+/* Ícono del header (estado normal) */
+#icon-wishlist-header {
+  font-size: 1.2rem;
+  color: #555;          /* contorno gris */
+  transition: color 0.2s;
+}
+
+/* Estado “hay productos en wishlist” */
+#icon-wishlist-header.active {
+  color: #ff4d6d;       /* rojo */
+  font-weight: 900;     /* relleno sólido */
+}
+/* Contador de wishlist en el header */
+.wishlist-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ff4d6d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 50%;
+  padding: 1px 4px;
+  line-height: 1;
+  min-width: 12px;
+  text-align: center;
+  display: inline-block;
+}
+
+.wishlist-count[hidden] {
+  display: none !important;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.wishlist-count.animate-in {
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+.wishlist-count.animate-out {
+  animation: fadeOutDown 0.3s ease forwards;
+}
+
+#btn-wishlist-panel {
+  position: relative;
+}
+
+
+/*Color de iconos siempre en negro*/
+.user-icon, .password {
+  color: #000 !important;
+}
+
+.toggle-password {
+  color: #000 !important; /* fuerza negro para el ícono */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-password i {
+  color: inherit !important; /* hereda de .toggle-password */
+}
+
+

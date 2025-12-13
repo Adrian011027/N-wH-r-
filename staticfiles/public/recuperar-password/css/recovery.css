@@ -1,0 +1,45 @@
+.recovery-section {
+  max-width: 600px;           /* mismo ancho que una columna de tu grid */
+  margin: 100px auto 100px;       /* coherente con main */
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+.recovery-section h1 {
+  margin-bottom: 15px;
+}
+
+.recovery-section .form-group {
+  margin-bottom: 15px;
+}
+
+.recovery-section .form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.recovery-section .form-group input {
+  width: 100%;
+  padding: 0.8em;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.recovery-section .btn-primary {
+  padding: 0.8em 2em;
+  background: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.recovery-section .error {
+  color: red;
+  margin-top: 10px;
+}

@@ -13,7 +13,7 @@ echo "=================================================="
 APP_DIR="/home/ec2-user/N-wH-r-"
 VENV_DIR="$APP_DIR/venv"
 GUNICORN_WORKERS=2
-GUNICORN_PORT=8000
+GUNICORN_PORT=8001
 
 # 1. Actualizar sistema
 echo "1️⃣ Actualizando sistema..."
@@ -41,7 +41,7 @@ source "$VENV_DIR/bin/activate"
 echo "4️⃣ Instalando dependencias Python..."
 pip install --upgrade pip setuptools wheel > /dev/null 2>&1
 pip install -r "$APP_DIR/requirements.txt" > /dev/null 2>&1
-pip install gunicorn psycopg2-binary > /dev/null 2>&1
+pip install gunicorn psycopg2-binary boto3 django-storages[s3] > /dev/null 2>&1
 
 # 5. Ejecutar migraciones
 echo "5️⃣ Ejecutando migraciones de BD..."
@@ -89,7 +89,7 @@ EOF
 echo "9️⃣ Configurando Nginx..."
 sudo tee /etc/nginx/conf.d/nowhere.conf > /dev/null <<'EOF'
 upstream gunicorn {
-    server 127.0.0.1:8000;
+    server 127.0.0.1:8001;
 }
 
 server {

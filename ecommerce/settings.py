@@ -139,10 +139,45 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # <-- aquí estás apuntando a tu carpeta static/
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Carpeta donde se recopilan los estáticos
 
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# ───────── AWS S3 Configuration ──────────
+USE_S3 = config('USE_S3', default=False, cast=bool)
+
+if USE_S3:
+    # Configurar django-storages para usar S3
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'OPTIONS': {
+                'access_key': config('AWS_ACCESS_KEY_ID'),
+                'secret_key': config('AWS_SECRET_ACCESS_KEY'),
+                'bucket_name': config('AWS_STORAGE_BUCKET_NAME'),
+                'region_name': config('AWS_S3_REGION_NAME', default='us-east-1'),
+                'file_overwrite': False,
+                'location': 'media',
+            }
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.s3boto3.S3StaticStorage',
+            'OPTIONS': {
+                'access_key': config('AWS_ACCESS_KEY_ID'),
+                'secret_key': config('AWS_SECRET_ACCESS_KEY'),
+                'bucket_name': config('AWS_STORAGE_BUCKET_NAME'),
+                'region_name': config('AWS_S3_REGION_NAME', default='us-east-1'),
+                'file_overwrite': False,
+                'location': 'static',
+            }
+        }
+    }
+    STATIC_URL = f"https://{config('AWS_STORAGE_BUCKET_NAME')}.s3.{config('AWS_S3_REGION_NAME', default='us-east-1')}.amazonaws.com/static/"
+    MEDIA_URL = f"https://{config('AWS_STORAGE_BUCKET_NAME')}.s3.{config('AWS_S3_REGION_NAME', default='us-east-1')}.amazonaws.com/media/"
+else:
+    # Configuración local (desarrollo)
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

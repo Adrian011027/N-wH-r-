@@ -8,6 +8,7 @@ from decimal import Decimal
 from .decorators import jwt_role_required
 import json
 from django.views.decorators.csrf import csrf_exempt
+from ..utils.serializers import serializar_producto_completo
 
 
 def detalle_producto(request, id):
@@ -58,33 +59,7 @@ def detalle_producto(request, id):
 def get_all_products(request):
 
     productos = Producto.objects.prefetch_related('variantes')
-    data = []
-    for p in productos:
-        variantes = []
-        for v in p.variantes.all():
-            variantes.append({
-                'id': v.id,
-                'sku': v.sku,
-                'talla': v.talla,
-                'color': v.color,
-                'otros': v.otros,
-                'precio': float(v.precio or p.precio),
-                'precio_mayorista': float(v.precio_mayorista or p.precio_mayorista),
-                'stock': v.stock,
-            })
-
-        data.append({
-            'id': p.id,
-            'nombre': p.nombre,
-            'descripcion': p.descripcion,
-            'categoria': p.categoria.nombre,
-            'genero': p.genero,
-            'en_oferta': p.en_oferta,
-            'imagen': p.imagen.url if p.imagen else '',
-            'created_at': p.created_at.isoformat(),
-            'stock_total': p.stock_total,
-            'variantes': variantes,
-        })
+    data = [serializar_producto_completo(p) for p in productos]
 
     return JsonResponse(data, safe=False)
 
@@ -232,7 +207,11 @@ def update_productos(request, id):
             return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
 
     if 'imagen' in request.FILES:
-        producto.imagen = request.FILES['imagen']
+        imagen_file = request.FILES['imagen']
+        # Usar la función canónica para generar el nombre
+        nombre_canonico = producto._generate_image_key(imagen_file.name)
+        imagen_file.name = nombre_canonico
+        producto.imagen = imagen_file
 
     producto.save()
     return JsonResponse(
@@ -259,6 +238,14 @@ def update_variant(request, variante_id):
         variante.talla = request.POST['talla']
     if 'color' in request.POST:
         variante.color = request.POST['color']
+    
+    # Manejo de imagen de variante
+    if 'imagen' in request.FILES:
+        imagen_file = request.FILES['imagen']
+        # Usar la función canónica para generar el nombre
+        nombre_canonico = variante._generate_image_key(imagen_file.name)
+        imagen_file.name = nombre_canonico
+        variante.imagen = imagen_file
 
     variante.save()
     return JsonResponse(

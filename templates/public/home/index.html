@@ -82,8 +82,13 @@
     {% for p in dama_home %}
       <div class="categoria-card">
   <a href="{% url 'detalle_producto' p.id %}?from=dama">
-
-    <div class="thumb"><img src="{{ p.imagen.url }}" alt="{{ p.nombre }}"></div>
+    <div class="thumb">
+      {% if p.imagen %}
+        <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}">
+      {% else %}
+        <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="Sin imagen disponible">
+      {% endif %}
+    </div>
   </a>
 
   <!-- ❤️ Botón wishlist -->
@@ -122,8 +127,13 @@
     {% for p in cab_home %}
       <div class="categoria-card">
   <a href="{% url 'detalle_producto' p.id %}?from=caballero">
-
-    <div class="thumb"><img src="{{ p.imagen.url }}" alt="{{ p.nombre }}"></div>
+    <div class="thumb">
+      {% if p.imagen %}
+        <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}">
+      {% else %}
+        <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="Sin imagen disponible">
+      {% endif %}
+    </div>
   </a>
 
   <!-- ❤️ Botón wishlist -->
