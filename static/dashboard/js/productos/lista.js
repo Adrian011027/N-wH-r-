@@ -13,13 +13,12 @@ async function cargarProductos() {
   const container = document.getElementById('productos-container');
   
   try {
+    // Cargar categorías desde el endpoint
+    await cargarCategorias();
+    
     const productos = await authFetchJSON('/api/productos/');
     
     todosLosProductos = productos;
-    
-    // Extraer categorías únicas
-    productos.forEach(p => categorias.add(p.categoria));
-    llenarSelectCategorias();
     
     // Actualizar estadísticas
     actualizarEstadisticas(productos);
@@ -54,8 +53,24 @@ function actualizarEstadisticas(productos) {
   document.getElementById('stat-categorias').textContent = categorias.size;
 }
 
+async function cargarCategorias() {
+  try {
+    const cats = await authFetchJSON('/api/categorias/');
+    categorias.clear(); // Limpiar el Set
+    cats.forEach(cat => categorias.add(cat.nombre));
+    llenarSelectCategorias();
+  } catch (err) {
+    console.error('Error cargando categorías:', err);
+  }
+}
+
 function llenarSelectCategorias() {
   const select = document.getElementById('filtro-categoria');
+  // Limpiar opciones existentes excepto la primera
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  
   categorias.forEach(cat => {
     const option = document.createElement('option');
     option.value = cat;

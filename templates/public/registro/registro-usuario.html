@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -20,66 +20,158 @@
   </header>
 
   <main>
-    <h1>Cree su cuenta</h1>
-    <p class="lead">Cree su cuenta para acceder a una experiencia personalizada.</p>
+    <div class="registro-header">
+      <h1>Cree su cuenta</h1>
+      <p class="lead">Cree su cuenta para acceder a una experiencia personalizada.</p>
+    </div>
 
-    <p class="switch-login">
-      ¿Ya tienes una cuenta en N:? <a href="#">Inicie sesión aquí</a>
-      <span class="req-note">Campos requeridos*</span>
-    </p>
+    <div class="registro-info">
+      <p class="switch-login">
+        ¿Ya tienes una cuenta en N:? <a href="/">Inicie sesión aquí</a>
+      </p>
+      <span class="req-note">* Campos requeridos</span>
+    </div>
 
     <!-- FORMULARIO -->
     <form id="registroForm" method="POST" action="/create-client" novalidate>
       {% csrf_token %}
       <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token">
 
-      <!-- correo -->
-      <div>
-        <label for="email">Correo electrónico*</label>
-        <input type="email" id="email" name="email" required>
+      <!-- SECCIÓN: Datos de acceso -->
+      <div class="form-section">
+        <h3 class="section-title"><i class="fa-solid fa-user-lock"></i> Datos de acceso</h3>
+        
+        <!-- usuario -->
+        <div class="form-group">
+          <label for="username">Usuario*</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="username" name="username" required placeholder="Ej: juanperez123" autocomplete="username">
+          </div>
+          <small class="field-hint">Este será tu nombre de usuario para iniciar sesión</small>
+        </div>
+
+        <!-- correo -->
+        <div class="form-group">
+          <label for="email">Correo electrónico*</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com" autocomplete="email">
+          </div>
+        </div>
+
+        <!-- confirmar correo -->
+        <div class="form-group">
+          <label for="email2">Confirmar correo*</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+            <input type="email" id="email2" name="email2" required placeholder="Confirma tu correo">
+          </div>
+        </div>
+
+        <!-- contraseña -->
+        <div class="form-group">
+          <label for="pwd">Contraseña*</label>
+          <div class="input-icon pwd-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="pwd" name="pwd" required minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+            <button type="button" class="toggle-pwd" aria-label="Mostrar/ocultar contraseña">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+          <div class="password-strength" id="pwdStrength">
+            <div class="strength-bar"><span></span></div>
+            <small class="strength-text"></small>
+          </div>
+        </div>
+
+        <!-- confirmar contraseña -->
+        <div class="form-group">
+          <label for="pwd2">Confirmar contraseña*</label>
+          <div class="input-icon pwd-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="pwd2" name="pwd2" required minlength="8" placeholder="Repite tu contraseña" autocomplete="new-password">
+            <button type="button" class="toggle-pwd" aria-label="Mostrar/ocultar contraseña">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- confirmar correo -->
-      <div>
-        <label for="email2">Confirmación de email*</label>
-        <input type="email" id="email2" name="email2" required>
+      <!-- SECCIÓN: Información personal -->
+      <div class="form-section">
+        <h3 class="section-title"><i class="fa-solid fa-address-card"></i> Información personal</h3>
+        
+        <!-- nombre -->
+        <div class="form-group">
+          <label for="nombre">Nombre completo*</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-id-card"></i>
+            <input type="text" id="nombre" name="nombre" placeholder="Tu nombre completo" autocomplete="name">
+          </div>
+        </div>
+
+        <!-- teléfono -->
+        <div class="form-group">
+          <label for="telefono">Teléfono</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel" id="telefono" name="telefono" placeholder="+52 123 456 7890" autocomplete="tel">
+          </div>
+        </div>
+
+        <!-- dirección con autocompletado -->
+        <div class="form-group full-width">
+          <label for="direccion">Dirección</label>
+          <div class="address-input-wrapper">
+            <div class="input-icon">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" id="direccion" name="direccion" placeholder="Escribe tu dirección..." autocomplete="off">
+            </div>
+            <button type="button" id="btnOpenMap" class="btn-map" title="Seleccionar en mapa">
+              <i class="fa-solid fa-map-location-dot"></i>
+            </button>
+          </div>
+          <small class="field-hint">Comienza a escribir y selecciona de las sugerencias, o usa el mapa</small>
+        </div>
       </div>
-
-      <!-- contraseña -->
-      <div class="pwd-wrapper">
-        <label for="pwd">Contraseña*</label>
-        <input type="password" id="pwd" name="pwd" required minlength="8">
-        <button type="button" aria-label="Mostrar/ocultar contraseña">
-          <i class="fa-regular fa-eye"></i>
-        </button>
-      </div>
-
-      <!-- nombre -->
-      <div>
-        <label for="nombre">Nombre completo*</label>
-        <input type="text" id="nombre" name="nombre" >
-      </div>
-
-      <!-- teléfono -->
-      <div>
-        <label for="telefono">Teléfono*</label>
-        <input type="tel" id="telefono" name="telefono">
-      </div>
-
-      <!-- dirección -->
-      <div>
-        <label for="direccion">Dirección*</label>
-        <input type="text" id="direccion" name="direccion">
-      </div>
-
-
 
       <!-- botón -->
       <div class="actions">
-        <button type="submit" class="btn-primary">Crear cuenta</button>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-user-plus"></i> Crear cuenta
+        </button>
       </div>
+
+      <p class="terms-note">
+        Al crear tu cuenta, aceptas nuestros <a href="#">Términos y Condiciones</a> y <a href="#">Política de Privacidad</a>
+      </p>
     </form>
   </main>
+
+  <!-- MODAL DEL MAPA -->
+  <div id="mapModal" class="map-modal">
+    <div class="map-modal-content">
+      <div class="map-modal-header">
+        <h3><i class="fa-solid fa-map-location-dot"></i> Selecciona tu ubicación</h3>
+        <button type="button" id="closeMapModal" class="close-modal">&times;</button>
+      </div>
+      <div class="map-search-container">
+        <div class="input-icon">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="mapSearchInput" placeholder="Buscar dirección...">
+        </div>
+      </div>
+      <div id="map"></div>
+      <div class="map-modal-footer">
+        <p id="selectedAddress" class="selected-address">Haz clic en el mapa o busca una dirección</p>
+        <div class="map-buttons">
+          <button type="button" id="btnCancelMap" class="btn-secondary">Cancelar</button>
+          <button type="button" id="btnConfirmMap" class="btn-primary">Confirmar ubicación</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <section class="info-footer">
@@ -135,6 +227,22 @@
   </footer>
 
   <script type="module" src="{% static 'public/inicio/js/main.js' %}"></script>
+  <!-- Google Maps API -->
+  {% if google_maps_api_key %}
+  <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initGoogleMaps" async defer></script>
+  {% else %}
+  <script>
+    // API Key no configurada - deshabilitar funcionalidad de mapa
+    window.initGoogleMaps = function() {
+      console.warn('Google Maps API Key no configurada. Agrega GOOGLE_MAPS_API_KEY en settings.py');
+      const btnMap = document.getElementById('btnOpenMap');
+      if (btnMap) {
+        btnMap.style.display = 'none';
+      }
+    };
+    document.addEventListener('DOMContentLoaded', initGoogleMaps);
+  </script>
+  {% endif %}
   <script type="module" src="{% static 'public/registro_usuario/js/main.js' %}"></script>
 </body>
 </html>

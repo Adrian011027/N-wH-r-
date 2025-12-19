@@ -119,6 +119,7 @@ class Usuario(models.Model):
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=255)
+    imagen = models.ImageField(upload_to='categorias/', blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -131,7 +132,7 @@ class Producto(models.Model):
     genero      = models.CharField(max_length=50)
     precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     en_oferta   = models.BooleanField(default=False)
-    imagen      = models.ImageField(upload_to='productos/', blank=True, null=True)
+    imagen      = models.ImageField(upload_to='productos/', blank=True, null=True)  # Imagen principal
     created_at  = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -161,6 +162,25 @@ class Producto(models.Model):
         ext = os.path.splitext(filename)[1].lower()
         slug = slugify(self.nombre)[:50]  # Limitar a 50 caracteres
         return f'productos/prod-{self.id}-{slug}{ext}'
+
+
+class ProductoImagen(models.Model):
+    """
+    Galería de imágenes para el carrusel del producto.
+    Permite múltiples imágenes por producto.
+    """
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='imagenes')
+    imagen = models.ImageField(upload_to='productos/galeria/')
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['orden', 'created_at']
+        verbose_name = 'Imagen de Producto'
+        verbose_name_plural = 'Imágenes de Productos'
+
+    def __str__(self):
+        return f"{self.producto.nombre} - Imagen {self.orden}"
 
 
 # ——————————————————————————————————————
@@ -197,6 +217,14 @@ class Variante(models.Model):
         default="N/A",
         db_index=True,
         help_text="Color principal del producto"
+    )
+    
+    # Imagen específica de la variante
+    imagen = models.ImageField(
+        upload_to='variantes/', 
+        blank=True, 
+        null=True,
+        help_text="Imagen específica de esta variante (ej: talla 38 en color negro)"
     )
     
     # Atributos adicionales en JSON (flexible, sin migraciones)

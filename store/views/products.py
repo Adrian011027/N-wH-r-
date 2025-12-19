@@ -58,8 +58,40 @@ def detalle_producto(request, id):
 @require_GET
 def get_all_products(request):
 
-    productos = Producto.objects.prefetch_related('variantes')
-    data = [serializar_producto_completo(p) for p in productos]
+    productos = Producto.objects.prefetch_related('variantes', 'imagenes')
+    data = []
+    for p in productos:
+        variantes = []
+        for v in p.variantes.all():
+            variantes.append({
+                'id': v.id,
+                'sku': v.sku,
+                'talla': v.talla,
+                'color': v.color,
+                'otros': v.otros,
+                'precio': float(v.precio or p.precio),
+                'precio_mayorista': float(v.precio_mayorista or p.precio_mayorista),
+                'stock': v.stock,
+                'imagen': v.imagen.url if v.imagen else '',
+            })
+        
+        # Galería de imágenes del producto
+        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+
+        data.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'categoria': p.categoria.nombre,
+            'categoria_id': p.categoria.id,
+            'genero': p.genero,
+            'en_oferta': p.en_oferta,
+            'imagen': p.imagen.url if p.imagen else '',
+            'imagenes': galeria,
+            'created_at': p.created_at.isoformat(),
+            'stock_total': p.stock_total,
+            'variantes': variantes,
+        })
 
     return JsonResponse(data, safe=False)
 
@@ -105,6 +137,7 @@ def create_product(request):
     if not descripcion: return JsonResponse({"error": "Falta campo 'descripcion'"}, status=400)
     if precio is None: return JsonResponse({"error": "Falta campo 'precio'"}, status=400)
     if not categoria_id: return JsonResponse({"error": "Falta campo 'categoria_id'"}, status=400)
+    if not genero: return JsonResponse({"error": "Falta campo 'genero'"}, status=400)
 
     try:
         categoria = Categoria.objects.get(id=categoria_id)
@@ -131,14 +164,15 @@ def create_product(request):
 
     # Sistema nuevo: Variantes con talla y color directos
     # Variantes múltiples (tallas + stocks)
+    primera_variante_precio = None
     if tallas and stocks and len(tallas) == len(stocks):
         try:
             stocks = [int(s) for s in stocks]
         except:
             return JsonResponse({"error": "Stock debe ser numérico"}, status=400)
 
-        for talla, stock in zip(tallas, stocks):
-            Variante.objects.create(
+        for idx, (talla, stock) in enumerate(zip(tallas, stocks)):
+            variante = Variante.objects.create(
                 producto=producto,
                 talla=talla,
                 color=data.get("color", "N/A") if request.content_type.startswith("application/json") else request.POST.get("color", "N/A"),
@@ -146,6 +180,9 @@ def create_product(request):
                 precio_mayorista=precio_mayorista,
                 stock=stock,
             )
+            # Capturar precio de la primera variante
+            if idx == 0:
+                primera_variante_precio = variante.precio
 
     # Variante simple (stock único)
     else:
@@ -161,7 +198,7 @@ def create_product(request):
         except:
             return JsonResponse({"error": "stock debe ser numérico"}, status=400)
 
-        Variante.objects.create(
+        variante = Variante.objects.create(
             producto=producto,
             talla=talla_unica,
             color=color_unico,
@@ -169,6 +206,12 @@ def create_product(request):
             precio_mayorista=precio_mayorista,
             stock=stock_unico,
         )
+        primera_variante_precio = variante.precio
+
+    # Sincronizar el precio del producto con la primera variante
+    if primera_variante_precio is not None:
+        producto.precio = primera_variante_precio
+        producto.save()
 
     return JsonResponse(
         {"id": producto.id, "message": "Producto y variantes creados"},
@@ -225,11 +268,13 @@ def update_productos(request, id):
 def update_variant(request, variante_id):
 
     variante = get_object_or_404(Variante, id=variante_id)
+    precio_actualizado = False
 
     if 'stock' in request.POST:
         variante.stock = int(request.POST['stock'])
     if 'precio' in request.POST:
         variante.precio = request.POST['precio']
+        precio_actualizado = True
     if 'precio_mayorista' in request.POST:
         variante.precio_mayorista = request.POST['precio_mayorista']
     if 'sku' in request.POST:
@@ -248,6 +293,14 @@ def update_variant(request, variante_id):
         variante.imagen = imagen_file
 
     variante.save()
+    
+    # Si esta es la primera variante y se actualizó el precio, sincronizar con el producto
+    if precio_actualizado:
+        primera_variante = variante.producto.variantes.order_by('id').first()
+        if primera_variante and primera_variante.id == variante.id:
+            variante.producto.precio = variante.precio
+            variante.producto.save()
+    
     return JsonResponse(
         {'message': f'Variante {variante.id} actualizada correctamente'},
         status=200
