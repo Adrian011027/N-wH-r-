@@ -145,6 +145,23 @@ class Producto(models.Model):
         Útil para mostrar stock global de un producto con variantes.
         """
         return sum( var.stock for var in self.variantes.all() )
+    
+    def _generate_image_key(self, filename):
+        """
+        Genera una clave canónica para la imagen del producto
+        Formato: productos/prod-{id}-{nombre_slug}.{ext}
+        Ejemplo: productos/prod-42-nike-air-force-negra.jpg
+        """
+        import os
+        from django.utils.text import slugify
+        
+        # Esperar a que el producto tenga ID
+        if not self.id:
+            return f'productos/{filename}'
+        
+        ext = os.path.splitext(filename)[1].lower()
+        slug = slugify(self.nombre)[:50]  # Limitar a 50 caracteres
+        return f'productos/prod-{self.id}-{slug}{ext}'
 
 
 class ProductoImagen(models.Model):
@@ -172,7 +189,7 @@ class ProductoImagen(models.Model):
 
 class Variante(models.Model):
     """
-    Variante de producto con talla, color y atributos extras en JSON.
+    Variante de producto con talla, color, imagen y atributos extras en JSON.
     Optimizado para e-commerce de moda, calzado y accesorios.
     
     Ejemplos:
@@ -215,6 +232,14 @@ class Variante(models.Model):
         default=dict, 
         blank=True,
         help_text="Atributos extras en JSON: material, dimensiones, peso, etc."
+    )
+    
+    # Imagen específica de la variante
+    imagen = models.ImageField(
+        upload_to='variantes/',
+        blank=True,
+        null=True,
+        help_text="Imagen específica de esta variante (color/talla específica)"
     )
     
     # Precio y stock
@@ -284,6 +309,31 @@ class Variante(models.Model):
         """Aumenta el stock"""
         self.stock += cantidad
         self.save()
+    
+    def _generate_image_key(self, filename):
+        """
+        Genera una clave canónica para la imagen de la variante
+        Formato: variantes/var-{producto_id}-{variante_id}-{talla}-{color}-{slug}.{ext}
+        Ejemplo: variantes/var-42-156-38-negro-nike-air-force.jpg
+        
+        Esto asegura:
+        - No hay solapación con otras variantes
+        - Nombre descriptivo y único
+        - Fácil de encontrar en S3
+        """
+        import os
+        from django.utils.text import slugify
+        
+        # Esperar a que la variante tenga ID
+        if not self.id:
+            return f'variantes/{filename}'
+        
+        ext = os.path.splitext(filename)[1].lower()
+        producto_slug = slugify(self.producto.nombre)[:30]
+        talla_clean = slugify(self.talla or "unica")[:10]
+        color_clean = slugify(self.color or "na")[:10]
+        
+        return f'variantes/var-{self.producto_id}-{self.id}-{talla_clean}-{color_clean}-{producto_slug}{ext}'
 
 # ——————————————————————————————————————
 # Carrito, Wishlist y Órdenes

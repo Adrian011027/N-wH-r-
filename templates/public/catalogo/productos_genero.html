@@ -43,7 +43,11 @@
         <div class="producto-card" data-categoria="{{ p.categoria|slugify }}">
           <div class="imagen-zoom">
             <a href="{% url 'detalle_producto' p.id %}?from={{ seccion }}">
-              <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="zoomable">
+              {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="zoomable">
+              {% else %}
+                <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="{{ p.nombre }}" class="zoomable">
+              {% endif %}
             </a>
 
             {# ♥ Botón wishlist #}

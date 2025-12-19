@@ -8,6 +8,7 @@ from decimal import Decimal
 from .decorators import jwt_role_required
 import json
 from django.views.decorators.csrf import csrf_exempt
+from ..utils.serializers import serializar_producto_completo
 
 
 def detalle_producto(request, id):
@@ -249,7 +250,11 @@ def update_productos(request, id):
             return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
 
     if 'imagen' in request.FILES:
-        producto.imagen = request.FILES['imagen']
+        imagen_file = request.FILES['imagen']
+        # Usar la función canónica para generar el nombre
+        nombre_canonico = producto._generate_image_key(imagen_file.name)
+        imagen_file.name = nombre_canonico
+        producto.imagen = imagen_file
 
     producto.save()
     return JsonResponse(
@@ -278,6 +283,14 @@ def update_variant(request, variante_id):
         variante.talla = request.POST['talla']
     if 'color' in request.POST:
         variante.color = request.POST['color']
+    
+    # Manejo de imagen de variante
+    if 'imagen' in request.FILES:
+        imagen_file = request.FILES['imagen']
+        # Usar la función canónica para generar el nombre
+        nombre_canonico = variante._generate_image_key(imagen_file.name)
+        imagen_file.name = nombre_canonico
+        variante.imagen = imagen_file
 
     variante.save()
     
