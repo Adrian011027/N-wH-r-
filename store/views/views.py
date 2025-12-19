@@ -39,7 +39,10 @@ def index(request):
 
 
 def registrarse(request):
-    return render(request, "public/registro/registro-usuario.html")
+    from django.conf import settings
+    return render(request, "public/registro/registro-usuario.html", {
+        'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
+    })
 
 
 # ───────────────────────────────────────────────
@@ -163,10 +166,13 @@ def login_client(request):
 @jwt_role_required()
 @require_GET
 def get_categorias(request):
-    return JsonResponse(
-        list(Categoria.objects.all().values("id", "nombre")),
-        safe=False
-    )
+    categorias = Categoria.objects.all()
+    data = [{
+        "id": cat.id,
+        "nombre": cat.nombre,
+        "imagen": cat.imagen.url if cat.imagen else ''
+    } for cat in categorias]
+    return JsonResponse(data, safe=False)
 
 
 @csrf_exempt
@@ -177,11 +183,25 @@ def create_categoria(request):
         return JsonResponse({"error": "Solo administradores"}, status=403)
 
     try:
-        nombre = json.loads(request.body)["nombre"]
-        categoria = Categoria.objects.create(nombre=nombre)
-        return JsonResponse({"id": categoria.id, "nombre": categoria.nombre}, status=201)
-    except Exception:
-        return JsonResponse({"error": "Falta campo 'nombre'"}, status=400)
+        # Soporte para JSON y multipart/form-data
+        if request.content_type.startswith("application/json"):
+            nombre = json.loads(request.body)["nombre"]
+            imagen = None
+        else:
+            nombre = request.POST.get("nombre")
+            imagen = request.FILES.get("imagen")
+        
+        if not nombre:
+            return JsonResponse({"error": "Falta campo 'nombre'"}, status=400)
+        
+        categoria = Categoria.objects.create(nombre=nombre, imagen=imagen)
+        return JsonResponse({
+            "id": categoria.id,
+            "nombre": categoria.nombre,
+            "imagen": categoria.imagen.url if categoria.imagen else ''
+        }, status=201)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 
 @csrf_exempt
@@ -192,11 +212,22 @@ def update_categoria(request, id):
         return JsonResponse({"error": "Solo administradores"}, status=403)
 
     try:
-        data = json.loads(request.body)
         categoria = get_object_or_404(Categoria, id=id)
-        categoria.nombre = data.get("nombre", categoria.nombre)
+        
+        # Soporte para JSON y multipart/form-data
+        if request.content_type.startswith("application/json"):
+            data = json.loads(request.body)
+            categoria.nombre = data.get("nombre", categoria.nombre)
+        else:
+            categoria.nombre = request.POST.get("nombre", categoria.nombre)
+            if 'imagen' in request.FILES:
+                categoria.imagen = request.FILES['imagen']
+        
         categoria.save()
-        return JsonResponse({"mensaje": "Categoría actualizada"}, status=200)
+        return JsonResponse({
+            "mensaje": "Categoría actualizada",
+            "imagen": categoria.imagen.url if categoria.imagen else ''
+        }, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 

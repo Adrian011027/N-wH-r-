@@ -113,15 +113,37 @@ export function initWishlist({
   const hydrateDone = new Promise(res => (hydrateDoneResolve = res));
 
   (async () => {
+    let validIds = [];
+    
     if (isAuthenticated && clienteId) {
       try {
         // 🔐 JWT: fetchGet agrega token automáticamente
         const r = await fetchGet(`${backendURL}${clienteId}/`);
         if (r.ok) {
           const { productos = [] } = await r.json();
-          setList([...new Set([...getList(), ...productos.map(String)])]);
+          validIds = productos.map(String);
+          setList([...new Set([...getList(), ...validIds])]);
         }
       } catch (err) { console.error('[Wishlist] pull', err); }
+    } else {
+      // ✅ Validar IDs de invitado contra la BD
+      const guestIds = getList();
+      if (guestIds.length) {
+        try {
+          const r = await fetchGet(`${fetchProductoURL}${guestIds.join(',')}`);
+          if (r.ok) {
+            const { productos = [] } = await r.json();
+            validIds = productos.map(p => String(p.id));
+            // Si hay IDs inválidos, limpiar localStorage
+            if (validIds.length !== guestIds.length) {
+              setList(validIds);
+            }
+          }
+        } catch (err) { 
+          console.error('[Wishlist] validate guest', err); 
+          validIds = guestIds; // Fallback: usar los IDs locales
+        }
+      }
     }
 
     const idsSet = new Set(getList());
@@ -389,11 +411,17 @@ export function initWishlist({
       const { productos = [] } = await (await fetchGet(url)).json();
       const inCart = await getCartIds();
 
+      // ✅ Sincronizar localStorage con productos que realmente existen
+      const validIds = productos.map(p => String(p.id));
+      if (validIds.length !== ids.length) {
+        setList(validIds); // Actualiza localStorage con solo IDs válidos
+      }
+
       dom.wishlistContent.innerHTML = productos.length
         ? buildCards(productos, inCart)
         : 'No tienes productos en tu wishlist.';
 
-      updateHeaderUI(ids);
+      updateHeaderUI(validIds);
     } catch (err) {
       dom.wishlistContent.textContent = 'Error al cargar tu wishlist.';
     }
