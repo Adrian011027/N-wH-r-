@@ -35,7 +35,7 @@ def search_products(request):
     productos = Producto.objects.prefetch_related(
         Prefetch('variantes', queryset=Variante.objects.filter(stock__gt=0)),
         'categoria',
-        'subcategoria',
+        'subcategorias',
         'imagenes'
     ).distinct()
     
@@ -59,16 +59,16 @@ def search_products(request):
             # Si no es número, buscar por nombre
             productos = productos.filter(categoria__nombre__iexact=categoria)
     
-    # ============ FILTRO: Subcategoría (nuevo sistema) ============
+    # ============ FILTRO: Subcategoría (nuevo sistema - ManyToMany) ============
     subcategoria = request.GET.get('subcategoria', '').strip()
     if subcategoria:
         try:
             # Intentar buscar por ID primero
             subcat_id = int(subcategoria)
-            productos = productos.filter(subcategoria_id=subcat_id)
+            productos = productos.filter(subcategorias__id=subcat_id)
         except ValueError:
             # Si no es número, buscar por nombre
-            productos = productos.filter(subcategoria__nombre__iexact=subcategoria)
+            productos = productos.filter(subcategorias__nombre__iexact=subcategoria)
     
     # ============ FILTRO: Marca (nuevo) ============
     marca = request.GET.get('marca', '').strip()
@@ -194,8 +194,7 @@ def search_products(request):
             'precio_mayorista': float(p.precio_mayorista),
             'categoria': p.categoria.nombre,
             'categoria_id': p.categoria.id,
-            'subcategoria': p.subcategoria.nombre if p.subcategoria else None,
-            'subcategoria_id': p.subcategoria.id if p.subcategoria else None,
+            'subcategorias': [{'id': s.id, 'nombre': s.nombre} for s in p.subcategorias.all()],
             'marca': p.marca,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
