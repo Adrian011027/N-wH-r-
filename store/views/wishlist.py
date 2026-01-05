@@ -9,7 +9,7 @@ from django.views.decorators.http  import require_http_methods
 from django.utils.decorators       import method_decorator
 from .decorators import jwt_role_required
 
-from ..models import Cliente, Wishlist, Producto
+from ..models import Cliente, Wishlist, Producto, Variante
 
 logger = logging.getLogger(__name__)
 
@@ -49,16 +49,17 @@ def wishlist_detail(request, id_cliente):
         if request.GET.get('full') != 'true':
             return JsonResponse({'productos': ids})
 
-        productos = [
-            {
+        productos = []
+        for p in Producto.objects.filter(id__in=ids).prefetch_related('imagenes'):
+            galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+            productos.append({
                 'id'    : p.id,
                 'nombre': p.nombre,
                 'precio': f'{p.precio.normalize():f}',
                 'imagen': request.build_absolute_uri(p.imagen.url)
-                           if p.imagen else None
-            }
-            for p in Producto.objects.filter(id__in=ids)
-        ]
+                           if p.imagen else None,
+                'imagenes_galeria': [request.build_absolute_uri(img) for img in galeria]
+            })
         return JsonResponse({'productos': productos})
 
     # ---------- POST / DELETE ----------
@@ -135,7 +136,7 @@ def producto_tallas(request, id_producto):
 def productos_por_ids(request):
     """
     GET /api/productos_por_ids/?ids=2,5,9
-    Respuesta: {"productos":[{id,nombre,precio,imagen}, … ]}
+    Respuesta: {"productos":[{id,nombre,precio,imagen,imagenes_galeria}, … ]}
     """
     ids_raw = request.GET.get('ids', '')
     try:
@@ -144,7 +145,8 @@ def productos_por_ids(request):
         return JsonResponse({'error': 'IDs inválidos'}, status=400)
 
     productos = []
-    for p in Producto.objects.filter(id__in=id_list):
+    for p in Producto.objects.filter(id__in=id_list).prefetch_related('imagenes'):
+        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
         productos.append({
             "id"    : p.id,
             "nombre": p.nombre,
@@ -152,7 +154,8 @@ def productos_por_ids(request):
             "imagen": (
                 request.build_absolute_uri(p.imagen.url)
                 if p.imagen else None
-            )
+            ),
+            "imagenes_galeria": [request.build_absolute_uri(img) for img in galeria]
         })
 
     return JsonResponse({'productos': productos})

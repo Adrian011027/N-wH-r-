@@ -33,7 +33,7 @@
     </div>
 
     <!-- FORMULARIO -->
-    <form id="registroForm" method="POST" action="/create-client" novalidate>
+    <form id="registroForm" method="POST" action="/clientes/crear/" novalidate>
       {% csrf_token %}
       <input type="hidden" name="csrfmiddlewaretoken" id="csrf_token">
 
@@ -226,23 +226,8 @@
     </div>
   </footer>
 
-  <script type="module" src="{% static 'public/inicio/js/main.js' %}"></script>
-  <!-- Google Maps API -->
-  {% if google_maps_api_key %}
-  <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initGoogleMaps" async defer></script>
-  {% else %}
-  <script>
-    // API Key no configurada - deshabilitar funcionalidad de mapa
-    window.initGoogleMaps = function() {
-      console.warn('Google Maps API Key no configurada. Agrega GOOGLE_MAPS_API_KEY en settings.py');
-      const btnMap = document.getElementById('btnOpenMap');
-      if (btnMap) {
-        btnMap.style.display = 'none';
-      }
-    };
-    document.addEventListener('DOMContentLoaded', initGoogleMaps);
-  </script>
-  {% endif %}
+  <!-- Google Maps API deshabilitado - requiere billing en Google Cloud -->
+  <!-- Si deseas habilitarlo, activa billing en https://console.cloud.google.com/project/_/billing/enable -->
   <script type="module" src="{% static 'public/registro_usuario/js/main.js' %}"></script>
 </body>
 </html>

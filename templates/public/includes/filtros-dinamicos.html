@@ -1,0 +1,51 @@
+<!-- 
+  filtros-dinamicos.html
+  Estructura HTML para el panel de filtros dinámicos
+  
+  Incluir en template:
+  {% include "public/includes/filtros-dinamicos.html" %}
+-->
+
+<div class="filtros-panel">
+  <h2>🔍 Filtrar Productos</h2>
+
+  <!-- Selector de Género -->
+  <div class="genero-selector-wrapper">
+    <label for="genero-select">Selecciona Género:</label>
+    <select id="genero-select" data-genero-selector>
+      <option value="ambos">👥 Ambos / Unisex</option>
+      <option value="hombre">👨 Hombre</option>
+      <option value="mujer">👩 Mujer</option>
+      <option value="otro">❓ Otro</option>
+    </select>
+  </div>
+
+  <!-- Categorías -->
+  <div class="categorias-section">
+    <h3>📂 Categorías</h3>
+    <div data-categorias-container class="categorias-grid">
+      <p class="info">Cargando categorías...</p>
+    </div>
+  </div>
+
+  <!-- Subcategorías -->
+  <div class="subcategorias-section hidden">
+    <h3>🏷️ Filtros Disponibles</h3>
+    <div data-subcategorias-container class="subcategorias-container">
+      <!-- Se llena dinámicamente -->
+    </div>
+  </div>
+
+  <!-- Pills de filtros activos -->
+  <div class="filtros-activos">
+    <h3>✨ Filtros Activos:</h3>
+    <div data-filtros-pill class="filtros-pills">
+      <!-- Se llena dinámicamente -->
+    </div>
+  </div>
+</div>
+
+<!-- Productos -->
+<div data-productos-container>
+  <p class="info">Selecciona una categoría y filtros para ver productos</p>
+</div>

@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load static %}
 
-{% block title %}Categorías - Dashboard{% endblock %}
+{% block title %}Subcategorías - Dashboard{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'dashboard/css/categorias/categorias.css' %}?v=2">
@@ -10,8 +10,8 @@
   <!-- Header -->
   <div class="categorias-header">
     <div class="header-info">
-      <h1>📁 Categorías</h1>
-      <p class="subtitle">Administra las categorías de productos</p>
+      <h1>📂 Subcategorías</h1>
+      <p class="subtitle">Administra las subcategorías para filtros avanzados</p>
     </div>
   </div>
 
@@ -25,12 +25,12 @@
       </div>
       <div class="stat-info">
         <span class="stat-number" id="stat-total">0</span>
-        <span class="stat-label">Total Categorías</span>
+        <span class="stat-label">Total Subcategorías</span>
       </div>
     </div>
   </div>
 
-  <!-- Formulario de nueva categoría -->
+  <!-- Formulario de nueva subcategoría -->
   <div class="cat-form-card">
     <div class="form-title">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -38,18 +38,21 @@
         <line x1="12" y1="8" x2="12" y2="16"></line>
         <line x1="8" y1="12" x2="16" y2="12"></line>
       </svg>
-      Nueva Categoría
+      Nueva Subcategoría
     </div>
-    <form id="form-categoria" class="cat-form" enctype="multipart/form-data">
+    <form id="form-subcategoria" class="cat-form" enctype="multipart/form-data">
       <div class="form-input-group">
-        <input type="text" id="nombre-categoria" placeholder="Nombre de la categoría" required>
+        <select id="categoria-select" required>
+          <option value="">Seleccionar categoría...</option>
+        </select>
+        <input type="text" id="nombre-subcategoria" placeholder="Nombre de la subcategoría" required>
         <div class="file-input-wrapper">
-          <input type="file" id="imagen-categoria" accept="image/*" class="file-input">
+          <input type="file" id="imagen-subcategoria" accept="image/*" class="file-input">
           <span class="file-label">📷 Elegir imagen</span>
         </div>
-        <div id="preview-categoria" class="image-preview-container" style="display: none;">
-          <img id="preview-img-categoria" src="" alt="Vista previa" class="preview-img">
-          <button type="button" class="btn-remove-preview" onclick="document.getElementById('imagen-categoria').value=''; document.getElementById('preview-categoria').style.display='none';">✕</button>
+        <div id="preview-subcategoria" class="image-preview-container" style="display: none;">
+          <img id="preview-img-subcategoria" src="" alt="Vista previa" class="preview-img">
+          <button type="button" class="btn-remove-preview" onclick="document.getElementById('imagen-subcategoria').value=''; document.getElementById('preview-subcategoria').style.display='none';">✕</button>
         </div>
         <button type="submit" class="btn-primary">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -65,11 +68,11 @@
   <!-- Loading state -->
   <div id="loading-state" class="loading-state">
     <div class="spinner"></div>
-    <p>Cargando categorías...</p>
+    <p>Cargando subcategorías...</p>
   </div>
 
-  <!-- Grid de categorías -->
-  <div id="categorias-grid" class="categorias-grid" style="display: none;">
+  <!-- Grid de subcategorías -->
+  <div id="subcategorias-grid" class="categorias-grid" style="display: none;">
     <!-- Las tarjetas se generan por JS -->
   </div>
 
@@ -78,8 +81,8 @@
     <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
     </svg>
-    <h3>No hay categorías</h3>
-    <p>Crea tu primera categoría usando el formulario de arriba</p>
+    <h3>No hay subcategorías</h3>
+    <p>Crea tu primera subcategoría usando el formulario de arriba</p>
   </div>
 </div>
 
@@ -87,26 +90,32 @@
 <div id="edit-modal" class="modal-overlay">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>✏️ Editar Categoría</h3>
+      <h3>✏️ Editar Subcategoría</h3>
       <button class="modal-close" onclick="cerrarModal()">×</button>
     </div>
     <div class="modal-body">
       <form id="edit-form" enctype="multipart/form-data">
         <input type="hidden" id="edit-id">
         <div class="form-group">
-          <label for="edit-nombre">Nombre de la categoría</label>
-          <input type="text" id="edit-nombre" required placeholder="Nombre de la categoría">
+          <label for="edit-categoria">Categoría</label>
+          <select id="edit-categoria" required>
+            <option value="">Seleccionar categoría...</option>
+          </select>
         </div>
         <div class="form-group">
-          <label for="edit-imagen">Imagen de la categoría</label>
+          <label for="edit-nombre">Nombre de la subcategoría</label>
+          <input type="text" id="edit-nombre" required placeholder="Nombre de la subcategoría">
+        </div>
+        <div class="form-group">
+          <label for="edit-imagen">Imagen de la subcategoría</label>
           <div class="file-input-wrapper">
             <input type="file" id="edit-imagen" accept="image/*" class="file-input">
             <span class="file-label">📷 Elegir imagen</span>
           </div>
           <small id="edit-imagen-info" style="display:none; color:#666;">Dejar vacío para mantener imagen actual</small>
-          <div id="preview-edit" class="image-preview-container" style="display: none;">
-            <img id="preview-img-edit" src="" alt="Vista previa" class="preview-img">
-            <button type="button" class="btn-remove-preview" onclick="document.getElementById('edit-imagen').value=''; document.getElementById('preview-edit').style.display='none';">✕</button>
+          <div id="preview-edit-sub" class="image-preview-container" style="display: none;">
+            <img id="preview-img-edit-sub" src="" alt="Vista previa" class="preview-img">
+            <button type="button" class="btn-remove-preview" onclick="document.getElementById('edit-imagen').value=''; document.getElementById('preview-edit-sub').style.display='none';">✕</button>
           </div>
         </div>
         <div class="modal-actions">
@@ -126,5 +135,5 @@
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
-<script src="{% static 'dashboard/js/categorias/categorias.js' %}?v=2"></script>
+<script src="{% static 'dashboard/js/categorias/subcategorias.js' %}?v=1"></script>
 {% endblock %}

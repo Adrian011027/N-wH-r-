@@ -22,11 +22,44 @@
 
   <div class="detalle-container">
 
-    <!-- ── Imagen ── -->
+    <!-- ── Carrusel de Imágenes ── -->
     <div class="detalle-imagen">
-      {% if producto.imagen %}
-        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-      {% endif %}
+      <div class="carrusel-container">
+        <div class="carrusel-viewport">
+          <div class="carrusel-track" id="carrusel-track">
+            <!-- Imagen principal -->
+            {% if producto.imagen %}
+              <div class="carrusel-slide">
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="slide-img">
+              </div>
+            {% endif %}
+            
+            <!-- Imágenes de la galería (máximo 4 más para total de 5) -->
+            {% for img in producto.imagenes.all|slice:":4" %}
+              <div class="carrusel-slide">
+                <img src="{{ img.imagen.url }}" alt="{{ producto.nombre }} - Imagen {{ img.orden }}" class="slide-img">
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Botones de navegación -->
+        <button class="carrusel-btn carrusel-btn-prev" id="carrusel-prev" aria-label="Imagen anterior">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <button class="carrusel-btn carrusel-btn-next" id="carrusel-next" aria-label="Imagen siguiente">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- Indicadores (dots) -->
+        <div class="carrusel-dots" id="carrusel-dots">
+          <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+      </div>
     </div>
 
     <!-- ── Información ── -->
@@ -89,5 +122,6 @@
   <script>
     window.SESSION_KEY = "{{ request.session.session_key|default:'' }}";
   </script>
+  <script src="{% static 'public/detalles_producto/js/carrusel.js' %}" defer></script>
   <script type="module" src="{% static 'public/detalles_producto/js/main.js' %}" defer></script>
 {% endblock %}

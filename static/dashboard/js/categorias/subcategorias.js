@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const grid = document.getElementById("categorias-grid");
-  const form = document.getElementById("form-categoria");
-  const inputNombre = document.getElementById("nombre-categoria");
-  const inputImagen = document.getElementById("imagen-categoria");
+  const grid = document.getElementById("subcategorias-grid");
+  const form = document.getElementById("form-subcategoria");
+  const inputNombre = document.getElementById("nombre-subcategoria");
+  const selectCategoria = document.getElementById("categoria-select");
+  const inputImagen = document.getElementById("imagen-subcategoria");
   const editForm = document.getElementById("edit-form");
   const editImagen = document.getElementById("edit-imagen");
 
@@ -10,11 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (inputImagen) {
     inputImagen.addEventListener("change", (e) => {
       const file = e.target.files[0];
-      const previewContainer = document.getElementById("preview-categoria");
+      const previewContainer = document.getElementById("preview-subcategoria");
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          document.getElementById("preview-img-categoria").src = event.target.result;
+          document.getElementById("preview-img-subcategoria").src = event.target.result;
           previewContainer.style.display = "flex";
         };
         reader.readAsDataURL(file);
@@ -25,11 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (editImagen) {
     editImagen.addEventListener("change", (e) => {
       const file = e.target.files[0];
-      const previewContainer = document.getElementById("preview-edit");
+      const previewContainer = document.getElementById("preview-edit-sub");
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          document.getElementById("preview-img-edit").src = event.target.result;
+          document.getElementById("preview-img-edit-sub").src = event.target.result;
           previewContainer.style.display = "flex";
         };
         reader.readAsDataURL(file);
@@ -37,10 +38,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* ─────────── Cargar Categorías ─────────── */
+  function cargarCategorias() {
+    authFetch("/api/categorias/")
+      .then((res) => res.json())
+      .then((categorias) => {
+        // Llenar select de crear
+        selectCategoria.innerHTML = '<option value="">Seleccionar categoría...</option>';
+        categorias.forEach((cat) => {
+          const option = document.createElement("option");
+          option.value = cat.id;
+          option.textContent = cat.nombre;
+          selectCategoria.appendChild(option);
+        });
+
+        // Llenar select de editar
+        const editSelect = document.getElementById('edit-categoria');
+        editSelect.innerHTML = '<option value="">Seleccionar categoría...</option>';
+        categorias.forEach((cat) => {
+          const option = document.createElement("option");
+          option.value = cat.id;
+          option.textContent = cat.nombre;
+          editSelect.appendChild(option);
+        });
+
+        cargarSubcategorias();
+      })
+      .catch((err) => {
+        console.error("Error cargando categorías:", err);
+        showToast("Error al cargar categorías", "error");
+      });
+  }
+
   /* ─────────── Estados de vista ─────────── */
   function mostrarEstado(estado) {
     document.getElementById('loading-state').style.display = 'none';
-    document.getElementById('categorias-grid').style.display = 'none';
+    document.getElementById('subcategorias-grid').style.display = 'none';
     document.getElementById('empty-state').style.display = 'none';
 
     switch (estado) {
@@ -48,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('loading-state').style.display = 'flex';
         break;
       case 'grid':
-        document.getElementById('categorias-grid').style.display = 'grid';
+        document.getElementById('subcategorias-grid').style.display = 'grid';
         break;
       case 'empty':
         document.getElementById('empty-state').style.display = 'block';
@@ -57,49 +90,51 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ─────────── Render grid ─────────── */
-  function cargarCategorias() {
+  function cargarSubcategorias() {
     mostrarEstado('loading');
 
-    authFetch("/api/categorias/")
+    authFetch("/api/subcategorias/")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
         return res.json();
       })
-      .then((categorias) => {
-        if (!categorias) return;
+      .then((subcategorias) => {
+        if (!subcategorias) return;
         
         // Actualizar estadística
-        document.getElementById('stat-total').textContent = categorias.length;
+        document.getElementById('stat-total').textContent = subcategorias.length;
 
-        if (categorias.length === 0) {
+        if (subcategorias.length === 0) {
           mostrarEstado('empty');
           return;
         }
 
         grid.innerHTML = "";
-        categorias.forEach((cat) => {
+        subcategorias.forEach((subcat) => {
           const card = document.createElement("div");
           card.className = "categoria-card";
           card.innerHTML = `
             <div class="categoria-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
+              ${subcat.imagen ? `<img src="${subcat.imagen}" alt="${subcat.nombre}" style="width: 100%; height: 100%; object-fit: cover;">` : `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              `}
             </div>
             <div class="categoria-info">
-              <span class="categoria-id">ID #${cat.id}</span>
-              <h3 class="categoria-nombre">${cat.nombre}</h3>
+              <span class="categoria-id">${subcat.categoria_nombre}</span>
+              <h3 class="categoria-nombre">${subcat.nombre}</h3>
             </div>
             <div class="categoria-actions">
-              <button class="btn-icon edit" onclick="abrirModalEditar(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${cat.imagen || ''}')">
+              <button class="btn-icon edit" onclick="abrirModalEditar(${subcat.id}, '${subcat.nombre.replace(/'/g, "\\'")}', ${subcat.categoria_id}, '${subcat.imagen ? subcat.imagen : ''}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
               </button>
-              <button class="btn-icon delete" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')">
+              <button class="btn-icon delete" onclick="eliminarSubcategoria(${subcat.id}, '${subcat.nombre.replace(/'/g, "\\'")}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -112,15 +147,22 @@ document.addEventListener("DOMContentLoaded", () => {
         mostrarEstado('grid');
       })
       .catch((err) => {
-        console.error("Error cargando categorías:", err);
-        showToast("Error al cargar categorías", "error");
+        console.error("Error cargando subcategorías:", err);
+        showToast("Error al cargar subcategorías", "error");
       });
   }
 
   /* ─────────── Crear ────────────── */
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    
+    const categoriaId = selectCategoria.value;
     const nombre = inputNombre.value.trim();
+    
+    if (!categoriaId) {
+      showToast("Selecciona una categoría", "error");
+      return;
+    }
     if (!nombre) return;
 
     const btn = form.querySelector('.btn-primary');
@@ -131,13 +173,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Usar FormData para enviar archivo
     const formData = new FormData();
     formData.append('nombre', nombre);
+    formData.append('categoria_id', categoriaId);
     
-    const imagenInput = document.getElementById('imagen-categoria');
+    const imagenInput = document.getElementById('imagen-subcategoria');
     if (imagenInput && imagenInput.files.length > 0) {
       formData.append('imagen', imagenInput.files[0]);
     }
 
-    authFetch("/api/categorias/crear/", {
+    authFetch("/api/subcategorias/crear/", {
       method: "POST",
       body: formData,
     })
@@ -146,14 +189,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return res.json();
       })
       .then(() => {
+        selectCategoria.value = "";
         inputNombre.value = "";
-        document.getElementById('imagen-categoria').value = "";
-        showToast("✅ Categoría creada correctamente", "success");
-        cargarCategorias();
+        document.getElementById('imagen-subcategoria').value = "";
+        showToast("✅ Subcategoría creada correctamente", "success");
+        cargarSubcategorias();
       })
       .catch((err) => {
-        console.error("Error creando categoría:", err);
-        showToast("Error al crear categoría", "error");
+        console.error("Error creando subcategoría:", err);
+        showToast("Error al crear subcategoría", "error");
       })
       .finally(() => {
         btn.innerHTML = originalText;
@@ -162,16 +206,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ─────────── Modal de edición ─────────── */
-  window.abrirModalEditar = (id, nombre, imagenUrl) => {
+  window.abrirModalEditar = (id, nombre, categoriaId, imagen) => {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-nombre').value = nombre;
+    document.getElementById('edit-categoria').value = categoriaId;
     
-    // Mostrar imagen actual si existe
-    const previewContainer = document.getElementById("preview-edit");
-    if (imagenUrl) {
-      document.getElementById("preview-img-edit").src = imagenUrl;
+    const infoEl = document.getElementById('edit-imagen-info');
+    const previewContainer = document.getElementById("preview-edit-sub");
+    
+    if (imagen) {
+      infoEl.style.display = 'block';
+      // Mostrar imagen actual
+      document.getElementById("preview-img-edit-sub").src = imagen;
       previewContainer.style.display = "flex";
     } else {
+      infoEl.style.display = 'none';
       previewContainer.style.display = "none";
     }
     
@@ -223,8 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append('imagen', imagenInput.files[0]);
     }
 
-    authFetch(`/api/categorias/actualizar/${id}/`, {
-      method: "POST",
+    authFetch(`/api/subcategorias/actualizar/${id}/`, {
+      method: "PATCH",
       body: formData,
     })
       .then((res) => {
@@ -233,12 +282,12 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(() => {
         cerrarModal();
-        showToast("✅ Categoría actualizada correctamente", "success");
-        cargarCategorias();
+        showToast("✅ Subcategoría actualizada correctamente", "success");
+        cargarSubcategorias();
       })
       .catch((err) => {
-        console.error("Error actualizando categoría:", err);
-        showToast("Error al actualizar categoría", "error");
+        console.error("Error actualizando subcategoría:", err);
+        showToast("Error al actualizar subcategoría", "error");
       })
       .finally(() => {
         btn.innerHTML = originalText;
@@ -247,20 +296,20 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ─────────── Eliminar ─────────── */
-  window.eliminarCategoria = (id, nombre) => {
-    if (!confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?`)) return;
+  window.eliminarSubcategoria = (id, nombre) => {
+    if (!confirm(`¿Estás seguro de eliminar la subcategoría "${nombre}"?`)) return;
     
-    authFetch(`/api/categorias/eliminar/${id}/`, {
+    authFetch(`/api/subcategorias/eliminar/${id}/`, {
       method: "DELETE",
     })
       .then((res) => {
         if (!res.ok) throw new Error('Error al eliminar');
-        showToast("✅ Categoría eliminada correctamente", "success");
-        cargarCategorias();
+        showToast("✅ Subcategoría eliminada correctamente", "success");
+        cargarSubcategorias();
       })
       .catch((err) => {
-        console.error("Error eliminando categoría:", err);
-        showToast("Error al eliminar categoría", "error");
+        console.error("Error eliminando subcategoría:", err);
+        showToast("Error al eliminar subcategoría", "error");
       });
   };
 

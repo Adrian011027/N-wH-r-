@@ -49,7 +49,7 @@
 
     <!-- 🛒 Carrito -->
     <button id="btn-cart-panel" class="user-icon" aria-label="Ver carrito"
-            onclick="window.location.href='{% url 'ver_carrito' %}'">
+            onclick='window.location.href="{% url "ver_carrito" %}"'>
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
            fill="none" stroke="currentColor" stroke-width="1.5"
            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -83,16 +83,91 @@
   </div>
 </header>
 
-<!-- NAV MENU -->
-<nav class="nav-menu">
-   <button class="close-menu" id="btn-close-menu" aria-label="Cerrar menú">×</button>
-  <ul class="menu">
-    <li><a href="{% url 'index' %}">Inicio</a></li>
-    <li><a href="{% url 'coleccion_genero' 'dama' %}">Dama</a></li>
-    <li><a href="{% url 'coleccion_genero' 'caballero' %}">Caballero</a></li>
-    <li><a href="{% url 'coleccion_genero' 'accesorios' %}">Accesorios</a></li>
-    <li><a href="{% url 'coleccion_genero' '#' %}">Todo</a></li>
-  </ul>
+<!-- NAV MENU - Elegante con cascada -->
+<nav class="nav-menu" id="nav-menu">
+  <div class="nav-menu-header">
+    <button class="close-menu" id="btn-close-menu" aria-label="Cerrar menú">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Panel Principal: Géneros -->
+  <div class="nav-panel nav-panel-main active" id="panel-main">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="{% url 'index' %}" class="nav-link">
+          <span>Inicio</span>
+        </a>
+      </li>
+      <li class="nav-item nav-item-expandable" data-genero="mujer">
+        <a href="#" class="nav-link genero-trigger">
+          <span class="nav-icon">👩</span>
+          <span>Mujer</span>
+          <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </li>
+      <li class="nav-item nav-item-expandable" data-genero="hombre">
+        <a href="#" class="nav-link genero-trigger">
+          <span class="nav-icon">👨</span>
+          <span>Hombre</span>
+          <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </li>
+      <li class="nav-item nav-divider"></li>
+      <li class="nav-item">
+        <a href="/catalogo/" class="nav-link nav-link-highlight">
+          <span>Ver Todo</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Panel Secundario: Categorías (dinámico) -->
+  <div class="nav-panel nav-panel-categorias" id="panel-categorias">
+    <div class="nav-panel-back">
+      <button class="btn-back" id="btn-back-generos">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Volver</span>
+      </button>
+      <span class="panel-title" id="categorias-title">Categorías</span>
+    </div>
+    <ul class="nav-list" id="categorias-list">
+      <!-- Cargado dinámicamente -->
+      <li class="nav-item nav-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando...</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Panel Terciario: Subcategorías (dinámico) -->
+  <div class="nav-panel nav-panel-subcategorias" id="panel-subcategorias">
+    <div class="nav-panel-back">
+      <button class="btn-back" id="btn-back-categorias">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span>Volver</span>
+      </button>
+      <span class="panel-title" id="subcategorias-title">Subcategorías</span>
+    </div>
+    <ul class="nav-list" id="subcategorias-list">
+      <!-- Cargado dinámicamente -->
+      <li class="nav-item nav-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando...</span>
+      </li>
+    </ul>
+  </div>
 </nav>
 
 <!-- CONTACT PANEL -->
@@ -123,7 +198,7 @@
     <span id="close-login-panel" class="close-btn">×</span>
   </div>
   <div class="login-section">
-    <h3>Ya Tengo una Cuenta</h3>
+    <h3>Ya tengo una cuenta</h3>
     <span class="required-note">Campos requeridos*</span>
 
     <form id="loginForm" method="POST" action="#">
@@ -355,6 +430,31 @@
     if (overlay) overlay.classList.add('active');
     document.body.classList.add('no-scroll');
   };
+</script>
+
+<!-- Toggle Password Visibility -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const pwd = document.getElementById("password");
+  const btn = document.querySelector(".toggle-password");
+
+  if (pwd && btn) {
+    const icon = btn.querySelector("i");
+
+    btn.addEventListener("click", () => {
+      const oculto = pwd.type === "password";
+      pwd.type = oculto ? "text" : "password";
+
+      icon.classList.toggle("fa-eye");
+      icon.classList.toggle("fa-eye-slash");
+
+      btn.setAttribute(
+        "aria-label",
+        oculto ? "Ocultar contraseña" : "Mostrar contraseña"
+      );
+    });
+  }
+});
 </script>
 
 <script>

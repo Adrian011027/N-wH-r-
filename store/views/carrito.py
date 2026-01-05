@@ -193,6 +193,7 @@ def _build_detalle_response(carrito):
         CarritoProducto.objects
         .filter(carrito=carrito)
         .select_related("variante__producto")
+        .prefetch_related("variante__producto__imagenes")
     )
 
     total_piezas    = sum(cp.cantidad for cp in qs)
@@ -207,6 +208,10 @@ def _build_detalle_response(carrito):
             ) if aplicar_mayoreo else
             float(var.precio if var.precio else prod.precio)
         )
+        
+        # Galería de imágenes del producto
+        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        
         items.append({
             "producto_id"    : prod.id,
             "producto"       : prod.nombre,
@@ -221,7 +226,8 @@ def _build_detalle_response(carrito):
             "otros"          : var.otros,
             "subtotal"       : round(precio_unit * cp.cantidad, 2),
             "variante_id"    : var.id,
-            "imagen"         : prod.imagen.url if prod.imagen else None,  
+            "imagen"         : prod.imagen.url if prod.imagen else None,
+            "imagenes_galeria": galeria,
         })
 
     return JsonResponse({

@@ -204,6 +204,34 @@ export function initWishlist({
 
   /* ========== Eventos dentro del panel ========== */
   dom.wishlistPanel?.addEventListener('click', async e => {
+    // Mini-carrusel de imágenes
+    const miniPrev = e.target.closest('.carrusel-mini-prev');
+    const miniNext = e.target.closest('.carrusel-mini-next');
+    
+    if (miniPrev || miniNext) {
+      const viewport = (miniPrev || miniNext).closest('.carrusel-mini-viewport');
+      const track = viewport?.querySelector('.carrusel-mini-track');
+      const slides = track?.querySelectorAll('.carrusel-mini-slide');
+      
+      if (track && slides && slides.length > 1) {
+        let currentIndex = 0;
+        const transform = track.style.transform;
+        const match = transform.match(/translateX\((-?\d+)%\)/);
+        if (match) {
+          currentIndex = Math.abs(parseInt(match[1]) / 100);
+        }
+        
+        if (miniNext) {
+          currentIndex = (currentIndex + 1) % slides.length;
+        } else {
+          currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        }
+        
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      }
+      return;
+    }
+
     const pickerOpen = dom.wishlistPanel.querySelector('.size-picker');
     if (pickerOpen && !e.target.closest('.size-picker') &&
                       !e.target.matches('.btn-carrito-mini')) {
@@ -371,7 +399,23 @@ export function initWishlist({
   const buildCards = (prods, inCart = new Set()) => prods.map(p => `
     <div class="wishlist-item" data-id="${p.id}">
       <div class="wishlist-img-col">
-        <img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='/static/images/placeholder.png'">
+        ${(() => {
+          const imagenes = p.imagenes_galeria || [];
+          const allImages = [p.imagen, ...imagenes].filter(Boolean);
+          if (allImages.length > 1) {
+            return `
+              <div class="carrusel-mini-viewport">
+                <div class="carrusel-mini-track" style="transform: translateX(0%);">
+                  ${allImages.map(img => `<img src="${img}" alt="${p.nombre}" class="carrusel-mini-slide">`).join('')}
+                </div>
+                <button class="carrusel-mini-prev" data-product-id="${p.id}">‹</button>
+                <button class="carrusel-mini-next" data-product-id="${p.id}">›</button>
+              </div>
+            `;
+          } else {
+            return `<img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='/static/images/placeholder.png'">`;
+          }
+        })()}
       </div>
       <div class="wishlist-info-col">
         <h4 class="nombre">${p.nombre}</h4>

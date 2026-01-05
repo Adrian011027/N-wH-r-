@@ -10,7 +10,7 @@ from .views.reset_password import (
 # ─────────── Auth con JWT ───────────
 from .views import auth
 from .views.views import (
-    index, genero_view, registrarse,logout_client,logout_user,
+    index, genero_view, catalogo_view, registrarse,logout_client,logout_user,
     login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria
 )
 
@@ -39,6 +39,7 @@ from .views.products import (
     detalle_producto, get_all_products, create_product,
     update_productos, update_variant,
     delete_productos, delete_all_productos,
+    categorias_por_genero, subcategorias_por_categoria, productos_filtrados,
 )
 
 # ─────────── Wishlist ───────────
@@ -62,12 +63,18 @@ from .views.orden import (
 # ─────────── Dashboard ───────────
 from .views.views import (
     lista_productos, alta, editar_producto,
-    dashboard_clientes, editar_cliente, dashboard_categorias, login_user_page,    
+    dashboard_clientes, editar_cliente, dashboard_categorias, dashboard_subcategorias, login_user_page,    
 )
 
 # ─────────── Búsqueda y Filtros ───────────
 from .views.search import (
     search_products, get_filter_options, search_page
+)
+
+# ─────────── Subcategorías ───────────
+from .views.subcategorias import (
+    get_subcategorias, create_subcategoria, update_subcategoria, delete_subcategoria,
+    get_subcategorias_por_categoria
 )
 
 # ───────────────────────── URLPATTERNS ─────────────────────────
@@ -79,6 +86,7 @@ urlpatterns = [
 
     # ---------- Front-end público ----------
     path("",                           index,          name="index"),
+    path("catalogo/",                  catalogo_view,  name="catalogo"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
     path("buscar/",                    search_page,    name="search_page"),
@@ -107,6 +115,13 @@ urlpatterns = [
     path("api/categorias/crear/",               create_categoria,  name="create_categoria"),
     path("api/categorias/actualizar/<int:id>/", update_categoria,  name="update_categoria"),
     path("api/categorias/eliminar/<int:id>/",   delete_categoria,  name="delete_categoria"),
+
+    # ---------- Subcategorías API ----------
+    path("api/subcategorias/",                           get_subcategorias,                    name="get_subcategorias"),
+    path("api/subcategorias/crear/",                     create_subcategoria,                  name="create_subcategoria"),
+    path("api/subcategorias/actualizar/<int:id>/",       update_subcategoria,                  name="update_subcategoria"),
+    path("api/subcategorias/eliminar/<int:id>/",         delete_subcategoria,                  name="delete_subcategoria"),
+    path("api/categorias/<int:categoria_id>/subcategorias/", get_subcategorias_por_categoria, name="subcategorias_por_categoria"),
 
     # ---------- Carrito (páginas públicas) ----------
     path("carrito/",         carrito_publico,  name="ver_carrito"),
@@ -170,6 +185,11 @@ urlpatterns = [
     # ---------- Envío de Tickets ----------
     path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),
     path("api/orden/<int:carrito_id>/ticket/email/",    enviar_ticket_email,    name="enviar_ticket_email"),
+    
+    # ---------- Filtros Dinámicos (NEW) ----------
+    path("api/categorias-por-genero/",                  categorias_por_genero,              name="categorias_por_genero"),
+    path("api/subcategorias-por-categoria/",            subcategorias_por_categoria,        name="subcategorias_por_categoria"),
+    path("api/productos-filtrados/",                    productos_filtrados,                name="productos_filtrados"),
 
        # ---------- Dashboard ----------
     path("dashboard/login/",                     login_user_page,           name="login_user"),
@@ -179,6 +199,7 @@ urlpatterns = [
     path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes"),
     path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente"),
     path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias"),
+    path("dashboard/subcategorias/",            dashboard_subcategorias, name="dashboard_subcategorias"),
     path("dashboard/ordenes/",                   dashboard_ordenes,    name="dashboard_ordenes"),
     
     # ---------- API Admin Órdenes ----------

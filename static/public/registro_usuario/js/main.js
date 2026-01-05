@@ -26,7 +26,7 @@ function showMessage(message, type = 'error') {
   msgDiv.querySelector('.close-msg').addEventListener('click', () => msgDiv.remove());
 }
 
-// Variables globales para Google Maps
+// Variables globales para Google Maps (deshabilitado - requiere billing)
 let map = null;
 let marker = null;
 let autocomplete = null;
@@ -34,30 +34,15 @@ let autocompleteMap = null;
 let selectedAddress = '';
 let geocoder = null;
 
-// Función de inicialización de Google Maps (llamada por el callback de la API)
-window.initGoogleMaps = function() {
-  // Inicializar geocoder
-  geocoder = new google.maps.Geocoder();
-  
-  // Autocompletado en el campo de dirección del formulario
-  const addressInput = document.getElementById('direccion');
-  if (addressInput) {
-    autocomplete = new google.maps.places.Autocomplete(addressInput, {
-      types: ['address'],
-      componentRestrictions: { country: 'mx' } // Restringir a México
-    });
-    
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        addressInput.value = place.formatted_address;
-      }
-    });
+// Google Maps deshabilitado - requiere billing en Google Cloud
+// Para habilitar: https://console.cloud.google.com/project/_/billing/enable
+function initGoogleMapsFeatures() {
+  // Ocultar botón de mapa si existe
+  const btnMap = document.getElementById('btnOpenMap');
+  if (btnMap) {
+    btnMap.style.display = 'none';
   }
-  
-  // Configurar modal del mapa
-  setupMapModal();
-};
+}
 
 function setupMapModal() {
   const mapModal = document.getElementById('mapModal');
@@ -360,8 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (direccion) datos.direccion = direccion;
 
     try {
-      // ℹ️ NOTA: /create-client/ es un endpoint PÚBLICO, no requiere JWT
-      const res = await fetch('/create-client/', {
+      // ℹ️ NOTA: /clientes/crear/ es un endpoint PÚBLICO, no requiere JWT
+      const res = await fetch('/clientes/crear/', {
         method: 'POST',
         credentials: 'same-origin',
         headers: {

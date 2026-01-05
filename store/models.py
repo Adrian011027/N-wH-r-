@@ -124,14 +124,56 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
+
+class Subcategoria(models.Model):
+    """
+    Subcategoría para filtrar productos dentro de una categoría específica.
+    Permite filtros como: Por género (Dama, Caballero), Por marca, Por promoción, etc.
+    
+    Ejemplos:
+    - Categoría: "Calzado" → Subcategorías: Dama, Caballero, Accesorios
+    - Categoría: "Ropa" → Subcategorías: Dama, Caballero, Niños
+    - Filtro de promoción: "En Oferta", "Black Friday", "Liquidación"
+    - Filtro de marca: "Nike", "Adidas", "Puma", etc.
+    """
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias')
+    nombre = models.CharField(max_length=255, db_index=True)
+    descripcion = models.TextField(blank=True, null=True)
+    imagen = models.ImageField(upload_to='subcategorias/', blank=True, null=True)
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en filtros")
+    activa = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['orden', 'nombre']
+        unique_together = ('categoria', 'nombre')
+        verbose_name = 'Subcategoría'
+        verbose_name_plural = 'Subcategorías'
+        indexes = [
+            models.Index(fields=['categoria', 'activa']),
+            models.Index(fields=['nombre']),
+        ]
+    
+    def __str__(self):
+        return f"{self.categoria.nombre} - {self.nombre}"
+
+
 class Producto(models.Model):
     nombre      = models.CharField(max_length=255)
     descripcion = models.TextField()
     precio      = models.DecimalField(max_digits=10, decimal_places=2)
     categoria   = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    genero      = models.CharField(max_length=50)
+    subcategorias = models.ManyToManyField(
+        Subcategoria, 
+        blank=True,
+        related_name='productos',
+        help_text="Múltiples subcategorías (marca, oferta, línea, etc.)"
+    )
+    genero      = models.CharField(max_length=50, blank=True, null=True, db_index=True, help_text="Hombre, Mujer, Ambos, etc.")
     precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     en_oferta   = models.BooleanField(default=False)
+    marca       = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="Marca del producto para filtros")
     imagen      = models.ImageField(upload_to='productos/', blank=True, null=True)  # Imagen principal
     created_at  = models.DateTimeField(auto_now_add=True)
 
@@ -167,20 +209,51 @@ class Producto(models.Model):
 class ProductoImagen(models.Model):
     """
     Galería de imágenes para el carrusel del producto.
-    Permite múltiples imágenes por producto.
+    Carrusel de máximo 5 imágenes por producto.
     """
+    MAX_IMAGENES = 5
+    
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='imagenes')
     imagen = models.ImageField(upload_to='productos/galeria/')
-    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel")
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel (1-5)")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['orden', 'created_at']
         verbose_name = 'Imagen de Producto'
         verbose_name_plural = 'Imágenes de Productos'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['producto', 'orden'],
+                name='unique_producto_imagen_orden'
+            )
+        ]
 
     def __str__(self):
         return f"{self.producto.nombre} - Imagen {self.orden}"
+    
+    def clean(self):
+        """
+        Valida que no existan más de 5 imágenes por producto.
+        Soporta formatos: JPG, PNG, WebP, GIF, AVIF, etc.
+        """
+        from django.core.exceptions import ValidationError
+        
+        # Contar imágenes existentes (excluyendo esta si ya existe)
+        query = ProductoImagen.objects.filter(producto=self.producto)
+        if self.pk:
+            query = query.exclude(pk=self.pk)
+        
+        if query.count() >= self.MAX_IMAGENES:
+            raise ValidationError(
+                f"El producto '{self.producto.nombre}' ya tiene {self.MAX_IMAGENES} imágenes. "
+                f"Máximo permitido: {self.MAX_IMAGENES}. "
+                f"Formatos soportados: JPG, PNG, WebP, GIF, AVIF."
+            )
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 # ——————————————————————————————————————
@@ -334,6 +407,60 @@ class Variante(models.Model):
         color_clean = slugify(self.color or "na")[:10]
         
         return f'variantes/var-{self.producto_id}-{self.id}-{talla_clean}-{color_clean}-{producto_slug}{ext}'
+
+
+class VarianteImagen(models.Model):
+    """
+    Galería de imágenes para el carrusel de cada variante.
+    Carrusel de máximo 5 imágenes por variante (combinación talla/color).
+    Útil para mostrar la misma variante desde diferentes ángulos.
+    """
+    MAX_IMAGENES = 5
+    
+    variante = models.ForeignKey(Variante, on_delete=models.CASCADE, related_name='imagenes_carrusel')
+    imagen = models.ImageField(
+        upload_to='variantes/galeria/',
+        help_text="Imagen de la variante desde diferentes ángulos"
+    )
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel (1-5)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['orden', 'created_at']
+        verbose_name = 'Imagen de Variante'
+        verbose_name_plural = 'Imágenes de Variantes'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['variante', 'orden'],
+                name='unique_variante_imagen_orden'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.variante} - Imagen {self.orden}"
+    
+    def clean(self):
+        """
+        Valida que no existan más de 5 imágenes por variante.
+        Soporta formatos: JPG, PNG, WebP, GIF, AVIF, etc.
+        """
+        from django.core.exceptions import ValidationError
+        
+        # Contar imágenes existentes (excluyendo esta si ya existe)
+        query = VarianteImagen.objects.filter(variante=self.variante)
+        if self.pk:
+            query = query.exclude(pk=self.pk)
+        
+        if query.count() >= self.MAX_IMAGENES:
+            raise ValidationError(
+                f"La variante '{self.variante}' ya tiene {self.MAX_IMAGENES} imágenes. "
+                f"Máximo permitido: {self.MAX_IMAGENES}. "
+                f"Formatos soportados: JPG, PNG, WebP, GIF, AVIF."
+            )
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 # ——————————————————————————————————————
 # Carrito, Wishlist y Órdenes
