@@ -1,7 +1,7 @@
 from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
-from ..models import Producto, Categoria, Variante
+from ..models import Producto, Categoria, Variante, Subcategoria
 from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
 from django.db.models import Prefetch
 from decimal import Decimal
@@ -118,6 +118,7 @@ def create_product(request):
 
         tallas = data.get("tallas", [])
         stocks = data.get("stocks", [])
+        subcategorias_ids = data.get("subcategorias", [])
 
     else:  # multipart/form-data
         nombre      = request.POST.get("nombre")
@@ -131,6 +132,7 @@ def create_product(request):
 
         tallas = request.POST.getlist("tallas")
         stocks = request.POST.getlist("stocks")
+        subcategorias_ids = request.POST.getlist("subcategorias")
 
     # Validaciones mínimas
     if not nombre: return JsonResponse({"error": "Falta campo 'nombre'"}, status=400)
@@ -162,6 +164,23 @@ def create_product(request):
         imagen=imagen,
     )
 
+    # Agregar imágenes de galería (máximo 5)
+    if not request.content_type.startswith("application/json"):
+        imagenes_galeria = request.FILES.getlist("imagen")
+        from ..models import ProductoImagen
+        for idx, img in enumerate(imagenes_galeria[:5]):  # Máximo 5 imágenes
+            ProductoImagen.objects.create(
+                producto=producto,
+                imagen=img,
+                orden=idx + 1
+            )
+
+    # Agregar subcategorías si se proporcionaron
+    if subcategorias_ids:
+        from ..models import Subcategoria
+        subcats = Subcategoria.objects.filter(id__in=subcategorias_ids)
+        producto.subcategorias.set(subcats)
+
     # Sistema nuevo: Variantes con talla y color directos
     # Variantes múltiples (tallas + stocks)
     primera_variante_precio = None
@@ -180,6 +199,27 @@ def create_product(request):
                 precio_mayorista=precio_mayorista,
                 stock=stock,
             )
+            
+            # Procesar imágenes de esta variante (por índice)
+            if not request.content_type.startswith("application/json"):
+                # Buscar imágenes con patrón de nombre dinámico
+                imagenes_variante = []
+                for key in request.FILES.keys():
+                    if key.startswith("variante_imagenes_") and key.endswith(str(idx)):
+                        imagenes_variante = request.FILES.getlist(key)
+                        break
+                    elif key == f"variante_imagenes_{idx}":
+                        imagenes_variante = request.FILES.getlist(key)
+                        break
+                
+                from ..models import VarianteImagen
+                for img_idx, img in enumerate(imagenes_variante[:5]):  # Máximo 5 imágenes
+                    VarianteImagen.objects.create(
+                        variante=variante,
+                        imagen=img,
+                        orden=img_idx + 1
+                    )
+            
             # Capturar precio de la primera variante
             if idx == 0:
                 primera_variante_precio = variante.precio
@@ -206,6 +246,27 @@ def create_product(request):
             precio_mayorista=precio_mayorista,
             stock=stock_unico,
         )
+        
+        # Procesar imágenes de variante única
+        if not request.content_type.startswith("application/json"):
+            imagenes_variante = []
+            # Buscar imágenes con patrón de nombre dinámico
+            for key in request.FILES.keys():
+                if key.startswith("variante_imagenes_") and key.endswith("0"):
+                    imagenes_variante = request.FILES.getlist(key)
+                    break
+                elif key == "variante_imagenes_0":
+                    imagenes_variante = request.FILES.getlist(key)
+                    break
+            
+            from ..models import VarianteImagen
+            for img_idx, img in enumerate(imagenes_variante[:5]):  # Máximo 5 imágenes
+                VarianteImagen.objects.create(
+                    variante=variante,
+                    imagen=img,
+                    orden=img_idx + 1
+                )
+        
         primera_variante_precio = variante.precio
 
     # Sincronizar el precio del producto con la primera variante
@@ -326,3 +387,147 @@ def delete_all_productos(request):
         {'mensaje': f'Se eliminaron {total} productos y sus variantes'},
         status=200
     )
+
+
+# ——————————————————————————————————————
+# FILTROS DINÁMICOS (NEW)
+# ——————————————————————————————————————
+
+@require_GET
+def categorias_por_genero(request):
+    """
+    GET /api/categorias-por-genero/?genero=hombre
+    
+    Retorna todas las categorías que tienen productos del género especificado.
+    Útil para mostrar dinámicamente qué categorías existen para ese género.
+    """
+    genero = request.GET.get('genero', 'todos').lower()
+    
+    print(f"[DEBUG] categorias_por_genero - genero recibido: {genero}")
+    
+    # Mapear género del request a valores de la BD
+    # En la BD puede ser: H, M, U (Hombre, Mujer, Unisex/Ambos)
+    genero_map = {
+        'hombre': ['H', 'h', 'hombre', 'Hombre', 'HOMBRE', 'U', 'u', 'unisex', 'Unisex'],
+        'mujer': ['M', 'm', 'mujer', 'Mujer', 'MUJER', 'U', 'u', 'unisex', 'Unisex'],
+    }
+    
+    generos_permitidos = genero_map.get(genero, None)
+    print(f"[DEBUG] generos_permitidos: {generos_permitidos}")
+    
+    # Obtener todas las categorías que tienen productos con ese género
+    if generos_permitidos is None:
+        # Para cualquier otro valor, mostrar todas las categorías con productos
+        categorias = Categoria.objects.filter(
+            producto__isnull=False
+        ).distinct().values('id', 'nombre', 'imagen')
+    else:
+        categorias = Categoria.objects.filter(
+            producto__genero__in=generos_permitidos
+        ).distinct().values('id', 'nombre', 'imagen')
+    
+    result = list(categorias)
+    print(f"[DEBUG] categorias encontradas: {result}")
+    
+    return JsonResponse({
+        'genero': genero,
+        'categorias': result
+    })
+
+
+@require_GET
+def subcategorias_por_categoria(request):
+    """
+    GET /api/subcategorias-por-categoria/?categoria_id=1&genero=hombre
+    
+    Retorna todas las subcategorías de una categoría que tienen productos del género.
+    """
+    categoria_id = request.GET.get('categoria_id')
+    genero = request.GET.get('genero', 'todos').lower()
+    
+    print(f"[DEBUG] subcategorias_por_categoria - categoria_id: {categoria_id}, genero: {genero}")
+    
+    if not categoria_id:
+        return JsonResponse({'error': 'categoria_id es requerido'}, status=400)
+    
+    # Mapear género del request a valores de la BD
+    genero_map = {
+        'hombre': ['H', 'h', 'hombre', 'Hombre', 'HOMBRE', 'U', 'u', 'unisex', 'Unisex'],
+        'mujer': ['M', 'm', 'mujer', 'Mujer', 'MUJER', 'U', 'u', 'unisex', 'Unisex'],
+    }
+    
+    generos_permitidos = genero_map.get(genero, None)
+    print(f"[DEBUG] generos_permitidos: {generos_permitidos}")
+    
+    # Obtener subcategorías que tengan productos en esa categoría
+    # Nota: el modelo Subcategoria no tiene campo 'tipo', solo: id, nombre, imagen, descripcion, categoria, activa, orden
+    if generos_permitidos is None:
+        subcategorias = Subcategoria.objects.filter(
+            productos__categoria_id=categoria_id
+        ).distinct().values('id', 'nombre', 'imagen')
+    else:
+        subcategorias = Subcategoria.objects.filter(
+            productos__categoria_id=categoria_id,
+            productos__genero__in=generos_permitidos
+        ).distinct().values('id', 'nombre', 'imagen')
+    
+    result = list(subcategorias)
+    print(f"[DEBUG] subcategorias encontradas: {result}")
+    
+    return JsonResponse({
+        'categoria_id': categoria_id,
+        'genero': genero,
+        'subcategorias': result
+    })
+
+
+@require_GET
+def productos_filtrados(request):
+    """
+    GET /api/productos-filtrados/?genero=hombre&categoria_id=1&subcategorias=1,2,3
+    
+    Retorna productos filtrados por género, categoría y subcategorías.
+    """
+    genero = request.GET.get('genero', '').lower()
+    categoria_id = request.GET.get('categoria_id')
+    subcategorias_ids = request.GET.get('subcategorias', '').split(',')
+    
+    # Query base
+    query = Producto.objects.all()
+    
+    # Filtrar por género
+    if genero:
+        query = query.filter(genero__icontains=genero)
+    
+    # Filtrar por categoría
+    if categoria_id:
+        query = query.filter(categoria_id=categoria_id)
+    
+    # Filtrar por subcategorías (múltiples)
+    if subcategorias_ids and subcategorias_ids[0]:
+        # Si hay múltiples subcategorías, usa __in
+        query = query.filter(subcategorias__id__in=subcategorias_ids).distinct()
+    
+    # Serializar productos
+    productos = []
+    for p in query:
+        productos.append({
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio': float(p.precio),
+            'en_oferta': p.en_oferta,
+            'imagen': p.imagen.url if p.imagen else None,
+            'genero': p.genero,
+            'categoria': p.categoria.nombre,
+            'subcategorias': list(p.subcategorias.values_list('nombre', flat=True))
+        })
+    
+    return JsonResponse({
+        'filtros': {
+            'genero': genero,
+            'categoria_id': categoria_id,
+            'subcategorias': subcategorias_ids
+        },
+        'total': len(productos),
+        'productos': productos
+    })

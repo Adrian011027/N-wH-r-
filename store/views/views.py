@@ -67,6 +67,96 @@ def genero_view(request, genero):
 
 
 # ───────────────────────────────────────────────
+# Catálogo con filtros dinámicos
+# ───────────────────────────────────────────────
+def catalogo_view(request):
+    """
+    Vista de catálogo que acepta filtros por query params:
+    - genero: hombre, mujer
+    - categoria: ID de categoría
+    - subcategoria: ID de subcategoría
+    """
+    from ..models import Subcategoria
+    
+    genero = request.GET.get('genero', '').lower()
+    categoria_id = request.GET.get('categoria')
+    subcategoria_id = request.GET.get('subcategoria')
+    
+    # Base query
+    qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes")
+    
+    # Determinar género desde subcategoría si no viene en params
+    seccion = "caballero"  # Default
+    genero_filtro = None
+    
+    # Si hay subcategoría, obtener el género de los productos
+    if subcategoria_id:
+        try:
+            subcat = Subcategoria.objects.get(id=subcategoria_id)
+            # Buscar el género predominante de los productos con esta subcategoría
+            producto_ejemplo = Producto.objects.filter(subcategorias__id=subcategoria_id).first()
+            if producto_ejemplo:
+                if producto_ejemplo.genero in ['M']:
+                    seccion = "dama"
+                    genero_filtro = ['M', 'U']
+                else:
+                    seccion = "caballero"
+                    genero_filtro = ['H', 'U']
+        except Subcategoria.DoesNotExist:
+            pass
+    
+    # Filtrar por género desde params
+    genero_map = {
+        'hombre': (['H', 'U'], 'caballero'),
+        'mujer': (['M', 'U'], 'dama'),
+    }
+    if genero in genero_map:
+        genero_filtro, seccion = genero_map[genero]
+    
+    if genero_filtro:
+        qs = qs.filter(genero__in=genero_filtro)
+    
+    # Filtrar por categoría
+    if categoria_id:
+        qs = qs.filter(categoria_id=categoria_id)
+    
+    # Filtrar por subcategoría
+    if subcategoria_id:
+        qs = qs.filter(subcategorias__id=subcategoria_id)
+    
+    # Solo productos con stock
+    qs = qs.filter(variantes__stock__gt=0).distinct()
+    
+    # Obtener info para el título
+    titulo = "Catálogo"
+    
+    if subcategoria_id:
+        try:
+            subcat = Subcategoria.objects.get(id=subcategoria_id)
+            titulo = subcat.nombre
+        except Subcategoria.DoesNotExist:
+            pass
+    elif categoria_id:
+        try:
+            cat = Categoria.objects.get(id=categoria_id)
+            titulo = cat.nombre
+        except Categoria.DoesNotExist:
+            pass
+    elif genero:
+        titulo = "Hombre" if genero == 'hombre' else "Mujer"
+    
+    # Obtener categorías únicas de los productos filtrados
+    categorias = sorted({p.categoria.nombre for p in qs if p.categoria})
+    
+    return render(request, "public/catalogo/productos_genero.html", {
+        "seccion": seccion,
+        "titulo": titulo,
+        "categorias": categorias,
+        "productos": qs,
+    })
+
+
+# ───────────────────────────────────────────────
 # Login Admin con JWT
 # ───────────────────────────────────────────────
 @csrf_exempt
@@ -395,3 +485,11 @@ def dashboard_categorias(request):
     """Panel de categorías en el dashboard"""
     categorias = Categoria.objects.all()
     return render(request, "dashboard/categorias/lista.html", {"categorias": categorias})
+
+
+@login_required_user
+def dashboard_subcategorias(request):
+    """Panel de subcategorías en el dashboard"""
+    from ..models import Subcategoria
+    subcategorias = Subcategoria.objects.all().select_related('categoria')
+    return render(request, "dashboard/categorias/subcategorias.html", {"subcategorias": subcategorias})

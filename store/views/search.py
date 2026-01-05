@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db.models import Q, Min, Max, Prefetch, Count
-from ..models import Producto, Categoria, Variante
+from ..models import Producto, Categoria, Variante, Subcategoria
 from decimal import Decimal
 import json
 
@@ -13,16 +13,19 @@ import json
 @require_GET
 def search_products(request):
     """
-    API endpoint para búsqueda y filtrado de productos
+    API endpoint para búsqueda y filtrado de productos con soporte avanzado de filtros.
     
     Parámetros GET:
     - q: Término de búsqueda (nombre o descripción)
     - categoria: ID o nombre de categoría
-    - genero: M, H, Unisex
+    - subcategoria: ID o nombre de subcategoría
+    - marca: Marca del producto
+    - genero: M, H, Unisex (heredado - preferir subcategoria)
     - precio_min: Precio mínimo
     - precio_max: Precio máximo
     - en_oferta: true/false
     - tallas: Lista de tallas separadas por coma (ej: 25,26,27)
+    - colores: Lista de colores separados por coma (ej: Negro,Blanco,Rojo)
     - ordenar: precio_asc, precio_desc, nombre_asc, nombre_desc, nuevo, popular
     - page: Número de página (opcional)
     - per_page: Productos por página (default: 20)
@@ -31,7 +34,9 @@ def search_products(request):
     # Iniciar queryset con prefetch para optimizar
     productos = Producto.objects.prefetch_related(
         Prefetch('variantes', queryset=Variante.objects.filter(stock__gt=0)),
-        'categoria'
+        'categoria',
+        'subcategoria',
+        'imagenes'
     ).distinct()
     
     # ============ FILTRO: Término de búsqueda ============
@@ -39,7 +44,8 @@ def search_products(request):
     if q:
         productos = productos.filter(
             Q(nombre__icontains=q) | 
-            Q(descripcion__icontains=q)
+            Q(descripcion__icontains=q) |
+            Q(marca__icontains=q)
         )
     
     # ============ FILTRO: Categoría ============
@@ -53,9 +59,28 @@ def search_products(request):
             # Si no es número, buscar por nombre
             productos = productos.filter(categoria__nombre__iexact=categoria)
     
-    # ============ FILTRO: Género ============
+    # ============ FILTRO: Subcategoría (nuevo sistema) ============
+    subcategoria = request.GET.get('subcategoria', '').strip()
+    if subcategoria:
+        try:
+            # Intentar buscar por ID primero
+            subcat_id = int(subcategoria)
+            productos = productos.filter(subcategoria_id=subcat_id)
+        except ValueError:
+            # Si no es número, buscar por nombre
+            productos = productos.filter(subcategoria__nombre__iexact=subcategoria)
+    
+    # ============ FILTRO: Marca (nuevo) ============
+    marca = request.GET.get('marca', '').strip()
+    if marca:
+        productos = productos.filter(marca__iexact=marca)
+    
+    # ============ FILTRO: Género (heredado - mantener compatibilidad) ============
     genero = request.GET.get('genero', '').strip().upper()
-    if genero in ['M', 'H', 'UNISEX']:
+    if genero and genero in ['M', 'H', 'UNISEX', 'U']:
+        # Convertir 'U' a 'UNISEX' si es necesario
+        if genero == 'U':
+            genero = 'UNISEX'
         productos = productos.filter(genero__iexact=genero)
     
     # ============ FILTRO: Precio ============
@@ -90,6 +115,16 @@ def search_products(request):
                 variantes__stock__gt=0
             ).distinct()
     
+    # ============ FILTRO: Colores disponibles (nuevo) ============
+    colores = request.GET.get('colores', '').strip()
+    if colores:
+        colores_list = [c.strip() for c in colores.split(',') if c.strip()]
+        if colores_list:
+            productos = productos.filter(
+                variantes__color__in=colores_list,
+                variantes__stock__gt=0
+            ).distinct()
+    
     # ============ FILTRO: Solo con stock ============
     solo_disponibles = request.GET.get('disponibles', 'true').strip().lower()
     if solo_disponibles != 'false':
@@ -109,8 +144,7 @@ def search_products(request):
     elif ordenar == 'nuevo':
         productos = productos.order_by('-created_at')
     elif ordenar == 'popular':
-        # Podrías agregar un campo de popularidad o contar ventas
-        productos = productos.order_by('-id')  # Por ahora ordenar por ID
+        productos = productos.order_by('-id')
     
     # ============ PAGINACIÓN ============
     try:
@@ -127,15 +161,18 @@ def search_products(request):
     
     # ============ SERIALIZAR RESPUESTA ============
     data = []
-    for p in productos_pagina:
-        # Obtener tallas disponibles
+    for p in productos_pagina.prefetch_related('imagenes'):
+        # Obtener tallas y colores disponibles
         tallas_disponibles = set()
+        colores_disponibles = set()
         variantes_data = []
         
         for v in p.variantes.all():
             if v.stock > 0:
                 if v.talla:
                     tallas_disponibles.add(v.talla)
+                if v.color:
+                    colores_disponibles.add(v.color)
                 
                 variantes_data.append({
                     'id': v.id,
@@ -146,6 +183,9 @@ def search_products(request):
                     'stock': v.stock
                 })
         
+        # Galería de imágenes
+        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+        
         data.append({
             'id': p.id,
             'nombre': p.nombre,
@@ -154,10 +194,15 @@ def search_products(request):
             'precio_mayorista': float(p.precio_mayorista),
             'categoria': p.categoria.nombre,
             'categoria_id': p.categoria.id,
+            'subcategoria': p.subcategoria.nombre if p.subcategoria else None,
+            'subcategoria_id': p.subcategoria.id if p.subcategoria else None,
+            'marca': p.marca,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
             'imagen': p.imagen.url if p.imagen else '',
-            'tallas_disponibles': sorted(list(tallas_disponibles), key=lambda x: float(x) if x.replace('.','').isdigit() else x),
+            'imagenes_galeria': galeria,
+            'tallas_disponibles': sorted(list(tallas_disponibles), key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)),
+            'colores_disponibles': sorted(list(colores_disponibles)),
             'stock_total': sum(v['stock'] for v in variantes_data),
             'variantes': variantes_data,
         })
@@ -179,36 +224,72 @@ def search_products(request):
 @require_GET
 def get_filter_options(request):
     """
-    Obtiene las opciones disponibles para filtros
+    Obtiene las opciones disponibles para filtros avanzados.
+    
+    Parámetros GET:
+    - categoria_id: (opcional) Limitar subcategorías y marcas a esta categoría
     """
     
     # Categorías
     categorias = list(Categoria.objects.all().values('id', 'nombre'))
     
+    # Filtrar por categoría si se especifica
+    categoria_id = request.GET.get('categoria_id', '').strip()
+    if categoria_id:
+        try:
+            categoria_id = int(categoria_id)
+            subcategorias_qs = Subcategoria.objects.filter(categoria_id=categoria_id, activa=True)
+            productos_qs = Producto.objects.filter(categoria_id=categoria_id)
+        except ValueError:
+            subcategorias_qs = Subcategoria.objects.filter(activa=True)
+            productos_qs = Producto.objects.all()
+    else:
+        subcategorias_qs = Subcategoria.objects.filter(activa=True)
+        productos_qs = Producto.objects.all()
+    
+    # Subcategorías
+    subcategorias = list(subcategorias_qs.values('id', 'nombre', 'categoria_id'))
+    
     # Rango de precios
-    precios = Producto.objects.aggregate(
+    precios = productos_qs.aggregate(
         min_precio=Min('precio'),
         max_precio=Max('precio')
     )
     
     # Tallas disponibles
     tallas_queryset = Variante.objects.filter(
-        stock__gt=0
+        stock__gt=0,
+        producto__in=productos_qs
     ).exclude(talla='').values_list('talla', flat=True).distinct()
     
     tallas = sorted(
         list(set(tallas_queryset)),
-        key=lambda x: float(x) if x.replace('.','').isdigit() else x
+        key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)
     )
     
-    # Géneros
-    generos = Producto.objects.values_list('genero', flat=True).distinct()
+    # Colores disponibles
+    colores_queryset = Variante.objects.filter(
+        stock__gt=0,
+        producto__in=productos_qs
+    ).exclude(color='').values_list('color', flat=True).distinct()
+    
+    colores = sorted(list(set(colores_queryset)))
+    
+    # Marcas
+    marcas_queryset = productos_qs.exclude(marca__isnull=True).exclude(marca='').values_list('marca', flat=True).distinct()
+    marcas = sorted(list(set(marcas_queryset)))
+    
+    # Géneros (heredado)
+    generos = productos_qs.exclude(genero__isnull=True).exclude(genero='').values_list('genero', flat=True).distinct()
     
     return JsonResponse({
         'categorias': categorias,
+        'subcategorias': subcategorias,
         'precio_min': float(precios['min_precio'] or 0),
         'precio_max': float(precios['max_precio'] or 0),
         'tallas': tallas,
+        'colores': colores,
+        'marcas': marcas,
         'generos': list(generos),
     })
 
@@ -216,7 +297,7 @@ def get_filter_options(request):
 @require_GET
 def search_page(request):
     """
-    Página HTML de búsqueda con filtros
+    Página HTML de búsqueda avanzada con filtros
     """
     # Obtener opciones de filtros para pasarlas al template
     categorias = Categoria.objects.all()
@@ -228,8 +309,15 @@ def search_page(request):
     
     tallas = sorted(
         list(set(tallas_queryset)),
-        key=lambda x: float(x) if x.replace('.','').isdigit() else x
+        key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)
     )
+    
+    # Obtener colores disponibles
+    colores_queryset = Variante.objects.filter(
+        stock__gt=0
+    ).exclude(color='').values_list('color', flat=True).distinct()
+    
+    colores = sorted(list(set(colores_queryset)))
     
     # Rango de precios
     precios = Producto.objects.aggregate(
@@ -237,9 +325,15 @@ def search_page(request):
         max_precio=Max('precio')
     )
     
+    # Obtener marcas
+    marcas_queryset = Producto.objects.exclude(marca__isnull=True).exclude(marca='').values_list('marca', flat=True).distinct()
+    marcas = sorted(list(set(marcas_queryset)))
+    
     context = {
         'categorias': categorias,
         'tallas': tallas,
+        'colores': colores,
+        'marcas': marcas,
         'precio_min': precios['min_precio'] or 0,
         'precio_max': precios['max_precio'] or 0,
     }

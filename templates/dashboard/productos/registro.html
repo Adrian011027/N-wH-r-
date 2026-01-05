@@ -90,6 +90,14 @@
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="subcategorias">Subcategorías</label>
+          <select id="subcategorias" name="subcategorias" multiple class="select-multiple">
+            <option value="" disabled>Primero selecciona una categoría</option>
+          </select>
+          <small class="form-hint">Mantén Ctrl para seleccionar múltiples</small>
+        </div>
+
         <div class="form-group checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" name="en_oferta" />
@@ -110,22 +118,22 @@
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
-          Imagen del Producto
+          Imágenes del Producto (Máximo 5)
         </div>
 
         <div class="form-group">
           <div class="image-upload-area" id="imageUploadArea">
-            <input type="file" id="imagen" name="imagen" accept="image/*" />
+            <input type="file" id="imagen" name="imagen" accept="image/*" multiple />
             <div class="upload-placeholder">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              <span>Arrastra una imagen o haz clic para seleccionar</span>
-              <small>PNG, JPG hasta 5MB</small>
+              <span>Arrastra imágenes o haz clic para seleccionar</span>
+              <small>PNG, JPG hasta 5MB cada una (máximo 5 imágenes)</small>
             </div>
-            <img id="imagePreview" class="image-preview" style="display:none;" />
+            <div id="imagePreviews" class="image-previews"></div>
           </div>
         </div>
 

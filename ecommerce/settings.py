@@ -163,15 +163,16 @@ if USE_S3:
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',  # 1 día de cache
     }
-    AWS_DEFAULT_ACL = 'public-read'
+    AWS_DEFAULT_ACL = None  # Bucket usa políticas, no ACLs
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = False  # No agregar parámetros de autenticación a las URLs
+    AWS_LOCATION = 'media'  # Carpeta base en S3
     
     # Storage backends
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     
     # Media files location
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
     MEDIA_ROOT = ''  # No se usa con S3
 else:
     # Local storage (desarrollo)

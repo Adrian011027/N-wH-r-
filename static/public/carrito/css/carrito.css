@@ -50,6 +50,73 @@
   border-radius: 6px;
 }
 
+/* Mini-carrusel de imágenes en carrito */
+.item-imagen {
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+
+.carrusel-mini-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  position: relative;
+}
+
+.carrusel-mini-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+.carrusel-mini-slide {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carrusel-mini-prev,
+.carrusel-mini-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 5;
+}
+
+.carrusel-mini-viewport:hover .carrusel-mini-prev,
+.carrusel-mini-viewport:hover .carrusel-mini-next {
+  opacity: 1;
+}
+
+.carrusel-mini-prev:hover,
+.carrusel-mini-next:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.carrusel-mini-prev {
+  left: 4px;
+}
+
+.carrusel-mini-next {
+  right: 4px;
+}
+
 /* Detalles del producto */
 .item-detalles {
   flex: 2;

@@ -897,6 +897,30 @@
   color: #9ca3af;
 }
 
+/* Select múltiple para subcategorías */
+.select-multiple {
+  min-height: 120px;
+  padding: 8px !important;
+}
+
+.select-multiple option {
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.select-multiple option:checked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
 /* Filas de inputs */
 .form-row {
   display: grid;
@@ -1041,6 +1065,14 @@
   object-fit: contain;
 }
 
+/* Múltiples previsualizaciones */
+.image-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
 /* Imagen actual */
 .current-image-container {
   text-align: center;
@@ -1087,14 +1119,20 @@
 }
 
 .talla-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  align-items: end;
   padding: 16px;
   background: #f9fafb;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
+}
+
+.talla-row-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 12px;
+  align-items: end;
 }
 
 .talla-row label {
@@ -1121,19 +1159,118 @@
   border-color: #667eea;
 }
 
-.removeTalla {
+.removeTalla,
+.btn-show-images {
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fee2e2;
-  color: #dc2626;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   font-size: 16px;
   transition: all 0.2s ease;
+  padding: 0;
+}
+
+.removeTalla {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.removeTalla:hover {
+  background: #fecaca;
+}
+
+.btn-show-images {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.btn-show-images:hover {
+  background: #bfdbfe;
+}
+
+.talla-images-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.image-upload-area-variant {
+  position: relative;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+.image-upload-area-variant:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.image-upload-area-variant input {
+  display: none;
+}
+
+.upload-placeholder-variant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.upload-placeholder-variant svg {
+  opacity: 0.6;
+}
+
+.upload-placeholder-variant span {
+  font-size: 13px;
+  color: #666;
+}
+
+.image-previews-variant {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-order {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .removeTalla:hover {

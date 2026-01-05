@@ -99,6 +99,79 @@
 .wishlist-img-col {
   width: 85px;
   height: 85px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.wishlist-img-col img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Mini-carrusel en wishlist */
+.wishlist-img-col .carrusel-mini-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  position: relative;
+}
+
+.wishlist-img-col .carrusel-mini-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+
+.wishlist-img-col .carrusel-mini-slide {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wishlist-img-col .carrusel-mini-prev,
+.wishlist-img-col .carrusel-mini-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 5;
+}
+
+.wishlist-img-col:hover .carrusel-mini-prev,
+.wishlist-img-col:hover .carrusel-mini-next {
+  opacity: 1;
+}
+
+.wishlist-img-col .carrusel-mini-prev:hover,
+.wishlist-img-col .carrusel-mini-next:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.wishlist-img-col .carrusel-mini-prev {
+  left: 3px;
+}
+
+.wishlist-img-col .carrusel-mini-next {
+  right: 3px;
+  height: 85px;
   background: #f8f8f8;
   border-radius: 10px;
   overflow: hidden;
@@ -109,12 +182,7 @@
   border: 1px solid #f0f0f0;
 }
 
-.wishlist-img-col img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
+/* Ocultar la definición duplicate, ya está en la anterior */
 
 /* Columna de información */
 .wishlist-info-col {

@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="{% static 'public/inicio/css/index.css' %}">
   <link rel="stylesheet" href="{% static 'public/inicio/css/wishlist.css' %}">
   <link rel="stylesheet" href="{% static 'public/inicio/css/search-overlay.css' %}">
+  <link rel="stylesheet" href="{% static 'public/css/filtros-dinamicos.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
   {% block extra_css %}{% endblock %}
 
@@ -86,6 +87,12 @@
   <!-- JWT Helper para todas las peticiones -->
   <script src="{% static 'public/js/fetch-helper.js' %}"></script>
   <script src="{% static 'public/js/logout.js' %}"></script>
+  
+  <!-- Menú de Navegación con Cascada -->
+  <script src="{% static 'public/js/nav-menu.js' %}"></script>
+  
+  <!-- Filtros Dinámicos -->
+  <script src="{% static 'public/js/filtros-dinamicos.js' %}"></script>
 
   {% block extra_js %}{% endblock %}
 

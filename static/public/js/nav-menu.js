@@ -1,140 +1,355 @@
 /**
  * nav-menu.js
- * Carga dinámica del menú de navegación con géneros y categorías
+ * Menú elegante con navegación en cascada: Género → Categoría → Subcategoría
+ * Paneles que se deslizan para una experiencia móvil fluida
  */
 
 (function() {
   'use strict';
 
-  // Cargar el menú al cargar la página
-  document.addEventListener('DOMContentLoaded', loadNavMenu);
+  // Estado
+  const state = {
+    currentGenero: null,
+    currentCategoria: null,
+    cache: {
+      categorias: {},
+      subcategorias: {}
+    }
+  };
 
-  async function loadNavMenu() {
+  // DOM Elements
+  const dom = {
+    navMenu: null,
+    panelMain: null,
+    panelCategorias: null,
+    panelSubcategorias: null,
+    categoriasTitle: null,
+    subcategoriasTitle: null,
+    categoriasList: null,
+    subcategoriasList: null
+  };
+
+  // Inicializar
+  document.addEventListener('DOMContentLoaded', init);
+
+  function init() {
+    // Obtener elementos del DOM
+    dom.navMenu = document.getElementById('nav-menu');
+    dom.panelMain = document.getElementById('panel-main');
+    dom.panelCategorias = document.getElementById('panel-categorias');
+    dom.panelSubcategorias = document.getElementById('panel-subcategorias');
+    dom.categoriasTitle = document.getElementById('categorias-title');
+    dom.subcategoriasTitle = document.getElementById('subcategorias-title');
+    dom.categoriasList = document.getElementById('categorias-list');
+    dom.subcategoriasList = document.getElementById('subcategorias-list');
+
+    if (!dom.navMenu) {
+      console.warn('nav-menu.js: Menú no encontrado');
+      return;
+    }
+
+    setupEventListeners();
+    console.log('✅ Menú de navegación inicializado');
+  }
+
+  /**
+   * Setup event listeners
+   */
+  function setupEventListeners() {
+    // Género triggers
+    document.querySelectorAll('.genero-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const li = trigger.closest('.nav-item-expandable');
+        const genero = li?.dataset.genero;
+        if (genero) {
+          openCategorias(genero);
+        }
+      });
+    });
+
+    // Botón volver a géneros
+    const btnBackGeneros = document.getElementById('btn-back-generos');
+    if (btnBackGeneros) {
+      btnBackGeneros.addEventListener('click', () => {
+        closeCategorias();
+      });
+    }
+
+    // Botón volver a categorías
+    const btnBackCategorias = document.getElementById('btn-back-categorias');
+    if (btnBackCategorias) {
+      btnBackCategorias.addEventListener('click', () => {
+        closeSubcategorias();
+      });
+    }
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (dom.navMenu?.classList.contains('open') && 
+          !e.target.closest('.nav-menu') && 
+          !e.target.closest('#btn-burger')) {
+        resetToMain();
+      }
+    });
+  }
+
+  /**
+   * Abrir panel de categorías para un género
+   */
+  async function openCategorias(genero) {
+    state.currentGenero = genero;
+
+    // Actualizar título
+    const generoNombres = {
+      'ambos': '👥 Ambos',
+      'mujer': '👩 Mujer', 
+      'hombre': '👨 Hombre'
+    };
+    dom.categoriasTitle.textContent = generoNombres[genero] || genero;
+
+    // Mostrar loading
+    dom.categoriasList.innerHTML = `
+      <li class="nav-item nav-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando categorías...</span>
+      </li>
+    `;
+
+    // Transición de paneles
+    dom.panelMain.classList.add('slide-out');
+    dom.panelMain.classList.remove('active');
+    dom.panelCategorias.classList.add('active');
+
+    // Cargar categorías
+    await loadCategorias(genero);
+  }
+
+  /**
+   * Cerrar panel de categorías
+   */
+  function closeCategorias() {
+    dom.panelMain.classList.remove('slide-out');
+    dom.panelMain.classList.add('active');
+    dom.panelCategorias.classList.remove('active');
+    state.currentGenero = null;
+  }
+
+  /**
+   * Abrir panel de subcategorías
+   */
+  async function openSubcategorias(categoriaId, categoriaNombre) {
+    state.currentCategoria = categoriaId;
+
+    // Actualizar título
+    dom.subcategoriasTitle.textContent = categoriaNombre;
+
+    // Mostrar loading
+    dom.subcategoriasList.innerHTML = `
+      <li class="nav-item nav-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando...</span>
+      </li>
+    `;
+
+    // Transición de paneles
+    dom.panelCategorias.classList.add('slide-out');
+    dom.panelCategorias.classList.remove('active');
+    dom.panelSubcategorias.classList.add('active');
+
+    // Cargar subcategorías
+    await loadSubcategorias(categoriaId, state.currentGenero);
+  }
+
+  /**
+   * Cerrar panel de subcategorías
+   */
+  function closeSubcategorias() {
+    dom.panelCategorias.classList.remove('slide-out');
+    dom.panelCategorias.classList.add('active');
+    dom.panelSubcategorias.classList.remove('active');
+    state.currentCategoria = null;
+  }
+
+  /**
+   * Resetear al panel principal
+   */
+  function resetToMain() {
+    dom.panelMain.classList.remove('slide-out');
+    dom.panelMain.classList.add('active');
+    dom.panelCategorias.classList.remove('active', 'slide-out');
+    dom.panelSubcategorias.classList.remove('active');
+    state.currentGenero = null;
+    state.currentCategoria = null;
+  }
+
+  /**
+   * Cargar categorías desde API
+   */
+  async function loadCategorias(genero) {
+    console.log(`📂 Cargando categorías para género: ${genero}`);
     try {
-      const response = await fetch('/api/nav-menu/');
-      if (!response.ok) {
-        throw new Error('Error al cargar el menú');
+      // Verificar cache
+      if (state.cache.categorias[genero]) {
+        console.log(`📦 Usando cache para ${genero}:`, state.cache.categorias[genero]);
+        renderCategorias(state.cache.categorias[genero]);
+        return;
       }
 
+      const url = `/api/categorias-por-genero/?genero=${genero}`;
+      console.log(`🔗 Llamando a: ${url}`);
+      
+      const response = await fetch(url);
+      console.log(`📡 Response status: ${response.status}`);
+      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
       const data = await response.json();
-      renderNavMenu(data.generos);
+      console.log(`✅ Categorías recibidas:`, data);
+      
+      state.cache.categorias[genero] = data.categorias || [];
+
+      renderCategorias(state.cache.categorias[genero]);
     } catch (error) {
-      console.error('Error cargando menú:', error);
-      // Mantener el menú estático si falla
+      console.error('❌ Error cargando categorías:', error);
+      dom.categoriasList.innerHTML = `
+        <li class="nav-item nav-error">Error al cargar categorías: ${error.message}</li>
+      `;
     }
   }
 
-  function renderNavMenu(generos) {
-    const menuContainer = document.querySelector('.nav-menu .menu');
-    if (!menuContainer) return;
+  /**
+   * Renderizar categorías
+   */
+  function renderCategorias(categorias) {
+    dom.categoriasList.innerHTML = '';
 
-    // Limpiar menú actual (excepto botón de cierre)
-    menuContainer.innerHTML = '';
+    if (!categorias || categorias.length === 0) {
+      dom.categoriasList.innerHTML = `
+        <li class="nav-item nav-empty">No hay categorías disponibles</li>
+      `;
+      return;
+    }
 
-    // Agregar "Inicio"
-    const inicioItem = document.createElement('li');
-    inicioItem.innerHTML = '<a href="/">Inicio</a>';
-    menuContainer.appendChild(inicioItem);
-
-    // Agregar cada género con sus categorías
-    generos.forEach(genero => {
+    categorias.forEach((cat, index) => {
       const li = document.createElement('li');
-      li.className = 'menu-item-with-submenu';
+      li.className = 'nav-item';
+      li.style.animationDelay = `${0.1 + index * 0.05}s`;
 
-      // Link principal del género (puede ser clickeable o solo toggle)
-      const generoLink = document.createElement('a');
-      generoLink.href = `/coleccion/${genero.slug}/`;
-      generoLink.textContent = genero.nombre;
-      generoLink.className = 'genero-link';
-
-      // Botón toggle para desplegar categorías
-      const toggleBtn = document.createElement('button');
-      toggleBtn.className = 'submenu-toggle';
-      toggleBtn.setAttribute('aria-label', `Ver categorías de ${genero.nombre}`);
-      toggleBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" 
-             fill="none" stroke="currentColor" stroke-width="2" 
-             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-          <polyline points="6 9 12 15 18 9"/>
+      const link = document.createElement('a');
+      link.href = '#';
+      link.className = 'nav-link categoria-trigger';
+      link.innerHTML = `
+        ${cat.imagen ? `<img src="${cat.imagen}" alt="${cat.nombre}" class="cat-thumb">` : `<span class="nav-icon">📁</span>`}
+        <span>${cat.nombre}</span>
+        <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       `;
 
-      // Contenedor de categorías (submenú)
-      const submenu = document.createElement('ul');
-      submenu.className = 'submenu';
-
-      // Agregar "Ver todo" del género
-      const verTodoItem = document.createElement('li');
-      verTodoItem.innerHTML = `<a href="/coleccion/${genero.slug}/">Ver todo ${genero.nombre}</a>`;
-      submenu.appendChild(verTodoItem);
-
-      // Agregar cada categoría
-      genero.categorias.forEach(categoria => {
-        const catItem = document.createElement('li');
-        catItem.innerHTML = `
-          <a href="/coleccion/${genero.slug}/?categoria=${categoria.slug}">
-            ${categoria.nombre}
-            <span class="count">(${categoria.count})</span>
-          </a>
-        `;
-        submenu.appendChild(catItem);
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSubcategorias(cat.id, cat.nombre);
       });
 
-      // Construir el elemento completo
-      const itemWrapper = document.createElement('div');
-      itemWrapper.className = 'menu-item-header';
-      itemWrapper.appendChild(generoLink);
-      
-      // Solo agregar toggle si hay categorías
-      if (genero.categorias.length > 0) {
-        itemWrapper.appendChild(toggleBtn);
-      }
-
-      li.appendChild(itemWrapper);
-      
-      if (genero.categorias.length > 0) {
-        li.appendChild(submenu);
-      }
-
-      menuContainer.appendChild(li);
-
-      // Event listener para toggle
-      if (genero.categorias.length > 0) {
-        toggleBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          toggleSubmenu(li);
-        });
-      }
+      li.appendChild(link);
+      dom.categoriasList.appendChild(li);
     });
 
-    // Agregar "Ver Todo"
-    const todoItem = document.createElement('li');
-    todoItem.innerHTML = '<a href="/coleccion/todo/">Ver Todo</a>';
-    menuContainer.appendChild(todoItem);
+    // Agregar link "Ver todos" al final
+    const verTodosLi = document.createElement('li');
+    verTodosLi.className = 'nav-item';
+    const verTodosLink = document.createElement('a');
+    verTodosLink.href = `/catalogo/?genero=${state.currentGenero}`;
+    verTodosLink.className = 'nav-link nav-link-highlight';
+    verTodosLink.innerHTML = `<span>Ver todos de ${state.currentGenero}</span>`;
+    verTodosLi.appendChild(verTodosLink);
+    dom.categoriasList.appendChild(verTodosLi);
   }
 
-  function toggleSubmenu(menuItem) {
-    const wasOpen = menuItem.classList.contains('submenu-open');
-    
-    // Cerrar todos los otros submenús
-    document.querySelectorAll('.menu-item-with-submenu').forEach(item => {
-      item.classList.remove('submenu-open');
-    });
+  /**
+   * Cargar subcategorías desde API
+   */
+  async function loadSubcategorias(categoriaId, genero) {
+    try {
+      const cacheKey = `${genero}-${categoriaId}`;
 
-    // Toggle el submenú actual
-    if (!wasOpen) {
-      menuItem.classList.add('submenu-open');
+      // Verificar cache
+      if (state.cache.subcategorias[cacheKey]) {
+        renderSubcategorias(state.cache.subcategorias[cacheKey]);
+        return;
+      }
+
+      const response = await fetch(
+        `/api/subcategorias-por-categoria/?categoria_id=${categoriaId}&genero=${genero}`
+      );
+      if (!response.ok) throw new Error('Error cargando subcategorías');
+
+      const data = await response.json();
+      state.cache.subcategorias[cacheKey] = data.subcategorias || [];
+
+      renderSubcategorias(state.cache.subcategorias[cacheKey]);
+    } catch (error) {
+      console.error('Error cargando subcategorías:', error);
+      dom.subcategoriasList.innerHTML = `
+        <li class="nav-item nav-error">Error al cargar subcategorías</li>
+      `;
     }
   }
 
-  // Cerrar submenús al hacer clic fuera
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.menu-item-with-submenu')) {
-      document.querySelectorAll('.menu-item-with-submenu').forEach(item => {
-        item.classList.remove('submenu-open');
-      });
+  /**
+   * Renderizar subcategorías (sin agrupación por tipo ya que el modelo no tiene ese campo)
+   */
+  function renderSubcategorias(subcategorias) {
+    dom.subcategoriasList.innerHTML = '';
+
+    if (!subcategorias || subcategorias.length === 0) {
+      dom.subcategoriasList.innerHTML = `
+        <li class="nav-item nav-empty">No hay subcategorías disponibles</li>
+      `;
+
+      // Agregar enlace para ver categoría completa
+      const verCatLi = document.createElement('li');
+      verCatLi.className = 'nav-item';
+      const verCatLink = document.createElement('a');
+      verCatLink.href = `/catalogo/?categoria=${state.currentCategoria}`;
+      verCatLink.className = 'nav-link nav-link-highlight';
+      verCatLink.innerHTML = `<span>Ver toda la categoría</span>`;
+      verCatLi.appendChild(verCatLink);
+      dom.subcategoriasList.appendChild(verCatLi);
+      return;
     }
-  });
+
+    // Renderizar subcategorías directamente (sin agrupar por tipo)
+    subcategorias.forEach((sub, index) => {
+      const li = document.createElement('li');
+      li.className = 'nav-item';
+      li.style.animationDelay = `${0.1 + index * 0.03}s`;
+
+      const link = document.createElement('a');
+      link.href = `/catalogo/?subcategoria=${sub.id}`;
+      link.className = 'nav-link';
+      link.innerHTML = `
+        ${sub.imagen ? `<img src="${sub.imagen}" alt="${sub.nombre}" class="sub-thumb">` : ''}
+        <span>${sub.nombre}</span>
+      `;
+
+      li.appendChild(link);
+      dom.subcategoriasList.appendChild(li);
+    });
+
+    // Agregar link "Ver todos" al final
+    const verTodosLi = document.createElement('li');
+    verTodosLi.className = 'nav-item';
+    const verTodosLink = document.createElement('a');
+    verTodosLink.href = `/catalogo/?categoria=${state.currentCategoria}`;
+    verTodosLink.className = 'nav-link nav-link-highlight';
+    verTodosLink.innerHTML = `<span>Ver toda la categoría</span>`;
+    verTodosLi.appendChild(verTodosLink);
+    dom.subcategoriasList.appendChild(verTodosLi);
+  }
+
+  // Exponer función de reset para uso externo
+  window.navMenuReset = resetToMain;
 
 })();
