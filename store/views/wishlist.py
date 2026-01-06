@@ -139,23 +139,33 @@ def productos_por_ids(request):
     Respuesta: {"productos":[{id,nombre,precio,imagen,imagenes_galeria}, … ]}
     """
     ids_raw = request.GET.get('ids', '')
+    print(f"[DEBUG] productos_por_ids - ids_raw: {ids_raw}")
+    
     try:
         id_list = [int(i) for i in ids_raw.split(',') if i]
     except ValueError:
+        print(f"[DEBUG] Error al parsear IDs")
         return JsonResponse({'error': 'IDs inválidos'}, status=400)
 
+    print(f"[DEBUG] id_list: {id_list}")
+    
     productos = []
     for p in Producto.objects.filter(id__in=id_list).prefetch_related('imagenes'):
-        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+        galeria = [img.imagen.url for img in p.imagenes.all().order_by('orden') if img.imagen]
+        # La imagen principal es siempre la primera de la galería
+        imagen_principal = galeria[0] if galeria else None
+        
+        print(f"[DEBUG] Producto {p.id}: {p.nombre}")
+        print(f"  - Galería: {len(galeria)} imágenes")
+        print(f"  - Primera imagen: {imagen_principal}")
+        
         productos.append({
             "id"    : p.id,
             "nombre": p.nombre,
             "precio": f"{p.precio.normalize():f}",
-            "imagen": (
-                request.build_absolute_uri(p.imagen.url)
-                if p.imagen else None
-            ),
-            "imagenes_galeria": [request.build_absolute_uri(img) for img in galeria]
+            "imagen": imagen_principal,  # Ya es una URL absoluta de S3
+            "imagenes_galeria": galeria   # Ya son URLs absolutas de S3
         })
 
+    print(f"[DEBUG] Retornando {len(productos)} productos")
     return JsonResponse({'productos': productos})

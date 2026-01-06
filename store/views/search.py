@@ -198,7 +198,7 @@ def search_products(request):
             'marca': p.marca,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
-            'imagen': p.imagen.url if p.imagen else '',
+            'imagen': galeria[0] if galeria else '',  # La imagen principal es siempre la primera de la galería
             'imagenes_galeria': galeria,
             'tallas_disponibles': sorted(list(tallas_disponibles), key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)),
             'colores_disponibles': sorted(list(colores_disponibles)),

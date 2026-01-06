@@ -5,6 +5,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'dashboard/css/productos/main.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'dashboard/css/productos/gallery-edit.css' %}?v=1">
 
 <div class="productos-page">
   <!-- Header -->
@@ -76,7 +77,16 @@
               {% endfor %}
             </select>
           </div>
+        </div>
 
+        <div class="form-group">
+          <label>Subcategorías</label>
+          <div id="subcategorias-container" class="subcategorias-checklist">
+            <p style="color: #999; font-size: 14px;">Cargando subcategorías...</p>
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
             <label for="genero">Género</label>
             <select id="genero" name="genero" required>
@@ -101,44 +111,58 @@
 
       <!-- Columna derecha -->
       <div class="form-section">
-        <div class="section-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          Imagen del Producto
-        </div>
-
+        <!-- Galería de imágenes existentes -->
         <div class="form-group">
-          <div class="current-image-container">
-            {% if producto.imagen %}
-              <img src="{{ producto.imagen.url }}" alt="Imagen actual" class="current-image" />
-              <span class="image-label">Imagen actual</span>
-            {% else %}
-              <div class="no-image">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <span>Sin imagen</span>
-              </div>
-            {% endif %}
+          <div class="section-title" style="margin-bottom: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            Galería de Imágenes (<span id="imageCount">{{ imagenes_galeria.count }}/5</span>)
           </div>
-        </div>
 
-        <div class="form-group">
-          <label>Subir nueva imagen (opcional)</label>
-          <div class="image-upload-area compact" id="imageUploadArea">
-            <input type="file" id="imagen" name="imagen" accept="image/*" />
-            <div class="upload-placeholder">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
-              <span>Seleccionar nueva imagen</span>
+          <div class="gallery-container-edit">
+            <!-- Imágenes existentes -->
+            <div class="thumbnails-grid-edit">
+              {% if imagenes_galeria %}
+                {% for img in imagenes_galeria %}
+                  <div class="thumbnail-item-edit" data-image-id="{{ img.id }}" data-image-order="{{ img.orden }}">
+                    <img src="{{ img.imagen.url }}" alt="Imagen {{ img.orden }}" />
+                    <div class="thumbnail-overlay">
+                      <button type="button" class="btn-delete-existing" data-image-id="{{ img.id }}" title="Eliminar imagen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <div class="no-images-placeholder">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                  <p>Sin imágenes cargadas</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Área para agregar nuevas imágenes -->
+            <div class="upload-area-edit">
+              <input type="file" id="galeriaInput" name="imagen_galeria_upload" accept="image/*" multiple />
+              <div class="upload-placeholder-edit">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p><strong>Arrastra imágenes aquí o haz clic</strong></p>
+                <small>Puedes agregar hasta {{ imagenes_galeria.count|add:5|add:'-' }}{{ imagenes_galeria.count }} imágenes más</small>
+              </div>
             </div>
           </div>
         </div>
@@ -198,6 +222,50 @@
                            value="{{ variante.stock }}" class="stock-input">
                   </div>
                 </div>
+
+                <!-- Galería de imágenes de la variante -->
+                <div class="variante-gallery" data-variante-id="{{ variante.id }}">
+                  <div class="gallery-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    Galería de la variante (<span class="var-img-count">{{ variante.imagenes.count }}/5</span>)
+                  </div>
+
+                  <div class="variante-gallery-grid">
+                    <!-- Imágenes existentes -->
+                    <div class="var-thumbnails">
+                      {% if variante.imagenes.all %}
+                        {% for img in variante.imagenes.all %}
+                          <div class="var-thumb-item" data-image-id="{{ img.id }}">
+                            <img src="{{ img.imagen.url }}" alt="Imagen variante" />
+                            <button type="button" class="btn-delete-var-img" data-image-id="{{ img.id }}" title="Eliminar">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    </div>
+
+                    <!-- Área de carga -->
+                    <div class="var-upload-area">
+                      <input type="file" class="var-image-input" data-variante-id="{{ variante.id }}" accept="image/*" />
+                      <div class="var-upload-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <small>Agregar imágenes</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             {% endfor %}
           {% else %}
@@ -208,9 +276,18 @@
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
               </svg>
-              <p>No hay variantes registradas</p>
+              <p>No hay variantes. Se creará una variante por defecto al guardar.</p>
             </div>
           {% endif %}
+
+        <button type="button" id="addVariante" class="btn-add-variante">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          Añadir otra variante
+        </button>
         </div>
       </div>
     </div>
@@ -230,5 +307,46 @@
   </form>
 </div>
 
-<script src="{% static 'dashboard/js/productos/editar.js' %}?v=3" defer></script>
+<script>
+// Toast notification - función global disponible en todos los scripts
+function toast(msg, type = 'success') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  t.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: ${type === 'warning' ? '#ff9800' : type === 'error' ? '#f44336' : '#4caf50'};
+    color: white;
+    padding: 16px 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    max-width: 400px;
+    word-wrap: break-word;
+  `;
+  document.body.appendChild(t);
+  
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+  });
+  
+  setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.remove(), 300);
+  }, 3000);
+}
+</script>
+
+<script src="{% static 'dashboard/js/productos/editar.js' %}?v=5" defer></script>
+<script src="{% static 'dashboard/js/productos/variante-gallery.js' %}?v=2" defer></script>
+<script src="{% static 'dashboard/js/productos/variantes-edit.js' %}?v=3" defer></script>
 {% endblock %}

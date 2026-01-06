@@ -1,5 +1,39 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.utils.text import slugify
+import os
+
+# ——————————————————————————————————————
+# Funciones para upload_to callbacks
+# ——————————————————————————————————————
+
+def producto_imagen_upload_to(instance, filename):
+    """
+    Callback para generar la ruta de imágenes de galería de producto.
+    Formato: productos/prod-{id}-{slug}/imagen-{numero}.{ext}
+    """
+    if not instance.producto.id:
+        return f'productos/galeria/{filename}'
+    
+    ext = os.path.splitext(filename)[1].lower()
+    slug = slugify(instance.producto.nombre)[:40]
+    return f'productos/prod-{instance.producto.id}-{slug}/{filename}'
+
+
+def variante_imagen_upload_to(instance, filename):
+    """
+    Callback para generar la ruta de imágenes de galería de variante.
+    Formato: variantes/var-{prod-id}-{var-id}-{talla}-{color}/imagen-{numero}.{ext}
+    """
+    if not instance.variante.id:
+        return f'variantes/galeria/{filename}'
+    
+    ext = os.path.splitext(filename)[1].lower()
+    producto_slug = slugify(instance.variante.producto.nombre)[:30]
+    talla_clean = slugify(instance.variante.talla or "unica")[:10]
+    color_clean = slugify(instance.variante.color or "na")[:10]
+    return f'variantes/var-{instance.variante.producto_id}-{instance.variante.id}-{talla_clean}-{color_clean}/{filename}'
+
 
 # ——————————————————————————————————————
 # Modelos de usuario y cliente
@@ -174,7 +208,6 @@ class Producto(models.Model):
     precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     en_oferta   = models.BooleanField(default=False)
     marca       = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="Marca del producto para filtros")
-    imagen      = models.ImageField(upload_to='productos/', blank=True, null=True)  # Imagen principal
     created_at  = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -187,23 +220,6 @@ class Producto(models.Model):
         Útil para mostrar stock global de un producto con variantes.
         """
         return sum( var.stock for var in self.variantes.all() )
-    
-    def _generate_image_key(self, filename):
-        """
-        Genera una clave canónica para la imagen del producto
-        Formato: productos/prod-{id}-{nombre_slug}.{ext}
-        Ejemplo: productos/prod-42-nike-air-force-negra.jpg
-        """
-        import os
-        from django.utils.text import slugify
-        
-        # Esperar a que el producto tenga ID
-        if not self.id:
-            return f'productos/{filename}'
-        
-        ext = os.path.splitext(filename)[1].lower()
-        slug = slugify(self.nombre)[:50]  # Limitar a 50 caracteres
-        return f'productos/prod-{self.id}-{slug}{ext}'
 
 
 class ProductoImagen(models.Model):
@@ -214,7 +230,7 @@ class ProductoImagen(models.Model):
     MAX_IMAGENES = 5
     
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='imagenes')
-    imagen = models.ImageField(upload_to='productos/galeria/')
+    imagen = models.ImageField(upload_to=producto_imagen_upload_to)
     orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel (1-5)")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -231,6 +247,23 @@ class ProductoImagen(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} - Imagen {self.orden}"
+    
+    def _generate_image_key(self, filename, imagen_numero):
+        """
+        Genera una ruta canónica para la imagen de la galería.
+        Formato: productos/prod-{id}-{nombre_slug}/imagen-{numero}.{ext}
+        Ejemplo: productos/prod-42-nike-air-force/imagen-1.jpg
+        """
+        import os
+        from django.utils.text import slugify
+        
+        # Esperar a que el producto tenga ID
+        if not self.producto.id:
+            return f'productos/galeria/{filename}'
+        
+        ext = os.path.splitext(filename)[1].lower()
+        slug = slugify(self.producto.nombre)[:40]  # Limitar a 40 caracteres
+        return f'productos/prod-{self.producto.id}-{slug}/imagen-{imagen_numero}{ext}'
     
     def clean(self):
         """
@@ -417,9 +450,9 @@ class VarianteImagen(models.Model):
     """
     MAX_IMAGENES = 5
     
-    variante = models.ForeignKey(Variante, on_delete=models.CASCADE, related_name='imagenes_carrusel')
+    variante = models.ForeignKey(Variante, on_delete=models.CASCADE, related_name='imagenes')
     imagen = models.ImageField(
-        upload_to='variantes/galeria/',
+        upload_to=variante_imagen_upload_to,
         help_text="Imagen de la variante desde diferentes ángulos"
     )
     orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel (1-5)")
@@ -438,6 +471,26 @@ class VarianteImagen(models.Model):
 
     def __str__(self):
         return f"{self.variante} - Imagen {self.orden}"
+    
+    def _generate_image_key(self, filename, imagen_numero):
+        """
+        Genera una ruta canónica para la imagen de la galería de variante.
+        Formato: variantes/var-{prod-id}-{var-id}-{talla}-{color}/imagen-{numero}.{ext}
+        Ejemplo: variantes/var-42-123-40-negro/imagen-1.jpg
+        """
+        import os
+        from django.utils.text import slugify
+        
+        # Esperar a que la variante tenga ID
+        if not self.variante.id:
+            return f'variantes/galeria/{filename}'
+        
+        ext = os.path.splitext(filename)[1].lower()
+        producto_slug = slugify(self.variante.producto.nombre)[:30]
+        talla_clean = slugify(self.variante.talla or "unica")[:10]
+        color_clean = slugify(self.variante.color or "na")[:10]
+        
+        return f'variantes/var-{self.variante.producto_id}-{self.variante.id}-{talla_clean}-{color_clean}/imagen-{imagen_numero}{ext}'
     
     def clean(self):
         """

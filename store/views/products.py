@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Producto, Categoria, Variante, Subcategoria
 from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
+from django.db import models
 from decimal import Decimal
 from .decorators import jwt_role_required
 import json
@@ -76,7 +77,11 @@ def get_all_products(request):
             })
         
         # Galería de imágenes del producto
-        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+        galeria = [img.imagen.url for img in p.imagenes.all().order_by('orden') if img.imagen]
+        
+        # La imagen principal siempre es la primera de la galería
+        # Esto asegura consistencia: no hay imágenes duplicadas
+        imagen_principal = galeria[0] if galeria else ''
 
         data.append({
             'id': p.id,
@@ -86,7 +91,7 @@ def get_all_products(request):
             'categoria_id': p.categoria.id,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
-            'imagen': p.imagen.url if p.imagen else '',
+            'imagen': imagen_principal,
             'imagenes': galeria,
             'created_at': p.created_at.isoformat(),
             'stock_total': p.stock_total,
@@ -152,7 +157,7 @@ def create_product(request):
     except ValueError:
         return JsonResponse({"error": "precio y precio_mayorista deben ser numéricos"}, status=400)
 
-    # Crear producto
+    # Crear producto (sin imagen - usará la primera de ProductoImagen)
     producto = Producto.objects.create(
         nombre=nombre,
         descripcion=descripcion,
@@ -161,25 +166,7 @@ def create_product(request):
         categoria=categoria,
         genero=genero,
         en_oferta=en_oferta,
-        imagen=imagen,
     )
-
-    # Agregar imágenes de galería (máximo 5)
-    if not request.content_type.startswith("application/json"):
-        imagenes_galeria = request.FILES.getlist("imagen")
-        from ..models import ProductoImagen
-        for idx, img in enumerate(imagenes_galeria[:5]):  # Máximo 5 imágenes
-            ProductoImagen.objects.create(
-                producto=producto,
-                imagen=img,
-                orden=idx + 1
-            )
-
-    # Agregar subcategorías si se proporcionaron
-    if subcategorias_ids:
-        from ..models import Subcategoria
-        subcats = Subcategoria.objects.filter(id__in=subcategorias_ids)
-        producto.subcategorias.set(subcats)
 
     # Sistema nuevo: Variantes con talla y color directos
     # Variantes múltiples (tallas + stocks)
@@ -190,36 +177,39 @@ def create_product(request):
         except:
             return JsonResponse({"error": "Stock debe ser numérico"}, status=400)
 
+        # Obtener colores, precios, precios_mayorista (pueden estar vacíos)
+        colores = request.POST.getlist("colores") if request.method == "POST" else []
+        precios_var = request.POST.getlist("precios") if request.method == "POST" else []
+        precios_mayorista_var = request.POST.getlist("precios_mayorista") if request.method == "POST" else []
+
         for idx, (talla, stock) in enumerate(zip(tallas, stocks)):
+            # Obtener color de esta variante (o usar N/A)
+            color = colores[idx] if idx < len(colores) and colores[idx] else "N/A"
+            
+            # Obtener precio de esta variante (o usar el del producto)
+            precio_var = precio
+            if idx < len(precios_var) and precios_var[idx]:
+                try:
+                    precio_var = float(precios_var[idx])
+                except ValueError:
+                    precio_var = precio
+            
+            # Obtener precio mayorista de esta variante (o usar el del producto)
+            precio_mayorista_var = precio_mayorista
+            if idx < len(precios_mayorista_var) and precios_mayorista_var[idx]:
+                try:
+                    precio_mayorista_var = float(precios_mayorista_var[idx])
+                except ValueError:
+                    precio_mayorista_var = precio_mayorista
+            
             variante = Variante.objects.create(
                 producto=producto,
                 talla=talla,
-                color=data.get("color", "N/A") if request.content_type.startswith("application/json") else request.POST.get("color", "N/A"),
-                precio=precio,
-                precio_mayorista=precio_mayorista,
+                color=color,
+                precio=precio_var,
+                precio_mayorista=precio_mayorista_var,
                 stock=stock,
             )
-            
-            # Procesar imágenes de esta variante (por índice)
-            if not request.content_type.startswith("application/json"):
-                # Buscar imágenes con patrón de nombre dinámico
-                imagenes_variante = []
-                for key in request.FILES.keys():
-                    if key.startswith("variante_imagenes_") and key.endswith(str(idx)):
-                        imagenes_variante = request.FILES.getlist(key)
-                        break
-                    elif key == f"variante_imagenes_{idx}":
-                        imagenes_variante = request.FILES.getlist(key)
-                        break
-                
-                from ..models import VarianteImagen
-                for img_idx, img in enumerate(imagenes_variante[:5]):  # Máximo 5 imágenes
-                    VarianteImagen.objects.create(
-                        variante=variante,
-                        imagen=img,
-                        orden=img_idx + 1
-                    )
-            
             # Capturar precio de la primera variante
             if idx == 0:
                 primera_variante_precio = variante.precio
@@ -230,8 +220,9 @@ def create_product(request):
         talla_unica = data.get("talla", "UNICA") if request.content_type.startswith("application/json") else request.POST.get("talla", "UNICA")
         color_unico = data.get("color", "N/A") if request.content_type.startswith("application/json") else request.POST.get("color", "N/A")
 
+        # Si no hay stock, usar 0 como valor por defecto
         if stock_unico is None:
-            return JsonResponse({"error": "Falta campo 'stock'"}, status=400)
+            stock_unico = 0
 
         try:
             stock_unico = int(stock_unico)
@@ -246,33 +237,50 @@ def create_product(request):
             precio_mayorista=precio_mayorista,
             stock=stock_unico,
         )
-        
-        # Procesar imágenes de variante única
-        if not request.content_type.startswith("application/json"):
-            imagenes_variante = []
-            # Buscar imágenes con patrón de nombre dinámico
-            for key in request.FILES.keys():
-                if key.startswith("variante_imagenes_") and key.endswith("0"):
-                    imagenes_variante = request.FILES.getlist(key)
-                    break
-                elif key == "variante_imagenes_0":
-                    imagenes_variante = request.FILES.getlist(key)
-                    break
-            
-            from ..models import VarianteImagen
-            for img_idx, img in enumerate(imagenes_variante[:5]):  # Máximo 5 imágenes
-                VarianteImagen.objects.create(
-                    variante=variante,
-                    imagen=img,
-                    orden=img_idx + 1
-                )
-        
         primera_variante_precio = variante.precio
 
     # Sincronizar el precio del producto con la primera variante
     if primera_variante_precio is not None:
         producto.precio = primera_variante_precio
         producto.save()
+
+    # Procesar subcategorías si se enviaron
+    if subcategorias_ids:
+        try:
+            subcategorias = Subcategoria.objects.filter(id__in=subcategorias_ids)
+            producto.subcategorias.set(subcategorias)
+        except Exception as e:
+            print(f"Error al guardar subcategorías: {e}")
+
+    # Procesar imágenes adicionales de la galería (máximo 5)
+    imagen_contador = 0
+    for key in request.FILES:
+        if key.startswith('imagen_galeria_'):
+            if imagen_contador >= 5:
+                break
+            try:
+                imagen_file = request.FILES[key]
+                from store.models import ProductoImagen
+                import os
+                
+                # Generar nombre del archivo: imagen-{numero}.{ext}
+                ext = os.path.splitext(imagen_file.name)[1]
+                numero_imagen = imagen_contador + 1
+                nombre_canonico = f'imagen-{numero_imagen}{ext}'
+                imagen_file.name = nombre_canonico
+                
+                # Crear instancia - el upload_to callback se encargará del directorio
+                producto_imagen = ProductoImagen(
+                    producto=producto,
+                    imagen=imagen_file,
+                    orden=numero_imagen
+                )
+                
+                # Guardar
+                producto_imagen.save()
+                imagen_contador += 1
+            except Exception as e:
+                print(f"Error al guardar imagen de galería: {e}")
 
     return JsonResponse(
         {"id": producto.id, "message": "Producto y variantes creados"},
@@ -310,14 +318,125 @@ def update_productos(request, id):
         except Categoria.DoesNotExist:
             return JsonResponse({'error': 'Categoría no encontrada'}, status=404)
 
-    if 'imagen' in request.FILES:
-        imagen_file = request.FILES['imagen']
-        # Usar la función canónica para generar el nombre
-        nombre_canonico = producto._generate_image_key(imagen_file.name)
-        imagen_file.name = nombre_canonico
-        producto.imagen = imagen_file
-
+    # No procesar imagen principal - usar siempre la primera de ProductoImagen
+    
     producto.save()
+
+    # Procesar subcategorías si se enviaron
+    subcategorias_ids = request.POST.getlist('subcategorias')
+    if subcategorias_ids:
+        try:
+            subcategorias = Subcategoria.objects.filter(id__in=subcategorias_ids)
+            producto.subcategorias.set(subcategorias)
+        except Exception as e:
+            print(f"Error al guardar subcategorías: {e}")
+    
+    # Validación: Si el producto no tiene variantes, crear una variante por defecto
+    if not producto.variantes.exists():
+        Variante.objects.create(
+            producto=producto,
+            talla='UNICA',
+            color='N/A',
+            precio=producto.precio,
+            precio_mayorista=producto.precio_mayorista,
+            stock=0,
+        )
+
+    # Eliminar imágenes marcadas para eliminación
+    imagenes_a_eliminar = request.POST.get('imagenes_a_eliminar', '')
+    if imagenes_a_eliminar:
+        ids_a_eliminar = [int(id_str) for id_str in imagenes_a_eliminar.split(',') if id_str.strip()]
+        from store.models import ProductoImagen
+        
+        # Obtener las imágenes antes de eliminarlas para borrar también del S3
+        imagenes_a_borrar = ProductoImagen.objects.filter(id__in=ids_a_eliminar, producto=producto)
+        for img in imagenes_a_borrar:
+            # Eliminar del S3 (si existe archivo)
+            if img.imagen:
+                img.imagen.delete(save=False)
+        
+        # Eliminar del registro de la BD
+        imagenes_a_borrar.delete()
+
+    # Procesar imágenes adicionales de la galería (máximo 5)
+    # Obtener el número máximo actual de órdenes
+    from store.models import ProductoImagen
+    max_orden = ProductoImagen.objects.filter(producto=producto).aggregate(max=models.Max('orden'))['max'] or 0
+    
+    imagen_contador = 0
+    for key in request.FILES:
+        if key.startswith('imagen_galeria_'):
+            if imagen_contador >= 5:
+                break
+            try:
+                imagen_file = request.FILES[key]
+                import os
+                
+                # Generar nombre del archivo: imagen-{numero}.{ext}
+                ext = os.path.splitext(imagen_file.name)[1]
+                numero_imagen = max_orden + imagen_contador + 1
+                nombre_canonico = f'imagen-{numero_imagen}{ext}'
+                imagen_file.name = nombre_canonico
+                
+                # Crear instancia - el upload_to callback se encargará del directorio
+                producto_imagen = ProductoImagen(
+                    producto=producto,
+                    imagen=imagen_file,
+                    orden=numero_imagen
+                )
+                
+                # Guardar
+                producto_imagen.save()
+                imagen_contador += 1
+            except Exception as e:
+                print(f"Error al guardar imagen de galería: {e}")
+
+    # ─────── PROCESAR IMÁGENES DE VARIANTES ───────
+    from store.models import VarianteImagen
+    
+    # Eliminar imágenes de variantes marcadas para eliminación
+    variante_imagenes_a_eliminar = request.POST.get('variante_imagenes_a_eliminar', '')
+    if variante_imagenes_a_eliminar:
+        ids_a_eliminar = [int(id_str) for id_str in variante_imagenes_a_eliminar.split(',') if id_str.strip()]
+        imagenes_a_borrar = VarianteImagen.objects.filter(id__in=ids_a_eliminar)
+        for img in imagenes_a_borrar:
+            if img.imagen:
+                img.imagen.delete(save=False)
+        imagenes_a_borrar.delete()
+    
+    # Procesar nuevas imágenes de variantes
+    for key in request.FILES:
+        if key.startswith('variante_imagen_'):
+            try:
+                # Formato: variante_imagen_{variante_id}_{idx}
+                parts = key.split('_')
+                if len(parts) >= 4:
+                    variante_id = int(parts[2])
+                    variante = producto.variantes.get(id=variante_id)
+                    imagen_file = request.FILES[key]
+                    
+                    # Contar imágenes existentes de esta variante
+                    existing_count = variante.imagenes.count()
+                    if existing_count >= 5:
+                        continue
+                    
+                    # Generar nombre canonico
+                    import os
+                    ext = os.path.splitext(imagen_file.name)[1]
+                    numero_imagen = existing_count + 1
+                    nombre_canonico = f'imagen-{numero_imagen}{ext}'
+                    imagen_file.name = nombre_canonico
+                    
+                    # Crear instancia
+                    variante_imagen = VarianteImagen(
+                        variante=variante,
+                        imagen=imagen_file,
+                        orden=numero_imagen
+                    )
+                    variante_imagen.save()
+            except Exception as e:
+                print(f"Error al guardar imagen de variante: {e}")
+
     return JsonResponse(
         {'mensaje': f'Producto {producto.id} actualizado correctamente'},
         status=200
@@ -325,7 +444,65 @@ def update_productos(request, id):
 
 @csrf_exempt
 @admin_required()
-@require_http_methods(["POST", "PUT"])
+@require_http_methods(["POST"])
+def create_variant(request):
+    """
+    POST /api/variantes/create/
+    Crea una nueva variante para un producto existente.
+    
+    Parámetros:
+    - producto_id: ID del producto
+    - talla: Talla de la variante
+    - color: Color de la variante
+    - precio: Precio (opcional, usa el del producto si no se especifica)
+    - precio_mayorista: Precio mayorista (opcional)
+    - stock: Stock disponible
+    """
+    from decimal import Decimal
+    
+    try:
+        producto_id = request.POST.get('producto_id')
+        if not producto_id:
+            return JsonResponse({'error': 'Falta producto_id'}, status=400)
+        
+        producto = get_object_or_404(Producto, id=producto_id)
+        
+        talla = request.POST.get('talla', 'UNICA')
+        color = request.POST.get('color', 'N/A')
+        precio_str = request.POST.get('precio', str(producto.precio))
+        precio_mayorista_str = request.POST.get('precio_mayorista', str(producto.precio_mayorista))
+        stock = request.POST.get('stock', 0)
+        
+        try:
+            precio = Decimal(precio_str)
+            precio_mayorista = Decimal(precio_mayorista_str)
+            stock = int(stock)
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Valores numéricos inválidos'}, status=400)
+        
+        # Crear la variante
+        variante = Variante.objects.create(
+            producto=producto,
+            talla=talla,
+            color=color,
+            precio=precio,
+            precio_mayorista=precio_mayorista,
+            stock=stock
+        )
+        
+        return JsonResponse({
+            'id': variante.id,
+            'mensaje': f'Variante {variante.id} creada correctamente'
+        }, status=201)
+    
+    except Exception as e:
+        print(f"Error al crear variante: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@admin_required()
+@require_http_methods(["POST"])
 def update_variant(request, variante_id):
 
     variante = get_object_or_404(Variante, id=variante_id)
@@ -387,147 +564,3 @@ def delete_all_productos(request):
         {'mensaje': f'Se eliminaron {total} productos y sus variantes'},
         status=200
     )
-
-
-# ——————————————————————————————————————
-# FILTROS DINÁMICOS (NEW)
-# ——————————————————————————————————————
-
-@require_GET
-def categorias_por_genero(request):
-    """
-    GET /api/categorias-por-genero/?genero=hombre
-    
-    Retorna todas las categorías que tienen productos del género especificado.
-    Útil para mostrar dinámicamente qué categorías existen para ese género.
-    """
-    genero = request.GET.get('genero', 'todos').lower()
-    
-    print(f"[DEBUG] categorias_por_genero - genero recibido: {genero}")
-    
-    # Mapear género del request a valores de la BD
-    # En la BD puede ser: H, M, U (Hombre, Mujer, Unisex/Ambos)
-    genero_map = {
-        'hombre': ['H', 'h', 'hombre', 'Hombre', 'HOMBRE', 'U', 'u', 'unisex', 'Unisex'],
-        'mujer': ['M', 'm', 'mujer', 'Mujer', 'MUJER', 'U', 'u', 'unisex', 'Unisex'],
-    }
-    
-    generos_permitidos = genero_map.get(genero, None)
-    print(f"[DEBUG] generos_permitidos: {generos_permitidos}")
-    
-    # Obtener todas las categorías que tienen productos con ese género
-    if generos_permitidos is None:
-        # Para cualquier otro valor, mostrar todas las categorías con productos
-        categorias = Categoria.objects.filter(
-            producto__isnull=False
-        ).distinct().values('id', 'nombre', 'imagen')
-    else:
-        categorias = Categoria.objects.filter(
-            producto__genero__in=generos_permitidos
-        ).distinct().values('id', 'nombre', 'imagen')
-    
-    result = list(categorias)
-    print(f"[DEBUG] categorias encontradas: {result}")
-    
-    return JsonResponse({
-        'genero': genero,
-        'categorias': result
-    })
-
-
-@require_GET
-def subcategorias_por_categoria(request):
-    """
-    GET /api/subcategorias-por-categoria/?categoria_id=1&genero=hombre
-    
-    Retorna todas las subcategorías de una categoría que tienen productos del género.
-    """
-    categoria_id = request.GET.get('categoria_id')
-    genero = request.GET.get('genero', 'todos').lower()
-    
-    print(f"[DEBUG] subcategorias_por_categoria - categoria_id: {categoria_id}, genero: {genero}")
-    
-    if not categoria_id:
-        return JsonResponse({'error': 'categoria_id es requerido'}, status=400)
-    
-    # Mapear género del request a valores de la BD
-    genero_map = {
-        'hombre': ['H', 'h', 'hombre', 'Hombre', 'HOMBRE', 'U', 'u', 'unisex', 'Unisex'],
-        'mujer': ['M', 'm', 'mujer', 'Mujer', 'MUJER', 'U', 'u', 'unisex', 'Unisex'],
-    }
-    
-    generos_permitidos = genero_map.get(genero, None)
-    print(f"[DEBUG] generos_permitidos: {generos_permitidos}")
-    
-    # Obtener subcategorías que tengan productos en esa categoría
-    # Nota: el modelo Subcategoria no tiene campo 'tipo', solo: id, nombre, imagen, descripcion, categoria, activa, orden
-    if generos_permitidos is None:
-        subcategorias = Subcategoria.objects.filter(
-            productos__categoria_id=categoria_id
-        ).distinct().values('id', 'nombre', 'imagen')
-    else:
-        subcategorias = Subcategoria.objects.filter(
-            productos__categoria_id=categoria_id,
-            productos__genero__in=generos_permitidos
-        ).distinct().values('id', 'nombre', 'imagen')
-    
-    result = list(subcategorias)
-    print(f"[DEBUG] subcategorias encontradas: {result}")
-    
-    return JsonResponse({
-        'categoria_id': categoria_id,
-        'genero': genero,
-        'subcategorias': result
-    })
-
-
-@require_GET
-def productos_filtrados(request):
-    """
-    GET /api/productos-filtrados/?genero=hombre&categoria_id=1&subcategorias=1,2,3
-    
-    Retorna productos filtrados por género, categoría y subcategorías.
-    """
-    genero = request.GET.get('genero', '').lower()
-    categoria_id = request.GET.get('categoria_id')
-    subcategorias_ids = request.GET.get('subcategorias', '').split(',')
-    
-    # Query base
-    query = Producto.objects.all()
-    
-    # Filtrar por género
-    if genero:
-        query = query.filter(genero__icontains=genero)
-    
-    # Filtrar por categoría
-    if categoria_id:
-        query = query.filter(categoria_id=categoria_id)
-    
-    # Filtrar por subcategorías (múltiples)
-    if subcategorias_ids and subcategorias_ids[0]:
-        # Si hay múltiples subcategorías, usa __in
-        query = query.filter(subcategorias__id__in=subcategorias_ids).distinct()
-    
-    # Serializar productos
-    productos = []
-    for p in query:
-        productos.append({
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio': float(p.precio),
-            'en_oferta': p.en_oferta,
-            'imagen': p.imagen.url if p.imagen else None,
-            'genero': p.genero,
-            'categoria': p.categoria.nombre,
-            'subcategorias': list(p.subcategorias.values_list('nombre', flat=True))
-        })
-    
-    return JsonResponse({
-        'filtros': {
-            'genero': genero,
-            'categoria_id': categoria_id,
-            'subcategorias': subcategorias_ids
-        },
-        'total': len(productos),
-        'productos': productos
-    })

@@ -168,8 +168,27 @@ if USE_S3:
     AWS_QUERYSTRING_AUTH = False  # No agregar parámetros de autenticación a las URLs
     AWS_LOCATION = 'media'  # Carpeta base en S3
     
-    # Storage backends
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # Django 5.2+ Storage configuration (STORAGES dict)
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'OPTIONS': {
+                'bucket_name': AWS_STORAGE_BUCKET_NAME,
+                'region_name': AWS_S3_REGION_NAME,
+                'access_key': AWS_ACCESS_KEY_ID,
+                'secret_key': AWS_SECRET_ACCESS_KEY,
+                'location': AWS_LOCATION,
+                'custom_domain': AWS_S3_CUSTOM_DOMAIN,
+                'file_overwrite': AWS_S3_FILE_OVERWRITE,
+                'default_acl': AWS_DEFAULT_ACL,
+                'querystring_auth': AWS_QUERYSTRING_AUTH,
+                'object_parameters': AWS_S3_OBJECT_PARAMETERS,
+            }
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        }
+    }
     
     # Media files location
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
@@ -178,6 +197,16 @@ else:
     # Local storage (desarrollo)
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    
+    # Django 5.2+ Storage configuration (STORAGES dict)
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        }
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

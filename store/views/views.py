@@ -23,14 +23,21 @@ from .decorators import jwt_role_required, login_required_user
 def index(request):
     # Productos Hombre (incluye Unisex)
     qs_h = Producto.objects.filter(genero__in=["H", "U"], variantes__stock__gt=0) \
-        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all()))
+        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
+        .prefetch_related("imagenes")
     
     # Productos Mujer (incluye Unisex)
     qs_m = Producto.objects.filter(genero__in=["M", "U"], variantes__stock__gt=0) \
-        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all()))
+        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
+        .prefetch_related("imagenes")
 
     cab_home  = sample(list(qs_h), min(4, qs_h.count()))
     dama_home = sample(list(qs_m), min(4, qs_m.count()))
+    
+    # Agregar primera imagen (galería) a cada producto
+    for p in cab_home + dama_home:
+        primera_img = p.imagenes.all().order_by('orden').first()
+        p.imagen = primera_img.imagen if primera_img else None
 
     return render(request, "public/home/index.html", {
         "cab_home": cab_home,
@@ -56,7 +63,13 @@ def genero_view(request, genero):
 
     # Incluir productos Unisex en ambas secciones
     qs = Producto.objects.filter(genero__in=[genero_cod, "U"], variantes__stock__gt=0) \
-        .select_related("categoria").distinct()
+        .select_related("categoria").prefetch_related("imagenes").distinct()
+    
+    # Agregar primera imagen (galería) a cada producto
+    for p in qs:
+        primera_img = p.imagenes.all().order_by('orden').first()
+        p.imagen = primera_img.imagen if primera_img else None
+    
     categorias = sorted({p.categoria.nombre for p in qs})
     return render(request, "public/catalogo/productos_genero.html", {
         "seccion": genero,
@@ -83,7 +96,7 @@ def catalogo_view(request):
     subcategoria_id = request.GET.get('subcategoria')
     
     # Base query
-    qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes")
+    qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes", "imagenes")
     
     # Determinar género desde subcategoría si no viene en params
     seccion = "caballero"  # Default
@@ -147,6 +160,11 @@ def catalogo_view(request):
     
     # Obtener categorías únicas de los productos filtrados
     categorias = sorted({p.categoria.nombre for p in qs if p.categoria})
+    
+    # Agregar primera imagen (galería) a cada producto
+    for p in qs:
+        primera_img = p.imagenes.all().order_by('orden').first()
+        p.imagen = primera_img.imagen if primera_img else None
     
     return render(request, "public/catalogo/productos_genero.html", {
         "seccion": seccion,
@@ -458,11 +476,31 @@ def alta(request):
 @login_required_user
 def editar_producto(request, id):
     """Formulario para editar producto"""
-    producto = get_object_or_404(Producto.objects.prefetch_related("variantes"), id=id)
+    from store.models import Variante
+    
+    producto = get_object_or_404(Producto.objects.prefetch_related("variantes", "imagenes"), id=id)
+    
+    # Validación: Si el producto no tiene variantes, crear una variante por defecto
+    if not producto.variantes.exists():
+        Variante.objects.create(
+            producto=producto,
+            talla='UNICA',
+            color='N/A',
+            precio=producto.precio,
+            precio_mayorista=producto.precio_mayorista,
+            stock=0,
+        )
+        # Recargar las variantes
+        producto = Producto.objects.prefetch_related("variantes").get(id=id)
+    
     categorias = Categoria.objects.all()
+    # Obtener imágenes de galería existentes
+    imagenes_galeria = producto.imagenes.all().order_by('orden')
+    
     return render(request, "dashboard/productos/editar.html", {
         "producto": producto,
-        "categorias": categorias
+        "categorias": categorias,
+        "imagenes_galeria": imagenes_galeria
     })
 
 
