@@ -99,49 +99,67 @@
     <ul class="nav-list">
       <li class="nav-item">
         <a href="{% url 'index' %}" class="nav-link">
-          <span>Inicio</span>
+          <span>INICIO</span>
         </a>
       </li>
       
       <!-- MUJER -->
       <li class="nav-item nav-item-expandable" data-genero="mujer">
-        <a href="#" class="nav-link genero-trigger">
+        <button class="nav-link genero-trigger" data-genero="mujer">
           <span>Mujer</span>
           <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
+            <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
-        </a>
-        <!-- Contenedor desplegable para categorías -->
-        <div class="nav-categories-container hidden" id="categories-mujer">
-            <div class="loading-spinner"></div>
-        </div>
+        </button>
       </li>
 
       <!-- HOMBRE -->
       <li class="nav-item nav-item-expandable" data-genero="hombre">
-        <a href="#" class="nav-link genero-trigger">
+        <button class="nav-link genero-trigger" data-genero="hombre">
           <span>Hombre</span>
           <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6 9 12 15 18 9"></polyline>
+            <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
-        </a>
-        <!-- Contenedor desplegable para categorías -->
-        <div class="nav-categories-container hidden" id="categories-hombre">
-            <div class="loading-spinner"></div>
-        </div>
-      </li>
-
-      <li class="nav-item nav-divider"></li>
-      <li class="nav-item">
-        <a href="{% url 'index' %}" class="nav-link nav-link-highlight">
-          <span>Inicio</span>
-        </a>
+        </button>
       </li>
     </ul>
   </div>
-  
-  <!-- Eliminamos los paneles deslizantes secundarios ya que se usará acordeón -->
 </nav>
+
+<!-- Sistema de Navegación en Cascada tipo Louis Vuitton -->
+<!-- Desktop: 3 divs separados lado a lado | Mobile: Navegación deslizante -->
+
+<!-- Panel de Categorías (Nivel 2) -->
+<div class="lv-panel lv-panel-categories" id="lv-panel-categories">
+  <div class="lv-panel-header">
+    <button class="lv-back-btn lv-mobile-only" id="lv-back-to-main">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      <span>Volver</span>
+    </button>
+    <h2 class="lv-panel-title" id="lv-categories-title">Mujer</h2>
+  </div>
+  <div class="lv-panel-content" id="lv-categories-content">
+    <!-- Aquí se cargarán las categorías -->
+  </div>
+</div>
+
+<!-- Panel de Subcategorías (Nivel 3) -->
+<div class="lv-panel lv-panel-subcategories" id="lv-panel-subcategories">
+  <div class="lv-panel-header">
+    <button class="lv-back-btn lv-mobile-only" id="lv-back-to-categories">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      <span>Volver</span>
+    </button>
+    <h2 class="lv-panel-title" id="lv-subcategories-title">Categoría</h2>
+  </div>
+  <div class="lv-panel-content" id="lv-subcategories-content">
+    <!-- Aquí se cargarán las subcategorías -->
+  </div>
+</div>
 
 <!-- CONTACT PANEL -->
 <div id="contact-panel" class="contact-panel">

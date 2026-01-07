@@ -125,6 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.classList.remove('active');
     burger.classList.remove('active');
     document.body.classList.remove('no-scroll');
+    
+    // Cerrar también los paneles de categorías y subcategorías (cascada)
+    const panelCategories = document.getElementById('lv-panel-categories');
+    const panelSubcategories = document.getElementById('lv-panel-subcategories');
+    if (panelCategories) panelCategories.classList.remove('active');
+    if (panelSubcategories) panelSubcategories.classList.remove('active');
+    navMenu.classList.remove('has-active-panel');
   };
 
   burger.addEventListener('click', abrirMenu);
