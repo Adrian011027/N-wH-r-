@@ -348,15 +348,12 @@ def update_productos(request, id):
         ids_a_eliminar = [int(id_str) for id_str in imagenes_a_eliminar.split(',') if id_str.strip()]
         from store.models import ProductoImagen
         
-        # Obtener las imágenes antes de eliminarlas para borrar también del S3
+        # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
+        # Esto es necesario para que funcione el sincronismo con VarianteImagen
         imagenes_a_borrar = ProductoImagen.objects.filter(id__in=ids_a_eliminar, producto=producto)
         for img in imagenes_a_borrar:
-            # Eliminar del S3 (si existe archivo)
-            if img.imagen:
-                img.imagen.delete(save=False)
-        
-        # Eliminar del registro de la BD
-        imagenes_a_borrar.delete()
+            # El método delete() del modelo se encarga del sincronismo con variantes
+            img.delete()
 
     # Procesar imágenes adicionales de la galería (máximo 5)
     # Obtener el número máximo actual de órdenes
@@ -398,11 +395,12 @@ def update_productos(request, id):
     variante_imagenes_a_eliminar = request.POST.get('variante_imagenes_a_eliminar', '')
     if variante_imagenes_a_eliminar:
         ids_a_eliminar = [int(id_str) for id_str in variante_imagenes_a_eliminar.split(',') if id_str.strip()]
+        # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
+        # Esto es necesario para que funcione el sincronismo con ProductoImagen
         imagenes_a_borrar = VarianteImagen.objects.filter(id__in=ids_a_eliminar)
         for img in imagenes_a_borrar:
-            if img.imagen:
-                img.imagen.delete(save=False)
-        imagenes_a_borrar.delete()
+            # El método delete() del modelo se encarga del sincronismo con producto
+            img.delete()
     
     # Procesar nuevas imágenes de variantes
     for key in request.FILES:

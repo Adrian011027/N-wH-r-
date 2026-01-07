@@ -287,6 +287,71 @@ class ProductoImagen(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+        # Sincronizar con la primera variante después de guardar
+        self._sync_to_first_variant()
+    
+    def delete(self, *args, **kwargs):
+        # Sincronizar antes de eliminar
+        self._sync_delete_to_first_variant()
+        super().delete(*args, **kwargs)
+    
+    def _sync_to_first_variant(self):
+        """
+        Sincroniza esta imagen del producto con la galería de la PRIMERA variante.
+        Si no existe una VarianteImagen con el mismo orden en la primera variante, la crea.
+        Si ya existe, actualiza la imagen (reemplaza la anterior).
+        """
+        try:
+            # Obtener la primera variante (por ID más bajo)
+            primera_variante = self.producto.variantes.order_by('id').first()
+            if not primera_variante:
+                return  # No hay variantes, nada que sincronizar
+            
+            # Verificar si esta imagen es diferente (evitar loops infinitos)
+            variante_img = VarianteImagen.objects.filter(
+                variante=primera_variante,
+                orden=self.orden
+            ).first()
+            
+            if variante_img:
+                # Si existe y es la misma imagen, no hacer nada
+                if variante_img.imagen.name == self.imagen.name:
+                    return
+                # Si existe pero es diferente, eliminar la anterior y crear nueva
+                if variante_img.imagen:
+                    variante_img.imagen.delete(save=False)
+                variante_img.imagen = self.imagen
+                variante_img.save()
+            else:
+                # No existe, crear nueva
+                VarianteImagen.objects.create(
+                    variante=primera_variante,
+                    imagen=self.imagen,
+                    orden=self.orden
+                )
+        except Exception as e:
+            print(f"Error sincronizando imagen a primera variante: {e}")
+    
+    def _sync_delete_to_first_variant(self):
+        """
+        Elimina la imagen correspondiente en la primera variante cuando se elimina del producto.
+        """
+        try:
+            primera_variante = self.producto.variantes.order_by('id').first()
+            if not primera_variante:
+                return
+            
+            variante_img = VarianteImagen.objects.filter(
+                variante=primera_variante,
+                orden=self.orden
+            ).first()
+            
+            if variante_img:
+                if variante_img.imagen:
+                    variante_img.imagen.delete(save=False)
+                variante_img.delete()
+        except Exception as e:
+            print(f"Error eliminando imagen sincronizada en primera variante: {e}")
 
 
 # ——————————————————————————————————————
@@ -514,6 +579,76 @@ class VarianteImagen(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+        # Sincronizar con el producto si es la primera variante
+        self._sync_to_producto()
+    
+    def delete(self, *args, **kwargs):
+        # Sincronizar antes de eliminar
+        self._sync_delete_to_producto()
+        super().delete(*args, **kwargs)
+    
+    def _sync_to_producto(self):
+        """
+        Sincroniza esta imagen con el producto SOLO si la variante es la PRIMERA (por ID más bajo).
+        Si la variante no es la primera, no hace nada.
+        """
+        try:
+            # Verificar si esta variante es la primera del producto
+            primera_variante = self.variante.producto.variantes.order_by('id').first()
+            if not primera_variante or primera_variante.id != self.variante.id:
+                return  # Esta no es la primera variante, nada que sincronizar
+            
+            # Esta SÍ es la primera variante, sincronizar con el producto
+            producto = self.variante.producto
+            
+            # Verificar si ya existe una imagen con este orden en el producto
+            producto_img = ProductoImagen.objects.filter(
+                producto=producto,
+                orden=self.orden
+            ).first()
+            
+            if producto_img:
+                # Si existe y es la misma imagen, no hacer nada
+                if producto_img.imagen.name == self.imagen.name:
+                    return
+                # Si existe pero es diferente, actualizar
+                if producto_img.imagen:
+                    producto_img.imagen.delete(save=False)
+                producto_img.imagen = self.imagen
+                producto_img.save()
+            else:
+                # No existe, crear nueva
+                ProductoImagen.objects.create(
+                    producto=producto,
+                    imagen=self.imagen,
+                    orden=self.orden
+                )
+        except Exception as e:
+            print(f"Error sincronizando imagen a producto desde primera variante: {e}")
+    
+    def _sync_delete_to_producto(self):
+        """
+        Elimina la imagen correspondiente del producto cuando se elimina de la primera variante.
+        """
+        try:
+            # Verificar si esta variante es la primera del producto
+            primera_variante = self.variante.producto.variantes.order_by('id').first()
+            if not primera_variante or primera_variante.id != self.variante.id:
+                return  # Esta no es la primera variante, nada que sincronizar
+            
+            producto = self.variante.producto
+            
+            producto_img = ProductoImagen.objects.filter(
+                producto=producto,
+                orden=self.orden
+            ).first()
+            
+            if producto_img:
+                if producto_img.imagen:
+                    producto_img.imagen.delete(save=False)
+                producto_img.delete()
+        except Exception as e:
+            print(f"Error eliminando imagen sincronizada en producto desde primera variante: {e}")
 
 # ——————————————————————————————————————
 # Carrito, Wishlist y Órdenes

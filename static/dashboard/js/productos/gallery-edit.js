@@ -45,10 +45,13 @@ window.galleryManager = {
   },
   
   deleteImage(imageId) {
+    console.log('deleteImage() llamado con ID:', imageId);
     if (imageId.startsWith('new_')) {
       this.newImages = this.newImages.filter(img => img.id !== imageId);
     } else {
-      this.imagesToDelete.add(parseInt(imageId));
+      const parsedId = parseInt(imageId);
+      console.log('Agregando a imagesToDelete:', parsedId);
+      this.imagesToDelete.add(parsedId);
     }
 
     const thumbnail = document.querySelector(`[data-image-id="${imageId}"]`);
@@ -92,17 +95,28 @@ window.galleryManager = {
   },
   
   attachDeleteListeners() {
-    document.querySelectorAll('.btn-delete-existing').forEach(btn => {
-      // Remover listener anterior si existe para evitar duplicados
-      btn.replaceWith(btn.cloneNode(true));
+    console.log('attachDeleteListeners() inicializando...');
+    // Remover listeners anteriores clonando los botones para limpiar eventos
+    const buttons = document.querySelectorAll('.btn-delete-existing');
+    console.log('Botones encontrados:', buttons.length);
+    
+    buttons.forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
     });
     
-    // Agregar listeners nuevos
-    document.querySelectorAll('.btn-delete-existing').forEach(btn => {
+    // Agregar listeners nuevos a los botones actualizados
+    const buttonsToAttach = document.querySelectorAll('.btn-delete-existing');
+    console.log('Botones para asignar listeners:', buttonsToAttach.length);
+    
+    buttonsToAttach.forEach((btn, index) => {
+      console.log('Asignando listener al botón', index, 'con ID:', btn.dataset.imageId);
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        window.galleryManager.deleteImage(btn.dataset.imageId);
+        const imageId = btn.dataset.imageId;
+        console.log('Click detectado! Eliminando imagen:', imageId);
+        window.galleryManager.deleteImage(imageId);
       });
     });
   },
@@ -119,10 +133,21 @@ window.galleryManager = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOMContentLoaded disparado en gallery-edit.js');
+  
+  // SIEMPRE inicializar los listeners de eliminación (existentes)
+  window.galleryManager.updateGlobalState();
+  window.galleryManager.attachDeleteListeners();
+  
+  // Elementos para la carga de nuevas imágenes
   const galeriaInput = document.getElementById('galeriaInput');
   const uploadAreaEdit = document.querySelector('.upload-area-edit');
   
-  if (!galeriaInput || !uploadAreaEdit) return;
+  // Si no hay elementos para carga, salir
+  if (!galeriaInput || !uploadAreaEdit) {
+    console.log('galeriaInput o uploadAreaEdit no encontrados, abortando inicialización de carga');
+    return;
+  }
 
   // Evento change del input de archivo
   galeriaInput.addEventListener('change', (e) => {
@@ -175,8 +200,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     galeriaInput.click();
   });
-
-  // Inicializar galleryDataToSubmit y asignar listeners a imágenes existentes
-  window.galleryManager.updateGlobalState();
-  window.galleryManager.attachDeleteListeners();
 });

@@ -102,72 +102,45 @@
           <span>Inicio</span>
         </a>
       </li>
+      
+      <!-- MUJER -->
       <li class="nav-item nav-item-expandable" data-genero="mujer">
         <a href="#" class="nav-link genero-trigger">
-          <span class="nav-icon">👩</span>
           <span>Mujer</span>
           <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
+            <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </a>
+        <!-- Contenedor desplegable para categorías -->
+        <div class="nav-categories-container hidden" id="categories-mujer">
+            <div class="loading-spinner"></div>
+        </div>
       </li>
+
+      <!-- HOMBRE -->
       <li class="nav-item nav-item-expandable" data-genero="hombre">
         <a href="#" class="nav-link genero-trigger">
-          <span class="nav-icon">👨</span>
           <span>Hombre</span>
           <svg class="nav-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 18 15 12 9 6"></polyline>
+            <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </a>
+        <!-- Contenedor desplegable para categorías -->
+        <div class="nav-categories-container hidden" id="categories-hombre">
+            <div class="loading-spinner"></div>
+        </div>
       </li>
+
       <li class="nav-item nav-divider"></li>
       <li class="nav-item">
-        <a href="/catalogo/" class="nav-link nav-link-highlight">
-          <span>Ver Todo</span>
+        <a href="{% url 'index' %}" class="nav-link nav-link-highlight">
+          <span>Inicio</span>
         </a>
       </li>
     </ul>
   </div>
-
-  <!-- Panel Secundario: Categorías (dinámico) -->
-  <div class="nav-panel nav-panel-categorias" id="panel-categorias">
-    <div class="nav-panel-back">
-      <button class="btn-back" id="btn-back-generos">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        <span>Volver</span>
-      </button>
-      <span class="panel-title" id="categorias-title">Categorías</span>
-    </div>
-    <ul class="nav-list" id="categorias-list">
-      <!-- Cargado dinámicamente -->
-      <li class="nav-item nav-loading">
-        <div class="loading-spinner"></div>
-        <span>Cargando...</span>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Panel Terciario: Subcategorías (dinámico) -->
-  <div class="nav-panel nav-panel-subcategorias" id="panel-subcategorias">
-    <div class="nav-panel-back">
-      <button class="btn-back" id="btn-back-categorias">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        <span>Volver</span>
-      </button>
-      <span class="panel-title" id="subcategorias-title">Subcategorías</span>
-    </div>
-    <ul class="nav-list" id="subcategorias-list">
-      <!-- Cargado dinámicamente -->
-      <li class="nav-item nav-loading">
-        <div class="loading-spinner"></div>
-        <span>Cargando...</span>
-      </li>
-    </ul>
-  </div>
+  
+  <!-- Eliminamos los paneles deslizantes secundarios ya que se usará acordeón -->
 </nav>
 
 <!-- CONTACT PANEL -->

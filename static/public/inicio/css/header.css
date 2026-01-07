@@ -1163,3 +1163,249 @@ header.scrolled #Logo {
     padding: 6px 10px !important;
   }
 }
+
+
+/* 
+   NUEVO ESTILO CASCADA Y GRID (Minimalista Elegante)
+ */
+
+/* Contenedor de categor�as desplegable */
+.nav-categories-container {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(to bottom, #fafafa, #ffffff);
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.nav-categories-container.hidden {
+  display: none;
+}
+
+/* Grid de categorías - Diseño profesional */
+.nav-categories-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+/* Categoría individual - estilo minimalista de lujo */
+.nav-category-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1d;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+
+.nav-category-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: #1d1d1d;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-category-card:hover {
+  background: #fafafa;
+  padding-left: 28px;
+}
+
+.nav-category-card:hover::before {
+  width: 3px;
+}
+
+.nav-category-card .cat-name {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.nav-category-card .nav-arrow {
+  width: 16px;
+  height: 16px;
+  stroke: #999;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+  stroke-width: 2;
+}
+
+.nav-category-card:hover .nav-arrow {
+  stroke: #1d1d1d;
+  transform: translateX(3px);
+}
+
+.nav-category-card.expanded .nav-arrow {
+  transform: rotate(90deg);
+}
+
+.nav-category-card.expanded:hover .nav-arrow {
+  transform: rotate(90deg) translateY(-3px);
+}
+
+/* Estilo especial para "Ver Todo" */
+.nav-category-card.nav-category-all {
+  background: #1d1d1d;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #1d1d1d;
+}
+
+.nav-category-card.nav-category-all .nav-arrow {
+  stroke: #ffffff;
+}
+
+.nav-category-card.nav-category-all:hover {
+  background: #333;
+  padding-left: 24px;
+  border-bottom-color: #333;
+}
+
+.nav-category-card.nav-category-all::before {
+  display: none;
+}
+}
+
+/* Spinner en el container */
+.nav-categories-container .loading-spinner {
+  margin: 30px auto;
+  display: block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #1d1d1d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mensajes de error/vac�o */
+.nav-error,
+.nav-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.nav-error {
+  color: #d32f2f;
+}
+
+/* Mejorar el nav-link para g�nero */
+.nav-item-expandable > .nav-link {
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Responsive: 2 columnas en pantallas m�s peque�as */
+@media (max-width: 380px) {
+  .nav-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .nav-category-card {
+    font-size: 12px;
+    padding: 14px 6px;
+    min-height: 55px;
+  }
+}
+
+
+/* Subcategorías - diseño profesional */
+.nav-category-item {
+  position: relative;
+}
+
+.nav-subcategories-container {
+  background: #fafafa;
+  border-left: 2px solid #e0e0e0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease;
+}
+
+.nav-subcategories-container:not(.hidden) {
+  max-height: 600px;
+  opacity: 1;
+  padding: 8px 0;
+}
+
+.nav-subcategories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.nav-subcategory-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px 14px 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  color: #555;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  letter-spacing: 0.3px;
+}
+
+.nav-subcategory-link::before {
+  content: '→';
+  position: absolute;
+  left: 20px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  color: #1d1d1d;
+}
+
+.nav-subcategory-link:hover {
+  background: #ffffff;
+  color: #1d1d1d;
+  padding-left: 50px;
+}
+
+.nav-subcategory-link:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.nav-subcategory-link:last-child {
+  border-bottom: none;
+}
+
+.nav-subcategory-link:hover {
+  background: #1d1d1d;
+  color: #ffffff;
+  border-color: #1d1d1d;
+}
+
