@@ -59,11 +59,12 @@ def get_all_ordenes(request):
             for detalle in orden.detalles.all():
                 variante = detalle.variante
                 producto = variante.producto
+                galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
                 
                 items.append({
                     'producto_id': producto.id,
                     'producto_nombre': producto.nombre,
-                    'producto_imagen': producto.imagen.url if producto.imagen else None,
+                    'producto_imagen': galeria[0] if galeria else None,
                     'variante_id': variante.id,
                     'talla': variante.talla,
                     'color': variante.color,

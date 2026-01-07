@@ -50,7 +50,8 @@ from .views.wishlist import (
 
 # ─────────── Orden ───────────
 from .views.orden import (
-    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto, dashboard_ordenes
+    eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto, dashboard_ordenes,
+    get_all_ordenes, cambiar_estado_orden
 )
 
 # ─────────── Subcategorías ───────────
@@ -179,6 +180,10 @@ urlpatterns = [
     path("orden/procesando/link/<str:token>/",  procesar_por_link,               name="procesar_por_link"),
     path("orden/delete/<int:id>/",              eliminar_orden,                  name="eliminar_orden"),
     path("orden/delete/<int:orden_id>/<int:producto_id>", eliminar_producto,     name="eliminar_producto"),
+    
+    # ---------- API Órdenes (Admin) ----------
+    path("api/admin/ordenes/",                         get_all_ordenes,      name="api_get_all_ordenes"),
+    path("api/admin/ordenes/<int:id>/estado/",         cambiar_estado_orden, name="api_cambiar_estado_orden"),
     
     # ---------- Envío de Tickets ----------
     path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),

@@ -7,6 +7,7 @@ from django.db                   import models, transaction
 from django.db.models            import Sum
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from store.views.decorators      import login_required_client, jwt_role_required
 from store.views.orden import crear_orden_desde_payload
 from ..models import (
@@ -15,6 +16,8 @@ from ..models import (
 )
 from django.urls import reverse
 from django.core.signing import TimestampSigner
+from django.http import JsonResponse
+import jwt
 
 import json
 from decimal import Decimal
@@ -26,6 +29,37 @@ from django.urls import reverse
 
 signer = TimestampSigner()
 twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+# ───────────────────────────────────────────────────────────────
+# Validación JWT Helper
+# ───────────────────────────────────────────────────────────────
+def validate_jwt_token(request):
+    """
+    Extrae y valida el JWT del header Authorization.
+    Retorna: (token_user_id, token_user_role) o (None, None) si no es válido
+    """
+    auth_header = request.headers.get('Authorization')
+    token_user_id = None
+    token_user_role = None
+    
+    if auth_header:
+        try:
+            parts = auth_header.split(' ')
+            if len(parts) == 2 and parts[0].lower() == 'bearer':
+                token = parts[1]
+                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                
+                if payload.get('type') == 'access':
+                    token_user_id = payload.get('user_id')
+                    token_user_role = payload.get('role', 'cliente')
+        except jwt.ExpiredSignatureError:
+            pass  # Token expirado
+        except jwt.InvalidTokenError:
+            pass  # Token inválido
+        except Exception:
+            pass  # Otros errores
+    
+    return token_user_id, token_user_role
 
 # ───────────────────────────────────────────────────────────────
 # Helpers de carrito
@@ -177,9 +211,24 @@ def create_carrito(request, cliente_id):
 # 2. Detalle de carrito (cliente logueado)
 # -----------------------------------------------------------------
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["GET"])
 def detalle_carrito_cliente(request, cliente_id):
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
+    # Validar que el usuario solo pueda acceder a su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente_id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes acceder a tu propio carrito'
+        }, status=403)
+    
     cliente = get_object_or_404(Cliente, id=cliente_id)
     carrito = get_carrito_activo_cliente(cliente)
     return _build_detalle_response(carrito)
@@ -226,7 +275,7 @@ def _build_detalle_response(carrito):
             "otros"          : var.otros,
             "subtotal"       : round(precio_unit * cp.cantidad, 2),
             "variante_id"    : var.id,
-            "imagen"         : prod.imagen.url if prod.imagen else None,
+            "imagen"         : galeria[0] if galeria else None,
             "imagenes_galeria": galeria,
         })
 
@@ -242,9 +291,24 @@ def _build_detalle_response(carrito):
 # 3. Eliminar producto
 # -----------------------------------------------------------------
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["DELETE"])
 def delete_producto_carrito(request, cliente_id, variante_id):
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
+    # Validar que el usuario solo pueda acceder a su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente_id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes acceder a tu propio carrito'
+        }, status=403)
+    
     cliente = get_object_or_404(Cliente, id=cliente_id)
     carrito = get_carrito_activo_cliente(cliente)
     cp      = get_object_or_404(CarritoProducto, carrito=carrito, variante_id=variante_id)
@@ -256,9 +320,25 @@ def delete_producto_carrito(request, cliente_id, variante_id):
 # 4. Vaciar carrito  (cliente logueado  o  invitado)
 # -----------------------------------------------------------------
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["DELETE"])
 def vaciar_carrito(request, cliente_id):
+    # Para clientes logueados, validar JWT
+    if cliente_id != 0:
+        token_user_id, token_user_role = validate_jwt_token(request)
+        
+        if not token_user_id:
+            return JsonResponse({
+                'error': 'Token de autenticación requerido',
+                'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+            }, status=401)
+        
+        # Validar que el usuario solo pueda acceder a su propio carrito
+        if token_user_role != 'admin' and token_user_id != cliente_id:
+            return JsonResponse({
+                'error': 'No autorizado',
+                'detail': 'Solo puedes acceder a tu propio carrito'
+            }, status=403)
+    
     # ===============  invitado  ==========================
     if cliente_id == 0:
         # si aún no hay session_key la creamos para poder localizar el carrito
@@ -300,9 +380,24 @@ def vaciar_carrito_guest(request):
 # 5. PATCH cantidad (con bloqueo de fila)
 # -----------------------------------------------------------------
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["PATCH"])
 def actualizar_cantidad_producto(request, cliente_id, variante_id):
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
+    # Validar que el usuario solo pueda acceder a su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente_id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes acceder a tu propio carrito'
+        }, status=403)
+    
     try:
         cantidad = int(json.loads(request.body).get("cantidad", 0))
         if cantidad < 1:
@@ -387,13 +482,14 @@ def _carrito_to_template(carrito):
             if aplicar_mayoro else
             float(var.precio if var.precio else prod.precio)
         )
+        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
         items.append({
             "nombre"          : prod.nombre,
             "precio"          : precio_unit,
             "cantidad"        : it.cantidad,
             "talla"           : var.talla or "Única",
             "color"           : var.color,
-            "imagen"          : prod.imagen.url if prod.imagen else None,
+            "imagen"          : galeria[0] if galeria else None,
             "variante_id"     : var.id,
             "precio_mayorista": float(
                 var.precio_mayorista if var.precio_mayorista > 0 else prod.precio_mayorista
@@ -451,11 +547,26 @@ def eliminar_item_guest(request, variante_id):
 # views.py
 
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["POST"])
 def finalizar_compra(request, carrito_id):
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
     carrito = get_object_or_404(Carrito, id=carrito_id)
     cliente = carrito.cliente
+    
+    # Validar que el usuario solo pueda finalizar su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente.id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes finalizar tu propio carrito'
+        }, status=403)
 
     # ───── Obtener productos del carrito ───────────────────────────
     qs = (
@@ -668,7 +779,8 @@ def mostrar_confirmacion_compra(request, carrito_id):
         var = it.variante
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
-        imagen = prod.imagen.url if prod.imagen else "/static/img/no-image.jpg"
+        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
 
         items.append({
             "nombre": prod.nombre,
@@ -719,7 +831,8 @@ def mostrar_formulario_confirmacion(request, carrito_id):
         var = it.variante
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
-        imagen = prod.imagen.url if prod.imagen else "/static/img/no-image.jpg"
+        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
 
         items.append({
             "nombre": prod.nombre,
@@ -750,10 +863,28 @@ def mostrar_formulario_confirmacion(request, carrito_id):
 # ═════════════════════════════════════════════════════════════
 
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["POST"])
 def enviar_ticket_whatsapp(request, carrito_id):
     """Envía el ticket de la orden por WhatsApp"""
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
+    carrito = get_object_or_404(Carrito, id=carrito_id)
+    cliente = carrito.cliente
+    
+    # Validar que el usuario solo pueda enviar ticket de su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente.id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes enviar ticket de tu propio carrito'
+        }, status=403)
+    
     try:
         from ..models import Orden
         
@@ -883,10 +1014,28 @@ def enviar_ticket_whatsapp(request, carrito_id):
 
 
 @csrf_exempt
-@jwt_role_required()
 @require_http_methods(["POST"])
 def enviar_ticket_email(request, carrito_id):
     """Envía el ticket de la orden por Email"""
+    # Validar JWT
+    token_user_id, token_user_role = validate_jwt_token(request)
+    
+    if not token_user_id:
+        return JsonResponse({
+            'error': 'Token de autenticación requerido',
+            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+        }, status=401)
+    
+    carrito = get_object_or_404(Carrito, id=carrito_id)
+    cliente = carrito.cliente
+    
+    # Validar que el usuario solo pueda enviar ticket de su propio carrito
+    if token_user_role != 'admin' and token_user_id != cliente.id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes enviar ticket de tu propio carrito'
+        }, status=403)
+    
     try:
         from ..models import Orden
         from django.core.mail import send_mail

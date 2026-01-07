@@ -71,28 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<button class="btn-minus trash" title="Eliminar"><i class="fa-solid fa-trash"></i></button>`
         : `<button class="btn-minus">−</button>`;
 
-      // Generar carrusel mini de imágenes
-      const imagenes = item.imagenes_galeria || [];
-      const allImages = [item.imagen, ...imagenes].filter(Boolean);
-      
-      let imagenesHTML = '';
-      if (allImages.length > 1) {
-        imagenesHTML = `
-          <div class="carrusel-mini-viewport">
-            <div class="carrusel-mini-track" style="transform: translateX(0%);">
-              ${allImages.map(img => `<img src="${img}" alt="${item.producto}" class="carrusel-mini-slide">`).join('')}
-            </div>
-            <button class="carrusel-mini-prev" data-variante="${id}">‹</button>
-            <button class="carrusel-mini-next" data-variante="${id}">›</button>
-          </div>
-        `;
-      } else {
-        imagenesHTML = `<img src="${item.imagen || '/static/img/no-image.jpg'}" alt="${item.producto}">`;
-      }
-
       div.innerHTML = `
         <div class="item-imagen">
-          ${imagenesHTML}
+          <img src="${item.imagen || '/static/img/no-image.jpg'}" alt="${item.producto}">
         </div>
 
         <div class="item-detalles">
@@ -291,38 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ────────────────────────────────
-  // Mini-carrusel de imágenes en items del carrito
-  document.body.addEventListener('click', e => {
-    const miniPrev = e.target.closest('.carrusel-mini-prev');
-    const miniNext = e.target.closest('.carrusel-mini-next');
-    
-    if (!miniPrev && !miniNext) return;
-    
-    const viewport = (miniPrev || miniNext).closest('.carrusel-mini-viewport');
-    const track = viewport?.querySelector('.carrusel-mini-track');
-    const slides = track?.querySelectorAll('.carrusel-mini-slide');
-    
-    if (!track || !slides || slides.length <= 1) return;
-    
-    // Obtener índice actual
-    let currentIndex = 0;
-    const transform = track.style.transform;
-    const match = transform.match(/translateX\((-?\d+)%\)/);
-    if (match) {
-      currentIndex = Math.abs(parseInt(match[1]) / 100);
-    }
-    
-    // Mover al siguiente o anterior
-    if (miniNext) {
-      currentIndex = (currentIndex + 1) % slides.length;
-    } else {
-      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    }
-    
-    track.style.transform = `translateX(-${currentIndex * 100}%)`;
-  });
-
-  // ────────────────────────────────
+  function ensureConfirmButtonVisible(carritoId) {
     const botonesWrapper = document.querySelector('.carrito-botones');
     if (!botonesWrapper) return;
 
