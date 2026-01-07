@@ -125,9 +125,63 @@ class ProductoCarrusel {
     if (this.prevBtn) this.prevBtn.removeEventListener('click', () => this.prevSlide());
     if (this.nextBtn) this.nextBtn.removeEventListener('click', () => this.nextSlide());
   }
+
+  /**
+   * Cambia las imágenes del carrusel dinámicamente
+   * @param {Array<string>} imageUrls - Array de URLs de imágenes
+   */
+  changeImages(imageUrls) {
+    if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
+      console.warn('No se proporcionaron imágenes válidas');
+      return;
+    }
+
+    // Limpiar slides actuales
+    this.track.innerHTML = '';
+
+    // Crear nuevos slides
+    imageUrls.forEach(url => {
+      const slide = document.createElement('div');
+      slide.className = 'carrusel-slide';
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Producto imagen';
+      img.className = 'slide-img';
+      slide.appendChild(img);
+      this.track.appendChild(slide);
+    });
+
+    // Actualizar referencias
+    this.slides = this.track.querySelectorAll('.carrusel-slide');
+    this.totalSlides = this.slides.length;
+    this.currentSlide = 0;
+
+    // Limpiar y recrear dots
+    this.dotsContainer.innerHTML = '';
+    this.createDots();
+
+    // Reattach listeners a dots
+    const dots = this.dotsContainer.querySelectorAll('.carrusel-dot');
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => this.goToSlide(index));
+    });
+
+    // Mostrar/ocultar botones según cantidad de imágenes
+    if (this.totalSlides <= 1) {
+      if (this.prevBtn) this.prevBtn.style.display = 'none';
+      if (this.nextBtn) this.nextBtn.style.display = 'none';
+    } else {
+      if (this.prevBtn) this.prevBtn.style.display = '';
+      if (this.nextBtn) this.nextBtn.style.display = '';
+    }
+
+    // Actualizar vista
+    this.updateCarousel();
+    this.resetAutoplay();
+  }
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-  new ProductoCarrusel();
+  window.productoCarrusel = new ProductoCarrusel();
 });

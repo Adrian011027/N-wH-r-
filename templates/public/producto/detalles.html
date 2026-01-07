@@ -27,17 +27,14 @@
       <div class="carrusel-container">
         <div class="carrusel-viewport">
           <div class="carrusel-track" id="carrusel-track">
-            <!-- Imagen principal -->
-            {% if producto.imagen %}
+            <!-- Imágenes del producto base -->
+            {% for img_url in imagenes_producto %}
               <div class="carrusel-slide">
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="slide-img">
+                <img src="{{ img_url }}" alt="{{ producto.nombre }}" class="slide-img">
               </div>
-            {% endif %}
-            
-            <!-- Imágenes de la galería (máximo 4 más para total de 5) -->
-            {% for img in producto.imagenes.all|slice:":4" %}
+            {% empty %}
               <div class="carrusel-slide">
-                <img src="{{ img.imagen.url }}" alt="{{ producto.nombre }} - Imagen {{ img.orden }}" class="slide-img">
+                <img src="https://via.placeholder.com/400x400?text=Sin+imagen" alt="{{ producto.nombre }}" class="slide-img">
               </div>
             {% endfor %}
           </div>

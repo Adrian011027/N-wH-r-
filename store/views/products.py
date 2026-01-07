@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
@@ -14,7 +15,7 @@ from ..utils.serializers import serializar_producto_completo
 
 def detalle_producto(request, id):
     producto = get_object_or_404(
-        Producto.objects.prefetch_related("variantes"),
+        Producto.objects.prefetch_related("variantes", "variantes__imagenes", "imagenes"),
         id=id
     )
 
@@ -29,13 +30,20 @@ def detalle_producto(request, id):
         if v.color:
             colores.add(v.color)
 
+        # Obtener imágenes de la variante
+        imagenes_variante = [img.imagen.url for img in v.imagenes.all().order_by('orden') if img.imagen]
+        
         variantes_serializadas.append({
             "id"    : v.id,
             "talla" : v.talla,
             "color" : v.color,
             "precio": float(v.precio or producto.precio),
             "stock" : v.stock,
+            "imagenes": imagenes_variante,  # Imágenes específicas de la variante
         })
+
+    # Obtener imágenes del producto base (para cuando no hay variante seleccionada)
+    imagenes_producto = [img.imagen.url for img in producto.imagenes.all().order_by('orden') if img.imagen]
 
     # lee el origen para el <a volver>
     origen_raw = request.GET.get("from", "")
@@ -49,6 +57,7 @@ def detalle_producto(request, id):
             "origen"         : origen,
             "tallas"         : sorted(tallas, key=lambda x: (len(x), x)),
             "colores"        : sorted(colores),
+            "imagenes_producto": imagenes_producto,  # Imágenes del producto base
             "variantes_json" : json.dumps(variantes_serializadas),
         },
     )

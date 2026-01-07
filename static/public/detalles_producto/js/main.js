@@ -61,6 +61,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     elegidas.add(talla);
     if (stockInfo) stockInfo.textContent = stockTxt(talla);
 
+    // Cambiar imágenes del carrusel si hay variante con esa talla
+    const variante = variantes.find(v => v.talla === talla);
+    if (variante && variante.imagenes && variante.imagenes.length > 0) {
+      if (window.productoCarrusel) {
+        window.productoCarrusel.changeImages(variante.imagenes);
+      }
+    }
+
     const fila = document.createElement('div');
     fila.className = 'linea-talla';
     fila.dataset.talla = talla;
@@ -154,6 +162,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     sel.closest('.linea-talla').dataset.talla = ahora;
     sel.dataset.old = ahora;
     if (stockInfo) stockInfo.textContent = stockTxt(ahora);
+
+    // Cambiar imágenes del carrusel si hay variante con esa talla
+    const variante = variantes.find(v => v.talla === ahora);
+    if (variante && variante.imagenes && variante.imagenes.length > 0) {
+      if (window.productoCarrusel) {
+        window.productoCarrusel.changeImages(variante.imagenes);
+      }
+    }
   }
 
   selInicial.addEventListener('change', function onSelInicialChange() {
