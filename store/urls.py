@@ -12,7 +12,7 @@ from .views import auth
 from .views.views import (
     index, genero_view, registrarse,logout_client,logout_user,
     login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria,
-    categorias_por_genero
+    categorias_por_genero, producto_aleatorio_subcategoria
 )
 
 # ─────────── Carrito ───────────
@@ -86,6 +86,7 @@ urlpatterns = [
 
     # ---------- Categorías y Subcategorías API ----------
     path("api/categorias-por-genero/",           categorias_por_genero,    name="categorias_por_genero"),
+    path("api/producto-aleatorio-subcategoria/", producto_aleatorio_subcategoria, name="producto_aleatorio_subcategoria"),
     path("api/categorias/",                      get_categorias,           name="get_categorias"),
     path("api/categorias/crear/",                create_categoria,         name="create_categoria"),
     path("api/categorias/actualizar/<int:id>/",  update_categoria,         name="update_categoria"),

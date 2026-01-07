@@ -344,6 +344,65 @@ def categorias_por_genero(request):
     return JsonResponse(data)
 
 
+@require_GET
+def producto_aleatorio_subcategoria(request):
+    """
+    Devuelve un producto aleatorio de una subcategoría específica.
+    Usado para mostrar imágenes en el menú de navegación.
+    
+    GET /api/producto-aleatorio-subcategoria/?subcategoria_id=X
+    """
+    subcategoria_id = request.GET.get('subcategoria_id')
+    
+    if not subcategoria_id:
+        return JsonResponse({"error": "subcategoria_id requerido"}, status=400)
+    
+    try:
+        from random import randint
+        from django.db.models import Count
+        
+        # Obtener productos con stock de esta subcategoría específica
+        productos = Producto.objects.filter(
+            subcategorias__id=subcategoria_id,
+            variantes__stock__gt=0
+        ).distinct().prefetch_related('imagenes')
+        
+        if not productos.exists():
+            return JsonResponse({"producto": None})
+        
+        # Contar productos para selección aleatoria más eficiente
+        count = productos.count()
+        
+        # Seleccionar uno verdaderamente aleatorio
+        if count > 1:
+            random_index = randint(0, count - 1)
+            producto = productos[random_index]
+        else:
+            producto = productos.first()
+        
+        # Obtener la primera imagen de la galería
+        imagen_url = None
+        if producto.imagenes.exists():
+            imagen_url = producto.imagenes.first().imagen.url
+        
+        data = {
+            "producto": {
+                "id": producto.id,
+                "nombre": producto.nombre,
+                "imagen": imagen_url,
+                "precio": float(producto.precio) if producto.precio else None
+            }
+        }
+        
+        return JsonResponse(data)
+        
+    except Exception as e:
+        import traceback
+        print(f"Error en producto_aleatorio_subcategoria: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 # ───────────────────────────────────────────────
 # CRUD Categorías (solo admin con JWT)
 # ───────────────────────────────────────────────
