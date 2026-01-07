@@ -227,6 +227,7 @@ def delete_subcategoria(request, id):
 def get_subcategorias_por_categoria(request, categoria_id):
     """
     Obtener todas las subcategorías activas de una categoría específica.
+    (Versión con categoria_id en la URL)
     
     Parámetros GET:
     - incluir_inactivas: true/false (default: false)
@@ -249,6 +250,62 @@ def get_subcategorias_por_categoria(request, categoria_id):
             'orden': sc.orden,
             'activa': sc.activa,
             'productos_count': sc.productos.count(),
+        })
+    
+    return JsonResponse({
+        'categoria_id': categoria.id,
+        'categoria_nombre': categoria.nombre,
+        'subcategorias': data,
+    })
+
+
+@require_GET
+def subcategorias_por_categoria_query(request):
+    """
+    Obtener subcategorías filtradas por categoría y género.
+    Endpoint público para el navbar dinámico (usa query params).
+    
+    GET /api/subcategorias-por-categoria/?categoria_id=X&genero=hombre|mujer
+    """
+    categoria_id = request.GET.get('categoria_id', '').strip()
+    genero_param = request.GET.get('genero', '').lower()
+    
+    if not categoria_id:
+        return JsonResponse({'error': 'categoria_id es requerido'}, status=400)
+    
+    try:
+        categoria = get_object_or_404(Categoria, id=int(categoria_id))
+    except ValueError:
+        return JsonResponse({'error': 'categoria_id inválido'}, status=400)
+    
+    # Mapear parámetro a valores de BD
+    genero_map = {
+        'hombre': ['H', 'U'],
+        'mujer': ['M', 'U'],
+        'h': ['H', 'U'],
+        'm': ['M', 'U'],
+    }
+    
+    generos = genero_map.get(genero_param, [])
+    
+    # Obtener subcategorías activas de la categoría
+    subcategorias = categoria.subcategorias.filter(activa=True)
+    
+    # Si hay filtro de género, solo mostrar subcategorías que tengan productos de ese género
+    if generos:
+        from django.db.models import Count, Q
+        subcategorias = subcategorias.annotate(
+            productos_genero=Count('productos', filter=Q(productos__genero__in=generos))
+        ).filter(productos_genero__gt=0)
+    
+    data = []
+    for sc in subcategorias.order_by('orden', 'nombre'):
+        data.append({
+            'id': sc.id,
+            'nombre': sc.nombre,
+            'descripcion': sc.descripcion,
+            'imagen': sc.imagen.url if sc.imagen else None,
+            'orden': sc.orden,
         })
     
     return JsonResponse({

@@ -11,7 +11,8 @@ from .views.reset_password import (
 from .views import auth
 from .views.views import (
     index, genero_view, registrarse,logout_client,logout_user,
-    login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria
+    login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria,
+    categorias_por_genero
 )
 
 # ─────────── Carrito ───────────
@@ -54,7 +55,8 @@ from .views.orden import (
 
 # ─────────── Subcategorías ───────────
 from .views.subcategorias import (
-    get_subcategorias, create_subcategoria, update_subcategoria, delete_subcategoria, get_subcategorias_por_categoria
+    get_subcategorias, create_subcategoria, update_subcategoria, delete_subcategoria, 
+    get_subcategorias_por_categoria, subcategorias_por_categoria_query
 )
 
 
@@ -83,6 +85,7 @@ urlpatterns = [
     path("buscar/",                    search_page,    name="search_page"),
 
     # ---------- Categorías y Subcategorías API ----------
+    path("api/categorias-por-genero/",           categorias_por_genero,    name="categorias_por_genero"),
     path("api/categorias/",                      get_categorias,           name="get_categorias"),
     path("api/categorias/crear/",                create_categoria,         name="create_categoria"),
     path("api/categorias/actualizar/<int:id>/",  update_categoria,         name="update_categoria"),
@@ -91,6 +94,7 @@ urlpatterns = [
     path("api/subcategorias/crear/",             create_subcategoria,      name="create_subcategoria"),
     path("api/subcategorias/actualizar/<int:id>/", update_subcategoria,    name="update_subcategoria"),
     path("api/subcategorias/eliminar/<int:id>/", delete_subcategoria,      name="delete_subcategoria"),
+    path("api/subcategorias-por-categoria/", subcategorias_por_categoria_query, name="subcategorias_por_categoria_query"),
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),

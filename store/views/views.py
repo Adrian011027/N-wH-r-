@@ -56,14 +56,36 @@ def registrarse(request):
 # Catálogo por género
 # ───────────────────────────────────────────────
 def genero_view(request, genero):
-    genero_map = {"dama": "M", "caballero": "H"}
+    """
+    Vista de colección por género, con filtros opcionales por categoría y subcategoría.
+    URL: /coleccion/<genero>/?categoria=<id>&subcategoria=<id>
+    """
+    genero_map = {"dama": "M", "mujer": "M", "caballero": "H", "hombre": "H"}
     genero_cod = genero_map.get(genero.lower())
     if not genero_cod:
         return HttpResponseNotFound("Género no válido")
 
-    # Incluir productos Unisex en ambas secciones
+    # Obtener filtros de query params
+    categoria_id = request.GET.get('categoria')
+    subcategoria_id = request.GET.get('subcategoria')
+
+    # Base query: productos del género (+ Unisex) con stock
     qs = Producto.objects.filter(genero__in=[genero_cod, "U"], variantes__stock__gt=0) \
-        .select_related("categoria").prefetch_related("imagenes").distinct()
+        .select_related("categoria").prefetch_related("subcategorias", "imagenes").distinct()
+    
+    # Filtrar por categoría si se especifica
+    if categoria_id:
+        try:
+            qs = qs.filter(categoria_id=int(categoria_id))
+        except ValueError:
+            pass
+    
+    # Filtrar por subcategoría si se especifica
+    if subcategoria_id:
+        try:
+            qs = qs.filter(subcategorias__id=int(subcategoria_id))
+        except ValueError:
+            pass
     
     # Agregar primera imagen (galería) a cada producto
     for p in qs:
@@ -71,9 +93,20 @@ def genero_view(request, genero):
         p.imagen = primera_img.imagen if primera_img else None
     
     categorias = sorted({p.categoria.nombre for p in qs})
+    
+    # Determinar título según filtros
+    titulo = "Mujer" if genero_cod == "M" else "Hombre"
+    if subcategoria_id:
+        try:
+            from ..models import Subcategoria
+            subcat = Subcategoria.objects.get(id=subcategoria_id)
+            titulo = f"{titulo} - {subcat.nombre}"
+        except:
+            pass
+    
     return render(request, "public/catalogo/productos_genero.html", {
         "seccion": genero,
-        "titulo": "Mujer" if genero == "dama" else "Hombre",
+        "titulo": titulo,
         "categorias": categorias,
         "productos": qs,
     })
@@ -266,6 +299,49 @@ def login_client(request):
         "nombre": cliente.nombre or cliente.username,
         "correo": cliente.correo or ""
     }, status=200)
+
+
+# ───────────────────────────────────────────────
+# API Pública: Categorías por género (sin autenticación)
+# ───────────────────────────────────────────────
+@require_GET
+def categorias_por_genero(request):
+    """
+    Devuelve las categorías que tienen productos del género especificado.
+    Endpoint público para el navbar dinámico.
+    
+    GET /api/categorias-por-genero/?genero=hombre|mujer
+    """
+    genero_param = request.GET.get('genero', '').lower()
+    
+    # Mapear parámetro a valores de BD
+    genero_map = {
+        'hombre': ['H', 'U'],  # Hombre + Unisex
+        'mujer': ['M', 'U'],   # Mujer + Unisex
+        'h': ['H', 'U'],
+        'm': ['M', 'U'],
+    }
+    
+    generos = genero_map.get(genero_param, [])
+    
+    if not generos:
+        # Sin filtro, devolver todas las categorías
+        categorias = Categoria.objects.all()
+    else:
+        # Categorías que tienen productos del género especificado
+        categorias = Categoria.objects.filter(
+            producto__genero__in=generos
+        ).distinct()
+    
+    data = {
+        "categorias": [{
+            "id": cat.id,
+            "nombre": cat.nombre,
+            "imagen": cat.imagen.url if cat.imagen else ''
+        } for cat in categorias]
+    }
+    
+    return JsonResponse(data)
 
 
 # ───────────────────────────────────────────────
