@@ -57,10 +57,6 @@ def wishlist_detail(request, id_cliente):
                 if payload.get('type') == 'access':
                     token_user_id = payload.get('user_id')
                     token_user_role = payload.get('role', 'cliente')
-        except jwt.ExpiredSignatureError:
-            logger.debug("Token expirado")
-        except jwt.InvalidTokenError:
-            logger.debug("Token inválido")
         except Exception as e:
             logger.debug(f"Error al decodificar token: {e}")
     
@@ -93,21 +89,14 @@ def wishlist_detail(request, id_cliente):
 
         productos = []
         for p in Producto.objects.filter(id__in=ids).prefetch_related('imagenes'):
-            # Galerías de imágenes
-            galeria = []
-            for img in p.imagenes.all():
-                if img.imagen:
-                    galeria.append(img.imagen.url)
-            
-            # Imagen principal (la primera de la galería)
-            imagen_principal = galeria[0] if galeria else None
-            
+            galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
             productos.append({
                 'id'    : p.id,
                 'nombre': p.nombre,
-                'precio': str(p.precio),
-                'imagen': imagen_principal,
-                'imagenes_galeria': galeria
+                'precio': f'{p.precio.normalize():f}',
+                'imagen': request.build_absolute_uri(p.imagen.url)
+                           if p.imagen else None,
+                'imagenes_galeria': [request.build_absolute_uri(img) for img in galeria]
             })
         return JsonResponse({'productos': productos})
 
@@ -158,10 +147,6 @@ def wishlist_all(request, id_cliente):
                 if payload.get('type') == 'access':
                     token_user_id = payload.get('user_id')
                     token_user_role = payload.get('role', 'cliente')
-        except jwt.ExpiredSignatureError:
-            logger.debug("Token expirado")
-        except jwt.InvalidTokenError:
-            logger.debug("Token inválido")
         except Exception as e:
             logger.debug(f"Error al decodificar token: {e}")
     
