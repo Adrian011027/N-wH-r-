@@ -481,6 +481,10 @@ def login_client(request):
         access  = generate_access_token(cliente.id, "cliente", cliente.username)
         refresh = generate_refresh_token(cliente.id)
         
+        # Crear sesión Django para vistas web
+        request.session['cliente_id'] = cliente.id
+        request.session['cliente_username'] = cliente.username
+        
         record_successful_login(identifier, ip)
         
         return JsonResponse({
@@ -495,6 +499,10 @@ def login_client(request):
 
     # Login exitoso
     record_successful_login(identifier, ip)
+    
+    # Crear sesión Django para vistas web
+    request.session['cliente_id'] = cliente.id
+    request.session['cliente_username'] = cliente.username
     
     access  = generate_access_token(cliente.id, "cliente", cliente.username)
     refresh = generate_refresh_token(cliente.id)
@@ -738,14 +746,21 @@ def logout_client(request):
 
         # Guardar en blacklist
         BlacklistedToken.objects.create(token=refresh)
+        
+        # Limpiar sesión Django también
+        request.session.flush()
 
         return JsonResponse({"message": "Logout cliente exitoso"}, status=200)
 
     except jwt.ExpiredSignatureError:
+        # Limpiar sesión aunque el token esté expirado
+        request.session.flush()
         return JsonResponse({"error": "Refresh token expirado"}, status=401)
     except jwt.InvalidTokenError:
+        request.session.flush()
         return JsonResponse({"error": "Refresh token inválido"}, status=401)
     except Exception as e:
+        request.session.flush()
         return JsonResponse({"error": str(e)}, status=400)
 
 
