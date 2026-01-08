@@ -8,17 +8,11 @@ from .views.reset_password import (
 )
 
 # ─────────── Auth con JWT ───────────
-from .views import auth, api_filtros
+from .views import auth
 from .views.views import (
     index, genero_view, registrarse,logout_client,logout_user,
     login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria,
     categorias_por_genero, producto_aleatorio_subcategoria
-)
-
-# ─────────── Email Verification ───────────
-from .views.email_verification import (
-    verificar_email, reenviar_verificacion, 
-    estado_verificacion, pagina_verificacion_pendiente
 )
 
 # ─────────── Carrito ───────────
@@ -29,7 +23,6 @@ from .views.carrito import (
     vaciar_carrito_guest, actualizar_cantidad_guest, eliminar_item_guest,
     mostrar_confirmacion_compra, mostrar_formulario_confirmacion,
     enviar_ticket_whatsapp, enviar_ticket_email,
-    checkout_guest_page, finalizar_compra_guest,
 )
 
 # ─────────── Clientes ───────────
@@ -59,6 +52,12 @@ from .views.wishlist import (
 from .views.orden import (
     eliminar_orden, get_orden, update_status, procesar_por_link, eliminar_producto, dashboard_ordenes,
     get_all_ordenes, cambiar_estado_orden
+)
+
+# ─────────── Pago (Conekta) ───────────
+from .views.payment import (
+    mostrar_formulario_pago_conekta, procesar_pago_conekta, webhook_conekta,
+    pago_exitoso, pago_cancelado
 )
 
 # ─────────── Subcategorías ───────────
@@ -107,10 +106,6 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
-    
-    # APIs de filtros dinámicos
-    path("api/filtros-disponibles/", api_filtros.get_filtros_disponibles, name="filtros_disponibles"),
-    path("api/productos-filtrados/", api_filtros.get_productos_filtrados, name="productos_filtrados"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
@@ -118,14 +113,7 @@ urlpatterns = [
     path("api/auth/logout/",  auth.logout,         name="api_logout"),
     path("api/auth/verify/",  auth.verify_token,   name="api_verify_token"),
     
-    # ---------- Email Verification ----------
-    path("verificar-email/<str:token>/",       verificar_email,               name="verificar_email"),
-    path("verificacion-pendiente/",            pagina_verificacion_pendiente, name="verificacion_pendiente"),
-    path("api/auth/reenviar-verificacion/",    reenviar_verificacion,         name="reenviar_verificacion"),
-    path("api/auth/estado-verificacion/",      estado_verificacion,           name="estado_verificacion"),
-    
     # Auth antiguo (compatibilidad)
-
     path("auth/login_user/",   login_user,    name="login_user"),
     path("auth/login_client/", login_client,  name="login_client"),
     path("auth/refresh/",      refresh_token, name="refresh_token"),
@@ -143,10 +131,6 @@ urlpatterns = [
     # ---------- Carrito (páginas públicas) ----------
     path("carrito/",         carrito_publico,  name="ver_carrito"),
     path("carrito/cliente/", carrito_cliente,  name="carrito_cliente"),
-    
-    # ---------- Checkout Invitados ----------
-    path("checkout/guest/",                     checkout_guest_page,      name="checkout_guest"),
-    path("api/checkout/guest/finalizar/",       finalizar_compra_guest,   name="finalizar_compra_guest"),
 
     # ---------- Carrito API ----------
     path("api/carrito/guest/",                                  detalle_carrito_session,        name="detalle_carrito_session"),
@@ -206,6 +190,13 @@ urlpatterns = [
     # ---------- API Órdenes (Admin) ----------
     path("api/admin/ordenes/",                         get_all_ordenes,      name="api_get_all_ordenes"),
     path("api/admin/ordenes/<int:id>/estado/",         cambiar_estado_orden, name="api_cambiar_estado_orden"),
+    
+    # ---------- Pago con Conekta ----------
+    path("pago/formulario/<int:carrito_id>/",          mostrar_formulario_pago_conekta, name="formulario_pago_conekta"),
+    path("pago/procesar/",                             procesar_pago_conekta,           name="procesar_pago_conekta"),
+    path("pago/webhook/conekta/",                      webhook_conekta,                 name="webhook_conekta"),
+    path("pago/exitoso/",                              pago_exitoso,                    name="pago_exitoso"),
+    path("pago/cancelado/",                            pago_cancelado,                  name="pago_cancelado"),
     
     # ---------- Envío de Tickets ----------
     path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),

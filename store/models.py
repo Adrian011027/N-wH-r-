@@ -698,12 +698,14 @@ class Wishlist(models.Model):
         return f"{self.cliente.username} quiere {nombres}"
 
 class Orden(models.Model):
-    carrito        = models.OneToOneField(Carrito, on_delete=models.CASCADE)
-    cliente        = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-    total_amount   = models.DecimalField(max_digits=10, decimal_places=2)
-    status         = models.CharField(max_length=50)
-    payment_method = models.CharField(max_length=50)
-    created_at     = models.DateTimeField(auto_now_add=True)
+    carrito             = models.OneToOneField(Carrito, on_delete=models.CASCADE)
+    cliente             = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    total_amount        = models.DecimalField(max_digits=10, decimal_places=2)
+    status              = models.CharField(max_length=50)
+    payment_method      = models.CharField(max_length=50)
+    conekta_order_id    = models.CharField(max_length=100, blank=True, null=True)
+    conekta_charge_id   = models.CharField(max_length=100, blank=True, null=True)
+    created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Orden #{self.id} - {self.cliente.username}"

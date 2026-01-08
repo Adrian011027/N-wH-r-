@@ -153,13 +153,6 @@ def cambiar_estado_orden(request, id):
 def get_orden(request, id):
     # 1. Recuperar la orden o devolver 404
     orden = get_object_or_404(Orden, id=id)
-    
-    # SEGURIDAD: Solo el dueño de la orden o admin puede verla
-    if request.user_role != 'admin' and orden.cliente.id != request.user_id:
-        return JsonResponse({
-            'error': 'No autorizado',
-            'detail': 'Solo puedes ver tus propias órdenes'
-        }, status=403)
 
     # 2. Armar la respuesta
     data = {

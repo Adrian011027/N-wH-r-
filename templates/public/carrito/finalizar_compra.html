@@ -84,10 +84,10 @@
 
       <div class="carrito-botones">
         <a href="{% url 'ver_carrito' %}" class="btn-seguir">Regresar al carrito</a>
-        <form method="post" action="{% url 'finalizar_compra' carrito.id %}">
-          {% csrf_token %}
-          <button type="submit" class="btn-finalizar">Confirmar pedido</button>
-        </form>
+        <!-- Redirigir al formulario de pago con Conekta -->
+        <a href="{% url 'formulario_pago_conekta' carrito.id %}" class="btn-finalizar">
+          Confirmar pedido
+        </a>
       </div>
     </div>
   {% endif %}

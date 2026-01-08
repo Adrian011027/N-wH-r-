@@ -273,6 +273,16 @@ TWILIO_WHATSAPP_FROM  = config("TWILIO_WHATSAPP_FROM")
 TWILIO_ADMIN_PHONE    = config("TWILIO_ADMIN_PHONE")  # ← agrega esta variable al .env también
 
 
+# ───────── Configuración Conekta (Pasarela de Pago) ──────────
+CONEKTA_API_KEY = config("CONEKTA_API_KEY", default="")
+CONEKTA_PUBLIC_KEY = config("CONEKTA_PUBLIC_KEY", default="")
+CONEKTA_WEBHOOK_SECRET = config("CONEKTA_WEBHOOK_SECRET", default="")
+CONEKTA_MODE = config("CONEKTA_MODE", default="sandbox")  # sandbox o production
+# URL de retorno después del pago (ajustar según tu dominio)
+CONEKTA_SUCCESS_URL = config("CONEKTA_SUCCESS_URL", default="http://127.0.0.1:8000/pago/exitoso/")
+CONEKTA_CANCEL_URL = config("CONEKTA_CANCEL_URL", default="http://127.0.0.1:8000/pago/cancelado/")
+
+
 # ───────── Configuración JWT ──────────
 JWT_SECRET_KEY = config('JWT_SECRET_KEY', default='tu-clave-secreta-muy-segura-cambiar-en-produccion')
 

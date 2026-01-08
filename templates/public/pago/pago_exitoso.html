@@ -1,0 +1,116 @@
+{% extends "public/base.html" %}
+
+{% block title %}Pago Exitoso{% endblock %}
+
+{% block content %}
+<div class="pago-resultado pago-exitoso">
+    <div class="resultado-icon">
+        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+    </div>
+    
+    <h1>¡Pago Exitoso!</h1>
+    <p class="mensaje">Tu pago ha sido procesado correctamente.</p>
+    
+    <div class="detalles">
+        <p>Pronto recibirás un correo de confirmación con los detalles de tu compra.</p>
+        <p>Puedes revisar el estado de tu orden en tu cuenta.</p>
+    </div>
+    
+    <div class="acciones">
+        <a href="{% url 'index' %}" class="btn btn-primary">Volver al inicio</a>
+        <a href="{% url 'mis_pedidos' %}" class="btn btn-secondary">Ver mis pedidos</a>
+    </div>
+</div>
+
+<style>
+    .pago-resultado {
+        max-width: 500px;
+        margin: 80px auto;
+        padding: 40px;
+        text-align: center;
+        border-radius: 8px;
+    }
+    
+    .pago-exitoso {
+        background: #f0f9ff;
+        border: 2px solid #4caf50;
+    }
+    
+    .resultado-icon {
+        margin-bottom: 20px;
+    }
+    
+    .icon-check {
+        width: 80px;
+        height: 80px;
+        color: #4caf50;
+        animation: scale-in 0.5s ease-out;
+    }
+    
+    @keyframes scale-in {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .pago-resultado h1 {
+        color: #4caf50;
+        margin-bottom: 10px;
+    }
+    
+    .mensaje {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .detalles {
+        background: white;
+        padding: 20px;
+        border-radius: 4px;
+        margin: 20px 0;
+        text-align: left;
+        line-height: 1.6;
+    }
+    
+    .acciones {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+</style>
+{% endblock %}

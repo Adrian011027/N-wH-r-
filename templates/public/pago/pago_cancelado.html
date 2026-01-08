@@ -1,0 +1,117 @@
+{% extends "public/base.html" %}
+
+{% block title %}Pago Cancelado{% endblock %}
+
+{% block content %}
+<div class="pago-resultado pago-cancelado">
+    <div class="resultado-icon">
+        <svg class="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </div>
+    
+    <h1>Pago Cancelado</h1>
+    <p class="mensaje">Tu pago ha sido cancelado o no se completó.</p>
+    
+    <div class="detalles">
+        <p>Tu carrito sigue disponible con tus artículos.</p>
+        <p>Puedes intentar de nuevo o contactarnos para ayuda.</p>
+    </div>
+    
+    <div class="acciones">
+        <a href="{% url 'ver_carrito' %}" class="btn btn-primary">Volver al carrito</a>
+        <a href="{% url 'send_contact' %}" class="btn btn-secondary">Contactar soporte</a>
+    </div>
+</div>
+
+<style>
+    .pago-resultado {
+        max-width: 500px;
+        margin: 80px auto;
+        padding: 40px;
+        text-align: center;
+        border-radius: 8px;
+    }
+    
+    .pago-cancelado {
+        background: #fff3f3;
+        border: 2px solid #f44336;
+    }
+    
+    .resultado-icon {
+        margin-bottom: 20px;
+    }
+    
+    .icon-x {
+        width: 80px;
+        height: 80px;
+        color: #f44336;
+        animation: scale-in 0.5s ease-out;
+    }
+    
+    @keyframes scale-in {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .pago-resultado h1 {
+        color: #f44336;
+        margin-bottom: 10px;
+    }
+    
+    .mensaje {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .detalles {
+        background: white;
+        padding: 20px;
+        border-radius: 4px;
+        margin: 20px 0;
+        text-align: left;
+        line-height: 1.6;
+    }
+    
+    .acciones {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+</style>
+{% endblock %}

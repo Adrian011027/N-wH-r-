@@ -1,0 +1,202 @@
+{% extends "public/base.html" %}
+
+{% block title %}Pago Seguro - Conekta{% endblock %}
+
+{% block content %}
+<div class="pago-container">
+    <h1>Pago Seguro</h1>
+    
+    <div class="pago-resumen">
+        <h2>Resumen de tu compra</h2>
+        <p><strong>Cliente:</strong> {{ cliente.nombre }} ({{ cliente.correo }})</p>
+        <p><strong>Total:</strong> ${{ total|floatformat:2 }} MXN</p>
+    </div>
+
+    <div class="pago-formulario">
+        <h2>Método de Pago</h2>
+        
+        <!-- Formulario de Conekta -->
+        <form id="form-pago-conekta" action="{% url 'procesar_pago_conekta' %}" method="post">
+            {% csrf_token %}
+            
+            <!-- Nombre del titular de la tarjeta -->
+            <div class="form-group">
+                <label>Nombre del Titular</label>
+                <input type="text" id="card_holder" name="card_holder" placeholder="Nombre completo" required />
+            </div>
+            
+            <!-- Número de Tarjeta -->
+            <div class="form-group">
+                <label>Número de Tarjeta</label>
+                <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required />
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Mes de Expiración</label>
+                    <input type="text" id="card_exp_month" name="card_exp_month" placeholder="MM" maxlength="2" required />
+                </div>
+                <div class="form-group">
+                    <label>Año de Expiración</label>
+                    <input type="text" id="card_exp_year" name="card_exp_year" placeholder="YYYY" maxlength="4" required />
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>CVV</label>
+                <input type="text" id="card_cvc" name="card_cvc" placeholder="XXX" maxlength="4" required />
+            </div>
+            
+            <!-- Método de pago -->
+            <div class="form-group">
+                <label>Selecciona un método de pago:</label>
+                <select id="payment_method" name="payment_method">
+                    <option value="card">Tarjeta de Crédito/Débito</option>
+                    <option value="oxxo">OXXO</option>
+                    <option value="spei">SPEI</option>
+                </select>
+            </div>
+            
+            <!-- Campos ocultos -->
+            <input type="hidden" id="carrito_id" name="carrito_id" value="{{ carrito.id }}" />
+            <input type="hidden" id="token" name="token" />
+            
+            <button type="submit" class="btn btn-primary">
+                Pagar ${{ total|floatformat:2 }} MXN
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .pago-container {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+    
+    .pago-resumen {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 30px;
+    }
+    
+    .pago-formulario {
+        background: white;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+        width: 100%;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+</style>
+
+<script>
+    // Manejar envío del formulario
+    document.getElementById('form-pago-conekta').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const carritoId = document.getElementById('carrito_id').value;
+        const paymentMethod = document.getElementById('payment_method').value;
+        const cardNumber = document.getElementById('card_number').value;
+        const cardExpMonth = document.getElementById('card_exp_month').value;
+        const cardExpYear = document.getElementById('card_exp_year').value;
+        const cardCvc = document.getElementById('card_cvc').value;
+        const cardHolder = document.getElementById('card_holder').value;
+        
+        // Validación básica
+        if (!cardNumber || !cardExpMonth || !cardExpYear || !cardCvc || !cardHolder) {
+            alert('Por favor completa todos los campos de la tarjeta');
+            return;
+        }
+        
+        try {
+            // En modo de prueba, crear token simulado
+            // En producción, usar Conekta.Tokenizer
+            const token = {
+                id: 'tok_test_' + Math.random().toString(36).substr(2, 9),
+                card: {
+                    holder_name: cardHolder,
+                    number: cardNumber,
+                    exp_month: cardExpMonth,
+                    exp_year: cardExpYear,
+                }
+            };
+            
+            // Enviar token al servidor
+            const response = await fetch('{% url "procesar_pago_conekta" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    carrito_id: carritoId,
+                    token: token.id,
+                    payment_method: paymentMethod,
+                    card_data: {
+                        holder_name: cardHolder,
+                        number: cardNumber.replace(/\s/g, '').slice(-4), // Último 4 dígitos
+                        exp_month: cardExpMonth,
+                        exp_year: cardExpYear,
+                    }
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('¡Pago procesado exitosamente!');
+                // Redirigir a página de éxito
+                window.location.href = data.redirect;
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al procesar el pago: ' + error.message);
+        }
+    });
+</script>
+{% endblock %}
