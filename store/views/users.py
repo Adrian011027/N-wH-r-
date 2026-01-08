@@ -16,11 +16,13 @@ def get_user(request):
     """Obtener lista de todos los usuarios - Solo administradores"""
     try:
         usuarios = Usuario.objects.all()
+        # SEGURIDAD: NUNCA exponer hash de contraseña, ni siquiera a admins
         data = [{
             "id": u.id,
             "username": u.username,
             "role": u.role,
-            "pw": u.password
+            "created_at": u.date_joined.isoformat() if hasattr(u, 'date_joined') and u.date_joined else None,
+            "last_login": u.last_login.isoformat() if u.last_login else None
         } for u in usuarios]
         
         return JsonResponse({

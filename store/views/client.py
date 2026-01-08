@@ -422,6 +422,13 @@ def delete_client(request, id):
 @jwt_role_required()
 @require_http_methods(["POST"])
 def send_contact(request, id):
+    # SEGURIDAD: Solo el propio cliente puede enviar contactos desde su cuenta
+    if request.user_role != 'admin' and request.user_id != id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes enviar contactos desde tu propia cuenta'
+        }, status=403)
+    
     try:
         data = json.loads(request.body)
         cliente = Cliente.objects.get(id=id)
