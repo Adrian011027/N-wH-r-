@@ -40,7 +40,7 @@ def wishlist_detail(request, id_cliente):
     """
     GET/POST/DELETE /wishlist/<id_cliente>/
     
-    Requiere autenticación JWT. El token debe ser del mismo cliente o un admin.
+    Requiere autenticación JWT o sesión activa. El usuario debe ser el dueño o admin.
     """
     # Extraer y validar token JWT
     auth_header = request.headers.get('Authorization')
@@ -64,16 +64,23 @@ def wishlist_detail(request, id_cliente):
         except Exception as e:
             logger.debug(f"Error al decodificar token: {e}")
     
-    # Si no hay token válido, retornar 401
-    if not token_user_id:
+    # También verificar sesión (para usuarios logueados por web)
+    session_cliente_id = request.session.get('cliente_id')
+    
+    # Si no hay token JWT válido NI sesión activa, retornar 401
+    if not token_user_id and not session_cliente_id:
         return JsonResponse({
-            'error': 'Token de autenticación requerido',
-            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+            'error': 'Autenticación requerida',
+            'detail': 'Debe incluir el header Authorization: Bearer <token> o tener sesión activa'
         }, status=401)
     
     # Validar que el usuario solo puede acceder a su propia wishlist
     # Los admins pueden acceder a cualquiera
-    if token_user_role != 'admin' and token_user_id != id_cliente:
+    is_admin = token_user_role == 'admin'
+    is_owner_jwt = token_user_id == id_cliente
+    is_owner_session = session_cliente_id == id_cliente
+    
+    if not is_admin and not is_owner_jwt and not is_owner_session:
         return JsonResponse({
             'error': 'No autorizado',
             'detail': 'Solo puedes acceder a tu propia wishlist'
@@ -141,7 +148,7 @@ def wishlist_all(request, id_cliente):
     DELETE /wishlist/all/<id_cliente>/
     Vacía la lista de deseos del cliente.
     
-    Requiere autenticación JWT. El token debe ser del mismo cliente o un admin.
+    Requiere autenticación JWT o sesión activa. El usuario debe ser el dueño o admin.
     """
     # Extraer y validar token JWT
     auth_header = request.headers.get('Authorization')
@@ -165,22 +172,29 @@ def wishlist_all(request, id_cliente):
         except Exception as e:
             logger.debug(f"Error al decodificar token: {e}")
     
-    # Si no hay token válido, retornar 401
-    if not token_user_id:
+    # También verificar sesión (para usuarios logueados por web)
+    session_cliente_id = request.session.get('cliente_id')
+    
+    # Si no hay token JWT válido NI sesión activa, retornar 401
+    if not token_user_id and not session_cliente_id:
         return JsonResponse({
-            'error': 'Token de autenticación requerido',
-            'detail': 'Debe incluir el header: Authorization: Bearer <token>'
+            'error': 'Autenticación requerida',
+            'detail': 'Debe incluir el header Authorization: Bearer <token> o tener sesión activa'
         }, status=401)
     
     # Validar que el usuario solo puede acceder a su propia wishlist
     # Los admins pueden acceder a cualquiera
-    if token_user_role != 'admin' and token_user_id != id_cliente:
+    is_admin = token_user_role == 'admin'
+    is_owner_jwt = token_user_id == id_cliente
+    is_owner_session = session_cliente_id == id_cliente
+    
+    if not is_admin and not is_owner_jwt and not is_owner_session:
         return JsonResponse({
             'error': 'No autorizado',
             'detail': 'Solo puedes acceder a tu propia wishlist'
         }, status=403)
     
-    cliente, _  = Cliente.objects.get_or_create(id=id_cliente)
+    cliente = get_object_or_404(Cliente, id=id_cliente)
     wishlist, _ = Wishlist.objects.get_or_create(cliente=cliente)
     wishlist.productos.clear()
     return JsonResponse({'mensaje': 'Wishlist vaciada correctamente'})

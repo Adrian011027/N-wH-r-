@@ -244,8 +244,8 @@
   background: #fff;
   border-radius: 20px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
   display: flex;
   flex-direction: column;
 }
@@ -253,7 +253,6 @@
 .producto-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: transparent;
 }
 
 /* Imagen */
@@ -268,11 +267,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .producto-card:hover .producto-imagen img {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
 /* Badges */
@@ -1035,14 +1034,13 @@
   border-radius: 8px;
   overflow: hidden;
   aspect-ratio: 1;
-  border: 2px solid #e5e7eb;
-  transition: all 0.2s ease;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
   cursor: pointer;
 }
 
 .thumbnail-item:hover {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .thumbnail-item img {
@@ -1645,15 +1643,14 @@
   height: 80px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: none;
   background: #f9fafb;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .var-thumb-item:hover {
-  border-color: #667eea;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .var-thumb-item img {

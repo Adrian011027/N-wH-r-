@@ -1,0 +1,272 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Verifica tu Correo - NOWHERE{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <div class="verification-card pending">
+        <div class="icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="M22 7l-10 6L2 7"></path>
+            </svg>
+        </div>
+        
+        <h1>Verifica tu Correo</h1>
+        
+        <p class="description">
+            Te hemos enviado un correo de verificación. Por favor revisa tu bandeja 
+            de entrada (y la carpeta de spam) y haz clic en el enlace para activar tu cuenta.
+        </p>
+        
+        <div class="info-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div>
+                <strong>El enlace expira en 24 horas</strong>
+                <p>Si no recibes el correo, puedes solicitar uno nuevo abajo.</p>
+            </div>
+        </div>
+        
+        <div class="resend-section">
+            <p>¿No recibiste el correo?</p>
+            <div class="input-group">
+                <input type="email" id="resendEmail" placeholder="tu@correo.com" required>
+                <button type="button" id="resendBtn" onclick="resendVerification()">
+                    Reenviar
+                </button>
+            </div>
+            <p id="resendMessage" class="form-message"></p>
+        </div>
+        
+        <div class="actions">
+            <a href="/" class="btn-secondary">
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .verification-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    }
+    
+    .verification-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 60px 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .icon-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 32px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #fff;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .verification-card h1 {
+        font-size: 32px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0 0 16px 0;
+    }
+    
+    .verification-card .description {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0 0 24px 0;
+    }
+    
+    .info-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        text-align: left;
+        padding: 20px;
+        background: #fef3c7;
+        border-radius: 12px;
+        margin-bottom: 32px;
+    }
+    
+    .info-box svg {
+        color: #d97706;
+        flex-shrink: 0;
+    }
+    
+    .info-box strong {
+        display: block;
+        color: #92400e;
+        margin-bottom: 4px;
+    }
+    
+    .info-box p {
+        margin: 0;
+        color: #b45309;
+        font-size: 14px;
+    }
+    
+    .resend-section {
+        background: #f9fafb;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .resend-section > p:first-child {
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 12px 0;
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .input-group input {
+        flex: 1;
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+    }
+    
+    .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .input-group button {
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .input-group button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .input-group button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .form-message {
+        margin: 12px 0 0 0;
+        font-size: 14px;
+        min-height: 20px;
+    }
+    
+    .form-message.success { color: #10b981; }
+    .form-message.error { color: #ef4444; }
+    
+    .actions {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .btn-secondary {
+        padding: 14px 28px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+    
+    @media (max-width: 480px) {
+        .verification-card { padding: 40px 24px; }
+        .verification-card h1 { font-size: 24px; }
+        .input-group { flex-direction: column; }
+    }
+</style>
+
+<script>
+async function resendVerification() {
+    const email = document.getElementById('resendEmail').value.trim();
+    const btn = document.getElementById('resendBtn');
+    const msgEl = document.getElementById('resendMessage');
+    
+    if (!email) {
+        msgEl.textContent = 'Por favor ingresa tu correo';
+        msgEl.className = 'form-message error';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    msgEl.textContent = '';
+    
+    try {
+        const response = await fetch('/api/auth/reenviar-verificacion/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo: email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            msgEl.textContent = data.message || '¡Correo enviado!';
+            msgEl.className = 'form-message success';
+        } else {
+            msgEl.textContent = data.error || 'Error al enviar';
+            msgEl.className = 'form-message error';
+        }
+    } catch (error) {
+        msgEl.textContent = 'Error de conexión';
+        msgEl.className = 'form-message error';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Reenviar';
+    }
+}
+</script>
+{% endblock %}

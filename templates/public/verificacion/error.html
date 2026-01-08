@@ -1,0 +1,291 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Error de Verificación - NOWHERE{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <div class="verification-card error">
+        <div class="icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        
+        <h1>Error de Verificación</h1>
+        
+        <p class="error-message">{{ error }}</p>
+        
+        <p class="description">
+            No te preocupes, puedes solicitar un nuevo enlace de verificación 
+            desde tu perfil o usando el formulario a continuación.
+        </p>
+        
+        <div class="resend-form">
+            <p class="form-label">Ingresa tu correo para recibir un nuevo enlace:</p>
+            <div class="input-group">
+                <input type="email" id="resendEmail" placeholder="tu@correo.com" required>
+                <button type="button" id="resendBtn" onclick="resendVerification()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13"></path>
+                        <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                    </svg>
+                    Enviar
+                </button>
+            </div>
+            <p id="resendMessage" class="form-message"></p>
+        </div>
+        
+        <div class="actions">
+            <a href="/" class="btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .verification-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    }
+    
+    .verification-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 60px 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .icon-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 32px;
+    }
+    
+    .error .icon-container {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #fff;
+    }
+    
+    .verification-card h1 {
+        font-size: 32px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0 0 16px 0;
+    }
+    
+    .verification-card .error-message {
+        font-size: 16px;
+        color: #ef4444;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        padding: 12px 20px;
+        background: #fef2f2;
+        border-radius: 8px;
+    }
+    
+    .verification-card .description {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0 0 32px 0;
+    }
+    
+    .resend-form {
+        background: #f9fafb;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .form-label {
+        font-size: 14px;
+        color: #374151;
+        font-weight: 500;
+        margin: 0 0 12px 0;
+    }
+    
+    .input-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .input-group input {
+        flex: 1;
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+    }
+    
+    .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .input-group button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .input-group button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .input-group button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .form-message {
+        margin: 12px 0 0 0;
+        font-size: 14px;
+        min-height: 20px;
+    }
+    
+    .form-message.success {
+        color: #10b981;
+    }
+    
+    .form-message.error {
+        color: #ef4444;
+    }
+    
+    .actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+    }
+    
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        background: #f3f4f6;
+        color: #374151;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #e5e7eb;
+        border-color: #d1d5db;
+    }
+    
+    @media (max-width: 480px) {
+        .verification-card {
+            padding: 40px 24px;
+        }
+        
+        .verification-card h1 {
+            font-size: 24px;
+        }
+        
+        .input-group {
+            flex-direction: column;
+        }
+        
+        .input-group button {
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+async function resendVerification() {
+    const email = document.getElementById('resendEmail').value.trim();
+    const btn = document.getElementById('resendBtn');
+    const msgEl = document.getElementById('resendMessage');
+    
+    if (!email) {
+        msgEl.textContent = 'Por favor ingresa tu correo';
+        msgEl.className = 'form-message error';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Enviando...';
+    msgEl.textContent = '';
+    
+    try {
+        const response = await fetch('/api/auth/reenviar-verificacion/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo: email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            msgEl.textContent = data.message || '¡Correo enviado! Revisa tu bandeja de entrada.';
+            msgEl.className = 'form-message success';
+        } else {
+            msgEl.textContent = data.error || 'Error al enviar el correo';
+            msgEl.className = 'form-message error';
+        }
+    } catch (error) {
+        msgEl.textContent = 'Error de conexión. Intenta de nuevo.';
+        msgEl.className = 'form-message error';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13"></path>
+                <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+            </svg>
+            Enviar
+        `;
+    }
+}
+</script>
+{% endblock %}

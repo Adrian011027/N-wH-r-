@@ -1,5 +1,13 @@
 /* ========== HEADER ========== */
 
+/* Prevenir scroll del body cuando el menú está abierto */
+body.no-scroll {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
+}
+
 
 header {
   position: fixed;
@@ -1433,6 +1441,18 @@ header.scrolled #Logo {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
+  
+  /* Scrollbar invisible */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
+  
+  /* Prevenir scroll chaining - evita que el scroll se propague a la página */
+  overscroll-behavior: contain;
+}
+
+/* Scrollbar invisible en Chrome, Safari y Opera */
+.lv-panel::-webkit-scrollbar {
+  display: none;
 }
 
 /* Los paneles solo son visibles cuando el nav-menu está abierto (cascada) */
@@ -1448,6 +1468,8 @@ header.scrolled #Logo {
 /* Panel de Subcategorías */
 .lv-panel-subcategories {
   left: 420px; /* Inicialmente en la misma posición */
+  overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 /* Estado activo - Desktop */
@@ -1527,7 +1549,23 @@ header.scrolled #Logo {
 .lv-panel-content {
   height: calc(100% - 80px);
   overflow-y: auto;
-  padding: 0 0 20px 0;
+  overflow-x: hidden;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  
+  /* Scrollbar invisible pero funcional */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
+  
+  /* Prevenir que el scroll se propague al padre */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar invisible en Chrome, Safari y Opera */
+.lv-panel-content::-webkit-scrollbar {
+  display: none;
 }
 
 /* Panel de categorías sin header, contenido desde arriba */
@@ -1642,12 +1680,20 @@ header.scrolled #Logo {
   display: flex;
   flex-direction: column;
   gap: 0;
+  width: 100%;
+  overflow-x: hidden;
+  min-height: min-content;
 }
 
 /* Item de subcategoría - Bloque completo con título sobrepuesto + productos */
 .lv-subcategory-item {
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
   position: relative;
+}
+
+.lv-subcategory-item:last-child {
+  margin-bottom: 0;
 }
 
 /* Título de la subcategoría - Sobrepuesto arriba en negro */
@@ -1680,6 +1726,9 @@ header.scrolled #Logo {
   grid-template-columns: repeat(2, 1fr);
   gap: 0;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Card de producto individual */
@@ -1758,8 +1807,6 @@ header.scrolled #Logo {
   opacity: 0;
   visibility: hidden;
 }
-
-
 
 /* Link de subcategoría - ESTILO ANTIGUO (mantener por compatibilidad) */
 .lv-subcategory-link {

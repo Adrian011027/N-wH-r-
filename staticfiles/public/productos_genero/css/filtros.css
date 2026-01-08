@@ -1,0 +1,532 @@
+/* ==================== FILTROS CSS - DRAWER PANEL ==================== */
+
+/* Contenedor principal */
+.coleccion-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+/* Overlay oscuro */
+.filtros-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 999999 !important;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.filtros-overlay.active {
+  opacity: 1 !important;
+  pointer-events: all !important;
+}
+
+/* ==================== SIDEBAR DE FILTROS (DRAWER) ==================== */
+.filtros-sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  right: -400px;
+  width: 380px;
+  height: 100vh !important;
+  background: #ffffff !important;
+  z-index: 9999999 !important;
+  transition: right 0.3s ease;
+  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1) !important;
+  overflow-y: auto;
+}
+
+.filtros-sidebar.active {
+  right: 0;
+}
+
+.filtros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 20px;
+  border-bottom: 1px solid #e8e8e8;
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.filtros-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-cerrar-filtros {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
+  padding: 0;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cerrar-filtros:hover {
+  color: #1d1d1d;
+}
+
+.filtros-content {
+  padding: 20px;
+}
+
+/* Grupos de filtros */
+.filtro-grupo {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filtro-grupo:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.filtro-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d1d1d;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Input de búsqueda */
+.filtro-busqueda {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: #ffffff;
+}
+
+.filtro-busqueda:focus {
+  outline: none;
+  border-color: #1d1d1d;
+}
+
+.filtro-busqueda::placeholder {
+  color: #999;
+}
+
+/* Select de ordenamiento */
+.filtro-select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: #1d1d1d;
+}
+
+.filtro-select:hover {
+  border-color: #1d1d1d;
+}
+
+/* Inputs de precio */
+.precio-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.precio-inputs input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.precio-inputs input:focus {
+  outline: none;
+  border-color: #1d1d1d;
+}
+
+.precio-inputs span {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Grid de opciones (tallas) */
+.filtro-opciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 8px;
+}
+
+.filtro-opcion-btn {
+  position: relative;
+  cursor: pointer;
+}
+
+.filtro-opcion-btn input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filtro-opcion-btn span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  background: #ffffff;
+  transition: all 0.2s;
+  min-height: 40px;
+}
+
+.filtro-opcion-btn input:checked + span {
+  border-color: #1d1d1d;
+  background: #1d1d1d;
+  color: #ffffff;
+}
+
+.filtro-opcion-btn:hover span {
+  border-color: #1d1d1d;
+}
+
+/* Grid de colores */
+.filtro-colores-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filtro-color-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filtro-color-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.filtro-color-btn.selected {
+  border-color: #1d1d1d;
+  box-shadow: 0 0 0 3px rgba(29,29,29,0.15);
+}
+
+/* Lista de opciones (marcas) */
+.filtro-opciones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filtro-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.filtro-checkbox-item:hover {
+  color: #1d1d1d;
+}
+
+.filtro-checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1d1d1d;
+}
+
+/* Checkbox genérico (oferta) */
+.filtro-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  padding: 10px 0;
+}
+
+.filtro-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1d1d1d;
+}
+
+.filtro-checkbox:hover span {
+  color: #1d1d1d;
+}
+
+/* Botón limpiar filtros */
+.btn-limpiar-filtros {
+  width: 100%;
+  padding: 14px;
+  background: #1d1d1d;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-limpiar-filtros:hover {
+  background: #000000;
+}
+
+.btn-limpiar-filtros svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ==================== CONTENIDO PRINCIPAL ==================== */
+.coleccion-main {
+  min-width: 0;
+}
+
+/* Header */
+.coleccion-main .dama-header,
+.coleccion-main .caballero-header,
+.coleccion-main .hombre-header,
+.coleccion-main .mujer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  margin-top: 40px;
+  gap: 20px;
+}
+
+.header-info {
+  text-align: right;
+}
+
+.header-info h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1d1d1d;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+}
+
+.productos-contador {
+  font-size: 13px;
+  color: #999;
+  margin: 0;
+}
+
+/* Botón toggle filtros - en el header */
+.btn-toggle-filtros {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #ffffff;
+  color: #1d1d1d;
+  border: 1px solid #1d1d1d;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.btn-toggle-filtros:hover {
+  background: #1d1d1d;
+  color: #ffffff;
+}
+
+.btn-toggle-filtros svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Eliminar el contenedor separado */
+.filtros-toggle-container {
+  display: none;
+}
+
+/* Pills de filtros activos */
+.filtros-activos-pills {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filtro-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #1d1d1d;
+  border-radius: 20px;
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.filtro-pill button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+  transition: opacity 0.2s;
+  opacity: 0.7;
+}
+
+.filtro-pill button:hover {
+  opacity: 1;
+}
+
+/* Grid de productos */
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+  min-height: 400px;
+}
+
+/* Animación de loading */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Paginación */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 40px 0;
+}
+
+.paginacion a,
+.paginacion span {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #1d1d1d;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.paginacion a:hover {
+  background: #1d1d1d;
+  color: #ffffff;
+  border-color: #1d1d1d;
+}
+
+.paginacion .actual {
+  background: #1d1d1d;
+  color: #ffffff;
+  border-color: #1d1d1d;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+/* Móvil */
+@media (max-width: 768px) {
+  .filtros-sidebar {
+    width: 85%;
+    max-width: 350px;
+    right: -100%;
+  }
+
+  .filtros-sidebar.active {
+    right: 0;
+  }
+
+  .productos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .header-info h2 {
+    font-size: 24px;
+  }
+
+  .paginacion {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .productos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filtros-sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+}

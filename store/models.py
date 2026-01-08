@@ -87,6 +87,11 @@ class Cliente(AbstractBaseUser):
     # Control de cambio de username (1 vez por mes)
     ultima_modificacion_username = models.DateTimeField(null=True, blank=True)
     
+    # Verificación de correo electrónico
+    email_verified = models.BooleanField(default=False)
+    email_verification_token = models.CharField(max_length=100, blank=True, null=True)
+    email_verification_sent_at = models.DateTimeField(null=True, blank=True)
+    
     # Dirección de envío
     calle           = models.CharField(max_length=500, blank=True, null=True)
     colonia         = models.CharField(max_length=200, blank=True, null=True)

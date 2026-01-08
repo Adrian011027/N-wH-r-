@@ -14,7 +14,7 @@ from store.models import BlacklistedToken
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, decode_jwt
-from .decorators import jwt_role_required, login_required_user
+from .decorators import jwt_role_required, login_required_user, admin_required
 
 
 # ───────────────────────────────────────────────
@@ -57,9 +57,22 @@ def registrarse(request):
 # ───────────────────────────────────────────────
 def genero_view(request, genero):
     """
-    Vista de colección por género, con filtros opcionales por categoría y subcategoría.
-    URL: /coleccion/<genero>/?categoria=<id>&subcategoria=<id>
+    Vista de colección por género con filtros completos.
+    URL: /coleccion/<genero>/?categoria=<id>&subcategoria=<id>&tallas=7,8&precio_min=500&...
+    
+    Soporta filtros de:
+    - Categoría y Subcategoría
+    - Tallas (múltiples)
+    - Colores (múltiples)
+    - Marcas (múltiples)
+    - Rango de precio
+    - En oferta
+    - Ordenamiento
+    - Paginación
     """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
     genero_map = {"dama": "M", "mujer": "M", "caballero": "H", "hombre": "H"}
     genero_cod = genero_map.get(genero.lower())
     if not genero_cod:
@@ -68,31 +81,107 @@ def genero_view(request, genero):
     # Obtener filtros de query params
     categoria_id = request.GET.get('categoria')
     subcategoria_id = request.GET.get('subcategoria')
-
-    # Base query: productos del género (+ Unisex) con stock
-    qs = Producto.objects.filter(genero__in=[genero_cod, "U"], variantes__stock__gt=0) \
-        .select_related("categoria").prefetch_related("subcategorias", "imagenes").distinct()
     
-    # Filtrar por categoría si se especifica
+    # Parsear tallas (pueden venir como "39,40" o como múltiples params "tallas=39&tallas=40")
+    tallas_raw = request.GET.get('tallas', '')
+    tallas = [t.strip() for t in tallas_raw.split(',') if t.strip()] if tallas_raw else []
+    
+    # Parsear colores
+    colores_raw = request.GET.get('colores', '')
+    colores = [c.strip() for c in colores_raw.split(',') if c.strip()] if colores_raw else []
+    
+    # Parsear marcas
+    marcas_raw = request.GET.get('marcas', '')
+    marcas = [m.strip() for m in marcas_raw.split(',') if m.strip()] if marcas_raw else []
+    
+    precio_min = request.GET.get('precio_min')
+    precio_max = request.GET.get('precio_max')
+    en_oferta = request.GET.get('en_oferta') == '1'
+    busqueda = request.GET.get('q', '').strip()
+    orden = request.GET.get('orden', 'nuevo')
+    pagina = request.GET.get('pagina', 1)
+
+    # Base query: productos del género (+ Unisex)
+    qs = Producto.objects.filter(genero__in=[genero_cod, "U"]) \
+        .select_related("categoria").prefetch_related("subcategorias", "imagenes", "variantes")
+    
+    # Filtrar por categoría
     if categoria_id:
         try:
             qs = qs.filter(categoria_id=int(categoria_id))
         except ValueError:
             pass
     
-    # Filtrar por subcategoría si se especifica
+    # Filtrar por subcategoría
     if subcategoria_id:
         try:
             qs = qs.filter(subcategorias__id=int(subcategoria_id))
         except ValueError:
             pass
     
-    # Agregar primera imagen (galería) a cada producto
-    for p in qs:
+    # Filtrar por tallas (productos que tienen variantes con esas tallas)
+    if tallas:
+        qs = qs.filter(variantes__talla__in=tallas, variantes__stock__gt=0)
+    
+    # Filtrar por colores
+    if colores:
+        qs = qs.filter(variantes__color__in=colores, variantes__stock__gt=0)
+    
+    # Filtrar por marcas
+    if marcas:
+        qs = qs.filter(marca__in=marcas)
+    
+    # Filtrar por precio
+    if precio_min:
+        try:
+            qs = qs.filter(precio__gte=float(precio_min))
+        except (ValueError, TypeError):
+            pass
+    
+    if precio_max:
+        try:
+            qs = qs.filter(precio__lte=float(precio_max))
+        except (ValueError, TypeError):
+            pass
+    
+    # Filtrar por oferta
+    if en_oferta:
+        qs = qs.filter(en_oferta=True)
+    
+    # Búsqueda por nombre/descripción/marca
+    if busqueda:
+        qs = qs.filter(
+            Q(nombre__icontains=busqueda) |
+            Q(descripcion__icontains=busqueda) |
+            Q(marca__icontains=busqueda)
+        )
+    
+    # Solo productos con stock (por defecto)
+    qs = qs.filter(variantes__stock__gt=0).distinct()
+    
+    # Ordenamiento
+    orden_map = {
+        'precio_asc': 'precio',
+        'precio_desc': '-precio',
+        'nuevo': '-created_at',
+        'nombre': 'nombre',
+    }
+    qs = qs.order_by(orden_map.get(orden, '-created_at'))
+    
+    # Paginación (24 productos por página)
+    paginator = Paginator(qs, 24)
+    try:
+        productos_pag = paginator.get_page(pagina)
+    except:
+        productos_pag = paginator.get_page(1)
+    
+    # Agregar primera imagen a cada producto de la página actual
+    for p in productos_pag:
         primera_img = p.imagenes.all().order_by('orden').first()
         p.imagen = primera_img.imagen if primera_img else None
     
-    categorias = sorted({p.categoria.nombre for p in qs})
+    # Obtener categorías únicas (solo de la página actual para eficiencia)
+    categorias = sorted({p.categoria.nombre for p in productos_pag if p.categoria})
     
     # Determinar título según filtros
     titulo = "Mujer" if genero_cod == "M" else "Hombre"
@@ -104,11 +193,58 @@ def genero_view(request, genero):
         except:
             pass
     
+    # Pasar parámetros actuales al template para mantener filtros
+    filtros_activos = {
+        'categoria': categoria_id,
+        'subcategoria': subcategoria_id,
+        'tallas': ','.join(tallas) if tallas else '',
+        'colores': ','.join(colores) if colores else '',
+        'marcas': ','.join(marcas) if marcas else '',
+        'precio_min': precio_min or '',
+        'precio_max': precio_max or '',
+        'en_oferta': '1' if en_oferta else '',
+        'q': busqueda,
+        'orden': orden
+    }
+    
+    # Si es petición AJAX, devolver JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax'):
+        productos_data = []
+        for p in productos_pag:
+            # Obtener URL de imagen (ya está asignada en el for anterior)
+            imagen_url = p.imagen.url if hasattr(p, 'imagen') and p.imagen else None
+            
+            productos_data.append({
+                'id': p.id,
+                'nombre': p.nombre,
+                'precio': str(p.precio),
+                'precio_mayorista': str(p.precio_mayorista) if p.precio_mayorista else None,
+                'en_oferta': p.en_oferta,
+                'imagen': imagen_url,
+                'marca': p.marca or ''
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'productos': productos_data,
+            'total': paginator.count,
+            'paginacion': {
+                'pagina_actual': productos_pag.number,
+                'total_paginas': paginator.num_pages,
+                'tiene_siguiente': productos_pag.has_next(),
+                'tiene_anterior': productos_pag.has_previous()
+            }
+        })
+    
+    # Renderizado HTML normal
     return render(request, "public/catalogo/productos_genero.html", {
         "seccion": genero,
         "titulo": titulo,
+        "genero_cod": genero_cod,
         "categorias": categorias,
-        "productos": qs,
+        "productos": productos_pag,
+        "filtros_activos": filtros_activos,
+        "total_productos": paginator.count,
     })
 
 
@@ -217,13 +353,34 @@ def login_user(request):
     Login de administrador con JWT + sesión Django.
     Permite login con usuario o correo (case-insensitive).
     Retorna tokens JWT y establece sesión para vistas HTML del dashboard.
+    Incluye rate limiting para protección contra fuerza bruta.
     """
+    from ..utils.security import (
+        login_limiter, 
+        get_client_ip, 
+        record_failed_login, 
+        record_successful_login,
+        is_login_allowed
+    )
+    
     data = json.loads(request.body or "{}")
     identifier = data.get("username", "").strip()  # Puede ser username o correo
     password = data.get("password")
 
     if not identifier or not password:
         return JsonResponse({"error": "Usuario/correo y contraseña requeridos"}, status=400)
+    
+    # Rate limiting check
+    ip = get_client_ip(request)
+    allowed, remaining_time = is_login_allowed(identifier, ip)
+    
+    if not allowed:
+        minutes = remaining_time // 60 if remaining_time else 15
+        return JsonResponse({
+            "error": f"Demasiados intentos fallidos. Espera {minutes} minutos.",
+            "blocked": True,
+            "retry_after": remaining_time
+        }, status=429)
 
     # Buscar por username o correo (case-insensitive)
     try:
@@ -232,15 +389,20 @@ def login_user(request):
         try:
             user = Usuario.objects.get(email__iexact=identifier)
         except Usuario.DoesNotExist:
+            record_failed_login(identifier, ip)
             return JsonResponse({"error": "Credenciales inválidas"}, status=401)
 
     # Validar contraseña (case-sensitive)
     if not check_password(password, user.password):
+        record_failed_login(identifier, ip)
         return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
 
     # Verificar que sea admin
     if user.role != "admin":
         return JsonResponse({"error": "Acceso denegado. Solo administradores."}, status=403)
+
+    # Login exitoso
+    record_successful_login(identifier, ip)
 
     # Generar tokens JWT
     access  = generate_access_token(user.id, user.role, user.username)
@@ -269,13 +431,34 @@ def login_client(request):
     Login de cliente con JWT.
     Permite login con usuario o correo (case-insensitive).
     La contraseña sí es case-sensitive.
+    Incluye rate limiting y verificación de email.
     """
+    from ..utils.security import (
+        login_limiter, 
+        get_client_ip, 
+        record_failed_login, 
+        record_successful_login,
+        is_login_allowed
+    )
+    
     data = json.loads(request.body or "{}")
     identifier = data.get("username", "").strip()  # Puede ser username o correo
     password = data.get("password")
 
     if not identifier or not password:
         return JsonResponse({"error": "Usuario/correo y contraseña requeridos"}, status=400)
+    
+    # Rate limiting check
+    ip = get_client_ip(request)
+    allowed, remaining_time = is_login_allowed(identifier, ip)
+    
+    if not allowed:
+        minutes = remaining_time // 60 if remaining_time else 15
+        return JsonResponse({
+            "error": f"Demasiados intentos fallidos. Espera {minutes} minutos.",
+            "blocked": True,
+            "retry_after": remaining_time
+        }, status=429)
 
     # Buscar por username o correo (case-insensitive)
     try:
@@ -284,12 +467,35 @@ def login_client(request):
         try:
             cliente = Cliente.objects.get(correo__iexact=identifier)
         except Cliente.DoesNotExist:
+            record_failed_login(identifier, ip)
             return JsonResponse({"error": "Usuario no registrado"}, status=404)
 
     # Validar contraseña (case-sensitive)
     if not check_password(password, cliente.password):
+        record_failed_login(identifier, ip)
         return JsonResponse({"error": "Contraseña incorrecta"}, status=401)
+    
+    # Verificar si el correo está verificado
+    if not cliente.email_verified:
+        # Permitir login pero indicar que necesita verificar
+        access  = generate_access_token(cliente.id, "cliente", cliente.username)
+        refresh = generate_refresh_token(cliente.id)
+        
+        record_successful_login(identifier, ip)
+        
+        return JsonResponse({
+            "access": access, 
+            "refresh": refresh, 
+            "username": cliente.username,
+            "nombre": cliente.nombre or cliente.username,
+            "correo": cliente.correo or "",
+            "email_verified": False,
+            "warning": "Tu correo aún no está verificado. Revisa tu bandeja de entrada."
+        }, status=200)
 
+    # Login exitoso
+    record_successful_login(identifier, ip)
+    
     access  = generate_access_token(cliente.id, "cliente", cliente.username)
     refresh = generate_refresh_token(cliente.id)
     return JsonResponse({
@@ -297,7 +503,8 @@ def login_client(request):
         "refresh": refresh, 
         "username": cliente.username,
         "nombre": cliente.nombre or cliente.username,
-        "correo": cliente.correo or ""
+        "correo": cliente.correo or "",
+        "email_verified": True
     }, status=200)
 
 
@@ -404,9 +611,9 @@ def producto_aleatorio_subcategoria(request):
 
 
 # ───────────────────────────────────────────────
-# CRUD Categorías (solo admin con JWT)
+# CRUD Categorías (solo admin)
 # ───────────────────────────────────────────────
-@jwt_role_required()
+@admin_required()
 @require_GET
 def get_categorias(request):
     categorias = Categoria.objects.all()
@@ -419,12 +626,9 @@ def get_categorias(request):
 
 
 @csrf_exempt
-@jwt_role_required()
+@admin_required()
 @require_http_methods(["POST"])
 def create_categoria(request):
-    if request.user_role != "admin":
-        return JsonResponse({"error": "Solo administradores"}, status=403)
-
     try:
         # Soporte para JSON y multipart/form-data
         if request.content_type.startswith("application/json"):
@@ -448,12 +652,9 @@ def create_categoria(request):
 
 
 @csrf_exempt
-@jwt_role_required()
+@admin_required()
 @require_http_methods(["POST"])
 def update_categoria(request, id):
-    if request.user_role != "admin":
-        return JsonResponse({"error": "Solo administradores"}, status=403)
-
     try:
         categoria = get_object_or_404(Categoria, id=id)
         
@@ -476,12 +677,9 @@ def update_categoria(request, id):
 
 
 @csrf_exempt
-@jwt_role_required()
+@admin_required()
 @require_http_methods(["DELETE"])
 def delete_categoria(request, id):
-    if request.user_role != "admin":
-        return JsonResponse({"error": "Solo administradores"}, status=403)
-
     try:
         categoria = get_object_or_404(Categoria, id=id)
         categoria.delete()

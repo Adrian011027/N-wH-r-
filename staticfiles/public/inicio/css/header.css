@@ -1,5 +1,13 @@
 /* ========== HEADER ========== */
 
+/* Prevenir scroll del body cuando el menú está abierto */
+body.no-scroll {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  overscroll-behavior: none;
+}
+
 
 header {
   position: fixed;
@@ -116,85 +124,314 @@ header.scrolled {
 }
 
 /* ────────────────────────────────────────────────
-   4. NAV MENU lateral
+   4. NAV MENU lateral - ELEGANTE CON CASCADA
 ────────────────────────────────────────────────── */
-.nav-menu{
+.nav-menu {
   position: fixed;
   top: 0;
   left: 0;
-
-  /* ✅ Cambios clave */
-  width: 100vw;          /* nunca excede el ancho de pantalla           */
-  max-width: 450px;      /* sigue topado en escritorio                   */
+  width: 100vw;
+  max-width: 420px;
   height: 100vh;
-
-  background: #FFF;
-  box-shadow: 2px 0 12px rgba(0,0,0,.2);
-  transform: translateX(-100%);   /* oculto a la izquierda */
-  transition: transform .4s ease;
-
-  display: flex;
-  flex-direction: column;
-  padding: 40px 16px;
+  background: #fff;
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 700;
-}
-/* visible cuando añadimos .open desde JS */
-.nav-menu.open{ transform: translateX(0); }
-
-/* Lista de enlaces (sin cambios) */
-.menu{
-  list-style:none;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  padding:6px;
-}
-.menu li a{
-  display:block;
-  padding:8px 0;
-  color:#1D1D1D;
-  text-decoration:none;
-  font-size:18px;
-  font-weight:500;
+  overflow: hidden;
 }
 
-/* Estado inicial de los <li> (invisibles y desplazados) */
-.menu li {
+.nav-menu.open {
+  transform: translateX(0);
+}
+
+/* Header del menú */
+.nav-menu-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  z-index: 10;
+}
+
+.close-menu {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-menu:hover {
+  background: #f5f5f5;
+  transform: rotate(90deg);
+}
+
+.close-menu svg {
+  stroke: #333;
+}
+
+/* ═══════════════════════════════════════════════
+   PANELES DE NAVEGACIÓN (cascada)
+═══════════════════════════════════════════════ */
+.nav-panel {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 60px);
+  background: #fff;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 20px 0;
+}
+
+.nav-panel.active {
+  transform: translateX(0);
+}
+
+.nav-panel-main {
+  transform: translateX(0);
+}
+
+.nav-panel-main.slide-out {
+  transform: translateX(-30%);
+  opacity: 0.3;
+}
+
+/* Back button header */
+.nav-panel-back {
+  display: flex;
+  align-items: center;
+  padding: 0 20px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  padding: 8px 12px 8px 0;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: #000;
+}
+
+.btn-back svg {
+  transition: transform 0.2s;
+}
+
+.btn-back:hover svg {
+  transform: translateX(-3px);
+}
+
+.panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1d;
+  margin-left: auto;
+  padding-right: 10px;
+}
+
+/* ═══════════════════════════════════════════════
+   LISTA DE NAVEGACIÓN
+═══════════════════════════════════════════════ */
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
   opacity: 0;
-  transform: translateY(8px);           /* o X si quieres que entren de lado */
+  transform: translateY(10px);
 }
 
-/* Keyframes de la animación */
-@keyframes fadeSlideIn {
+.nav-menu.open .nav-panel.active .nav-item {
+  animation: navItemIn 0.4s ease forwards;
+}
+
+.nav-menu.open .nav-panel.active .nav-item:nth-child(1) { animation-delay: 0.1s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(2) { animation-delay: 0.15s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(3) { animation-delay: 0.2s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(4) { animation-delay: 0.25s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(5) { animation-delay: 0.3s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(6) { animation-delay: 0.35s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(7) { animation-delay: 0.4s; }
+.nav-menu.open .nav-panel.active .nav-item:nth-child(8) { animation-delay: 0.45s; }
+
+@keyframes navItemIn {
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* Cuando el menú tenga .open, dispara la animación */
-.nav-menu.open .menu li {
-  animation: fadeSlideIn .35s ease forwards;
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  color: #1d1d1d;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s, padding-left 0.2s;
+  position: relative;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
-/* Retrasos en cascada */
-.nav-menu.open .menu li:nth-child(1) { animation-delay: .25s; }
-.nav-menu.open .menu li:nth-child(2) { animation-delay: .35s; }
-.nav-menu.open .menu li:nth-child(3) { animation-delay: .45s; }
-.nav-menu.open .menu li:nth-child(4) { animation-delay: .55s; }
-.nav-menu.open .menu li:nth-child(5) { animation-delay: .65s; }
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: #1d1d1d;
+  transition: height 0.2s;
+}
 
+.nav-link:hover {
+  background: #f8f8f8;
+  padding-left: 28px;
+}
+
+.nav-link:hover::before {
+  height: 60%;
+}
+
+.nav-icon {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+}
+
+.nav-arrow {
+  margin-left: auto;
+  opacity: 0.4;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.nav-link:hover .nav-arrow {
+  transform: translateX(4px);
+  opacity: 0.8;
+}
+
+/* Link destacado */
+.nav-link-highlight {
+  color: #666;
+  font-weight: 400;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.nav-link-highlight:hover {
+  color: #1d1d1d;
+}
+
+/* Divider */
+.nav-divider {
+  height: 1px;
+  background: #eee;
+  margin: 15px 24px;
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Loading state */
+.nav-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  color: #999;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #eee;
+  border-top-color: #1d1d1d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Categoría con imagen */
+.nav-link .cat-thumb,
+.nav-link .sub-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+/* Tipo de subcategoría (header) */
+.nav-item-tipo {
+  padding: 12px 24px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Empty state */
+.nav-empty {
+  padding: 30px 24px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Error state */
+.nav-error {
+  padding: 20px 24px;
+  color: #e74c3c;
+  font-size: 14px;
+}
 
 /* ────────────────────────────────────────────────
    5. Bloquear interacción con secciones detrás
-      (opcional, como hacías antes)
 ────────────────────────────────────────────────── */
-/* si tu hero-banner y carousel están *después* del nav-menu
-   en el DOM: */
 .nav-menu.open ~ .hero-banner,
-.nav-menu.open ~ .carousel-container{
-  pointer-events:none;
+.nav-menu.open ~ .carousel-container {
+  pointer-events: none;
 }
+
 /* ────────────────────────────────────────────────
    2. Botón HAMBURGUESA
 ────────────────────────────────────────────────── */
@@ -740,3 +977,989 @@ header.scrolled #Logo {
 }
 
 
+/* ────────────────────────────────────────────────
+   MENÚ EN CASCADA: Género → Categoría → Subcategoría
+────────────────────────────────────────────────── */
+
+/* Estilos para items del menú con submenús */
+.menu-item-with-submenu {
+  position: relative;
+}
+
+.menu-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Links del menú */
+.genero-link,
+.categoria-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px !important;
+  color: #1d1d1d !important;
+  text-decoration: none !important;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.genero-link:hover,
+.categoria-link:hover {
+  background: #f0f0f0;
+}
+
+.genero-item.active > .menu-item-header .genero-link {
+  background: #0056b3;
+  color: white !important;
+}
+
+.categoria-item.active > .menu-item-header .categoria-link {
+  background: #e7f3ff;
+  color: #0056b3 !important;
+}
+
+/* Iconos y íconos de género */
+.genero-icon {
+  font-size: 1.3rem;
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
+}
+
+.genero-nombre {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Thumbnails de categorías y subcategorías */
+.cat-thumb,
+.sub-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* Botón toggle */
+.submenu-toggle {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: #666;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.submenu-toggle:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.menu-item-with-submenu.submenu-open > .menu-item-header .submenu-toggle {
+  transform: rotate(90deg);
+  color: #0056b3;
+}
+
+/* Submenús (ocultos por defecto) */
+.submenu {
+  list-style: none;
+  padding: 8px 0 8px 16px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: #f9f9f9;
+  border-left: 3px solid #007bff;
+  margin-left: 8px;
+}
+
+.menu-item-with-submenu.submenu-open > .submenu {
+  max-height: 1000px; /* Aumenta si necesitas más items */
+}
+
+.submenu li {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.submenu li a {
+  padding: 8px 12px !important;
+  font-size: 0.9rem;
+  color: #333 !important;
+}
+
+.submenu li a:hover {
+  background: #e7f3ff;
+  border-radius: 4px;
+  color: #0056b3 !important;
+}
+
+/* Encabezados de tipo (Marcas, Promociones, etc.) */
+.subcategoria-tipo-header {
+  padding: 12px 12px 6px !important;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #007bff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.subcategoria-tipo-header:first-child {
+  margin-top: 0;
+  padding-top: 8px;
+}
+
+/* Items de subcategoría */
+.subcategoria-item {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.subcategoria-item a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px !important;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.subcategoria-item a:hover {
+  background: #e7f3ff;
+  color: #0056b3 !important;
+}
+
+/* Mensajes de error/vacío */
+.error-msg,
+.empty-msg {
+  display: block;
+  padding: 10px 12px;
+  color: #999;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.error-msg {
+  color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .genero-link,
+  .categoria-link {
+    font-size: 0.9rem;
+  }
+
+  .genero-nombre {
+    font-size: 0.85rem;
+  }
+
+  .submenu {
+    padding: 6px 0 6px 12px;
+    margin-left: 6px;
+  }
+
+  .submenu li a {
+    padding: 6px 10px !important;
+  }
+}
+
+
+/* 
+   NUEVO ESTILO CASCADA Y GRID (Minimalista Elegante)
+ */
+
+/* Contenedor de categor�as desplegable */
+.nav-categories-container {
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(to bottom, #fafafa, #ffffff);
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.nav-categories-container.hidden {
+  display: none;
+}
+
+/* Grid de categorías - Diseño profesional */
+.nav-categories-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+/* Categoría individual - estilo minimalista de lujo */
+.nav-category-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1d;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+
+.nav-category-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: #1d1d1d;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-category-card:hover {
+  background: #fafafa;
+  padding-left: 28px;
+}
+
+.nav-category-card:hover::before {
+  width: 3px;
+}
+
+.nav-category-card .cat-name {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.nav-category-card .nav-arrow {
+  width: 16px;
+  height: 16px;
+  stroke: #999;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+  stroke-width: 2;
+}
+
+.nav-category-card:hover .nav-arrow {
+  stroke: #1d1d1d;
+  transform: translateX(3px);
+}
+
+.nav-category-card.expanded .nav-arrow {
+  transform: rotate(90deg);
+}
+
+.nav-category-card.expanded:hover .nav-arrow {
+  transform: rotate(90deg) translateY(-3px);
+}
+
+/* Estilo especial para "Ver Todo" */
+.nav-category-card.nav-category-all {
+  background: #1d1d1d;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #1d1d1d;
+}
+
+.nav-category-card.nav-category-all .nav-arrow {
+  stroke: #ffffff;
+}
+
+.nav-category-card.nav-category-all:hover {
+  background: #333;
+  padding-left: 24px;
+  border-bottom-color: #333;
+}
+
+.nav-category-card.nav-category-all::before {
+  display: none;
+}
+}
+
+/* Spinner en el container */
+.nav-categories-container .loading-spinner {
+  margin: 30px auto;
+  display: block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #1d1d1d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mensajes de error/vac�o */
+.nav-error,
+.nav-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.nav-error {
+  color: #d32f2f;
+}
+
+/* Mejorar el nav-link para g�nero */
+.nav-item-expandable > .nav-link {
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Responsive: 2 columnas en pantallas m�s peque�as */
+@media (max-width: 380px) {
+  .nav-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .nav-category-card {
+    font-size: 12px;
+    padding: 14px 6px;
+    min-height: 55px;
+  }
+}
+
+
+/* Subcategorías - diseño profesional */
+.nav-category-item {
+  position: relative;
+}
+
+.nav-subcategories-container {
+  background: #fafafa;
+  border-left: 2px solid #e0e0e0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease;
+}
+
+.nav-subcategories-container:not(.hidden) {
+  max-height: 600px;
+  opacity: 1;
+  padding: 8px 0;
+}
+
+.nav-subcategories-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.nav-subcategory-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px 14px 40px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  color: #555;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  letter-spacing: 0.3px;
+}
+
+.nav-subcategory-link::before {
+  content: '→';
+  position: absolute;
+  left: 20px;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  color: #1d1d1d;
+}
+
+.nav-subcategory-link:hover {
+  background: #ffffff;
+  color: #1d1d1d;
+  padding-left: 50px;
+}
+
+.nav-subcategory-link:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.nav-subcategory-link:last-child {
+  border-bottom: none;
+}
+
+.nav-subcategory-link:hover {
+  background: #1d1d1d;
+  color: #ffffff;
+  border-color: #1d1d1d;
+}
+
+/* ═══════════════════════════════════════════════
+   PANEL LATERAL TIPO LOUIS VUITTON - 3 NIVELES
+   Desktop: 3 divs separados | Mobile: Deslizante
+═══════════════════════════════════════════════ */
+
+/* Paneles individuales (categorías y subcategorías) */
+.lv-panel {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 0;
+  background: #ffffff;
+  z-index: 699;
+  overflow: hidden;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.4s ease,
+              left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  
+  /* Scrollbar invisible */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
+  
+  /* Prevenir scroll chaining - evita que el scroll se propague a la página */
+  overscroll-behavior: contain;
+}
+
+/* Scrollbar invisible en Chrome, Safari y Opera */
+.lv-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Los paneles solo son visibles cuando el nav-menu está abierto (cascada) */
+.nav-menu.open ~ .lv-panel {
+  visibility: visible;
+}
+
+/* Panel de Categorías */
+.lv-panel-categories {
+  left: 420px; /* Después del nav-menu */
+}
+
+/* Panel de Subcategorías */
+.lv-panel-subcategories {
+  left: 420px; /* Inicialmente en la misma posición */
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Estado activo - Desktop */
+.lv-panel.active {
+  width: 420px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Desktop: Cuando categorías está activo, subcategorías se mueve a la derecha */
+.lv-panel-categories.active ~ .lv-panel-subcategories {
+  left: 840px; /* nav-menu (420px) + categorías (420px) */
+}
+
+/* Desktop: Subcategorías activo se muestra a la derecha */
+.lv-panel-subcategories.active {
+  left: 840px;
+}
+
+/* Encabezado de los paneles */
+.lv-panel-header {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e8e8e8;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  position: relative;
+}
+
+/* Botón volver - Posicionado absoluto a la izquierda */
+.lv-back-btn {
+  position: absolute;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px 8px 4px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s, transform 0.2s;
+  border-radius: 8px;
+}
+
+.lv-back-btn:hover {
+  color: #1d1d1d;
+  background: #f5f5f5;
+}
+
+.lv-back-btn svg {
+  transition: transform 0.2s;
+}
+
+.lv-back-btn:hover svg {
+  transform: translateX(-3px);
+}
+
+.lv-panel-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1d;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  text-align: center;
+  margin: 0;
+}
+
+/* Contenido del panel */
+.lv-panel-content {
+  height: calc(100% - 80px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  
+  /* Scrollbar invisible pero funcional */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
+  
+  /* Prevenir que el scroll se propague al padre */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar invisible en Chrome, Safari y Opera */
+.lv-panel-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Panel de categorías sin header, contenido desde arriba */
+.lv-panel-categories .lv-panel-content {
+  height: 100%;
+  padding: 0;
+}
+
+.lv-panel-categories .lv-panel-header {
+  display: none;
+}
+
+/* Panel de subcategorías sin header en desktop */
+.lv-panel-subcategories .lv-panel-header {
+  display: none;
+}
+
+/* Banner de género (imagen decorativa) */
+.lv-gender-banner {
+  width: 100%;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.lv-gender-banner-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.lv-gender-banner:hover .lv-gender-banner-img {
+  transform: scale(1.05);
+}
+
+/* Lista de categorías en el panel lateral */
+.lv-categories-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lv-category-item {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Botón de categoría - ahora navega al siguiente panel */
+.lv-category-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1d1d1d;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  letter-spacing: 0.3px;
+}
+
+.lv-category-trigger::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: #1d1d1d;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lv-category-trigger:hover {
+  background: #fafafa;
+  padding-left: 34px;
+}
+
+.lv-category-trigger:hover::before {
+  width: 4px;
+}
+
+.lv-category-trigger .cat-name {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.lv-category-trigger .lv-arrow {
+  width: 16px;
+  height: 16px;
+  stroke: #999;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+  stroke-width: 2.5;
+}
+
+.lv-category-trigger:hover .lv-arrow {
+  stroke: #1d1d1d;
+  transform: translateX(3px);
+}
+
+/* Lista de subcategorías en el tercer panel */
+.lv-subcategories-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  overflow-x: hidden;
+  min-height: min-content;
+}
+
+/* Item de subcategoría - Bloque completo con título sobrepuesto + productos */
+.lv-subcategory-item {
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.lv-subcategory-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Título de la subcategoría - Sobrepuesto arriba en negro */
+.lv-subcat-title {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: 600;
+  color: #000000;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  z-index: 10;
+  pointer-events: none;
+  text-align: center;
+  width: 100%;
+  padding: 0 20px;
+  transition: transform 0.3s ease, font-size 0.3s ease;
+}
+
+/* Hover sobre toda la subcategoría agranda el título */
+.lv-subcategory-item:hover .lv-subcat-title {
+  transform: translateX(-50%) scale(1.1);
+}
+
+/* Grid de productos 2x1 por subcategoría */
+.lv-subcat-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Card de producto individual */
+.lv-subcategory-card {
+  display: block;
+  background: transparent;
+  color: #1d1d1d;
+  text-decoration: none;
+  position: relative;
+}
+
+/* Contenedor de imagen del producto - Cuadrado sin márgenes */
+.lv-subcat-image-wrapper {
+  width: 100%;
+  padding-bottom: 100%; /* Aspecto 1:1 (cuadrado) */
+  position: relative;
+  background: transparent;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.lv-subcat-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* Placeholder mientras carga - Invisible */
+.lv-subcat-image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 0;
+}
+
+.lv-subcat-image-placeholder-empty {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 0;
+}
+
+.lv-subcat-image-placeholder-empty::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>') center/contain no-repeat;
+  opacity: 0;
+}
+
+/* Spinner oculto */
+.lv-loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #f0f0f0;
+  border-top-color: #1d1d1d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Link de subcategoría - ESTILO ANTIGUO (mantener por compatibilidad) */
+.lv-subcategory-link {
+  display: flex;
+  align-items: center;
+  padding: 14px 30px 14px 46px;
+  background: transparent;
+  color: #555;
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  letter-spacing: 0.3px;
+  border-left: 3px solid transparent;
+}
+
+.lv-subcategory-link::before {
+  content: '→';
+  position: absolute;
+  left: 30px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  color: #1d1d1d;
+}
+
+.lv-subcategory-link:hover {
+  background: #ffffff;
+  color: #1d1d1d;
+  padding-left: 52px;
+  border-left-color: #1d1d1d;
+}
+
+.lv-subcategory-link:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Animación de entrada para las categorías */
+@keyframes lvFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lv-side-panel.active .lv-category-item {
+  animation: lvFadeIn 0.4s ease forwards;
+}
+
+.lv-side-panel.active .lv-category-item:nth-child(1) { animation-delay: 0.05s; }
+.lv-side-panel.active .lv-category-item:nth-child(2) { animation-delay: 0.1s; }
+.lv-side-panel.active .lv-category-item:nth-child(3) { animation-delay: 0.15s; }
+.lv-side-panel.active .lv-category-item:nth-child(4) { animation-delay: 0.2s; }
+.lv-side-panel.active .lv-category-item:nth-child(5) { animation-delay: 0.25s; }
+.lv-side-panel.active .lv-category-item:nth-child(6) { animation-delay: 0.3s; }
+.lv-side-panel.active .lv-category-item:nth-child(7) { animation-delay: 0.35s; }
+.lv-side-panel.active .lv-category-item:nth-child(8) { animation-delay: 0.4s; }
+
+/* Spinner de carga */
+.lv-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 30px;
+  color: #999;
+}
+
+.lv-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #1d1d1d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 15px;
+}
+
+.lv-loading-text {
+  font-size: 14px;
+  color: #999;
+}
+
+/* Botón volver - solo visible en móvil */
+.lv-back-btn.lv-mobile-only {
+  display: none;
+}
+
+/* Responsive - Navegación deslizante en móvil */
+@media (max-width: 768px) {
+  /* Mostrar botón volver en móvil */
+  .lv-back-btn.lv-mobile-only {
+    display: flex;
+  }
+  
+  /* Mostrar headers en mobile para navegación */
+  .lv-panel-categories .lv-panel-header,
+  .lv-panel-subcategories .lv-panel-header {
+    display: flex !important;
+  }
+  
+  /* Todos los paneles empiezan desde la izquierda en móvil */
+  .lv-panel {
+    left: 0;
+    width: 100vw;
+    max-width: 100vw;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.4s ease;
+  }
+  
+  .lv-panel.active {
+    width: 100vw;
+    transform: translateX(0);
+  }
+  
+  /* En móvil, las posiciones no cambian, solo el transform */
+  .lv-panel-categories,
+  .lv-panel-subcategories {
+    left: 0;
+  }
+  
+  .lv-panel-categories.active ~ .lv-panel-subcategories {
+    left: 0;
+  }
+  
+  .lv-panel-subcategories.active {
+    left: 0;
+  }
+  
+  /* Ocultar el nav-menu cuando un panel está activo en móvil */
+  .nav-menu.has-active-panel {
+    transform: translateX(-100%);
+  }
+  
+  /* Ajustes de padding */
+  .lv-panel-header {
+    padding: 15px 20px;
+  }
+  
+  .lv-panel-title {
+    font-size: 18px;
+  }
+  
+  .lv-category-trigger,
+  .lv-subcategory-link {
+    padding: 18px 20px;
+  }
+}
