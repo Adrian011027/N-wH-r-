@@ -26,8 +26,18 @@ def get_cliente_id(request, username):
     """
     GET /api/cliente_id/<username>/
     Respuesta: {"id": <cliente.id>}  |  404 si no existe.
+    
+    Solo el propio usuario o admin puede consultar su ID.
     """
     cliente = get_object_or_404(Cliente, username=username)
+    
+    # SEGURIDAD: Solo el propio usuario o admin puede ver su ID
+    if request.user_role != 'admin' and request.user_id != cliente.id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes consultar tu propio ID'
+        }, status=403)
+    
     return JsonResponse({'id': cliente.id})
 
 

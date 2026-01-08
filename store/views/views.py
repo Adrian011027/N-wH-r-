@@ -708,6 +708,13 @@ def refresh_token(request):
 
         if not refresh:
             return JsonResponse({"error": "Refresh token requerido"}, status=400)
+        
+        # SEGURIDAD: Verificar si el token está en la blacklist
+        if BlacklistedToken.objects.filter(token=refresh).exists():
+            return JsonResponse({
+                "error": "Token inválido",
+                "detail": "Este token ha sido revocado. Por favor, inicia sesión nuevamente."
+            }, status=401)
 
         payload = decode_jwt(refresh)
         if not payload or payload.get("type") != "refresh":

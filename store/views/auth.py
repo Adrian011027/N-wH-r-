@@ -56,6 +56,8 @@ def login(request):
 @require_http_methods(["POST"])
 def refresh_token(request):
     """Renovar access token usando refresh token (soporta Usuario y Cliente)"""
+    from ..models import BlacklistedToken
+    
     try:
         data = json.loads(request.body)
         # Soportar tanto 'refresh' como 'refresh_token' para compatibilidad
@@ -63,6 +65,13 @@ def refresh_token(request):
 
         if not refresh_token_str:
             return JsonResponse({'error': 'Refresh token requerido'}, status=400)
+        
+        # SEGURIDAD: Verificar si el token está en la blacklist
+        if BlacklistedToken.objects.filter(token=refresh_token_str).exists():
+            return JsonResponse({
+                'error': 'Token inválido',
+                'detail': 'Este token ha sido revocado. Por favor, inicia sesión nuevamente.'
+            }, status=401)
 
         # Verificar refresh token usando settings.SECRET_KEY
         payload = jwt.decode(refresh_token_str, settings.SECRET_KEY, algorithms=['HS256'])
