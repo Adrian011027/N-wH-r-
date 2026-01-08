@@ -12,13 +12,22 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 
+# Importar utilidades de seguridad
+from ..utils.security import (
+    register_limiter, 
+    rate_limit, 
+    get_client_ip,
+    send_verification_email
+)
+
 # Regex simple y seguro para validar correos
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
 
 # ========= MIS PEDIDOS (VISTA HTML) ========= #
+@login_required_client
 def mis_pedidos(request):
-    """Vista pública para mostrar el historial de pedidos del cliente"""
+    """Vista protegida para mostrar el historial de pedidos del cliente"""
     return render(request, 'public/cliente/mis_pedidos.html')
 
 
@@ -109,7 +118,8 @@ def editar_perfil(request, id):
         return render(request, 'public/cliente/perfil.html', {
             'cliente': cliente,
             'puede_cambiar_username': puede_cambiar_username,
-            'dias_restantes': dias_restantes
+            'dias_restantes': dias_restantes,
+            'email_verified': cliente.email_verified,
         })
     
     elif request.method == 'POST':
@@ -247,6 +257,13 @@ def get_all_clients(request):
 def detalle_client(request, id):
     if request.method != 'GET':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+    # SEGURIDAD: Solo el propio cliente o admin puede ver los datos
+    if request.user_role != 'admin' and request.user_id != id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes ver tu propia información'
+        }, status=403)
 
     cliente = get_object_or_404(Cliente, id=id)
     return JsonResponse({
@@ -260,6 +277,7 @@ def detalle_client(request, id):
 
 # ========= CREATE CLIENT ========= #
 @csrf_exempt
+@rate_limit(register_limiter)
 @require_http_methods(["POST"])
 def create_client(request):
     try:
@@ -295,9 +313,23 @@ def create_client(request):
             correo=correo,
             nombre=nombre,
             telefono=telefono,
-            direccion=direccion
+            direccion=direccion,
+            email_verified=False  # Por defecto no verificado
         )
-        return JsonResponse({'username': cliente.username, 'message': 'Cliente creado con éxito'}, status=201)
+        
+        # Enviar correo de verificación
+        email_sent = send_verification_email(cliente, request)
+        
+        # Registrar intento exitoso (no bloquear después de registro exitoso)
+        ip = get_client_ip(request)
+        register_limiter.record_attempt(f"ip:{ip}", success=True)
+        
+        return JsonResponse({
+            'username': cliente.username, 
+            'message': 'Cliente creado con éxito. Revisa tu correo para verificar tu cuenta.',
+            'email_verification_sent': email_sent,
+            'requires_verification': True
+        }, status=201)
 
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
@@ -309,6 +341,13 @@ def create_client(request):
 @jwt_role_required()
 @require_http_methods(["POST", "PUT"])
 def update_client(request, id):
+    # SEGURIDAD: Solo el propio cliente o admin puede modificar
+    if request.user_role != 'admin' and request.user_id != id:
+        return JsonResponse({
+            'error': 'No autorizado',
+            'detail': 'Solo puedes modificar tu propia información'
+        }, status=403)
+    
     try:
         cliente = Cliente.objects.get(id=id)
         data = json.loads(request.body)

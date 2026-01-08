@@ -9,68 +9,222 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'public/productos_genero/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'public/productos_genero/css/filtros.css' %}">
 {% endblock %}
 
 {% block content %}
-  {# ========= SECCIÓN GENÉRICA (sección Mujer u Hombre) ========= #}
-  <section class="{{ seccion }}-section">
-    <div class="{{ seccion }}-header">
-      <h2>{{ titulo }}</h2>
+  {# ========= OVERLAY PARA CERRAR FILTROS (fuera del contenedor) ========= #}
+  <div class="filtros-overlay" id="filtros-overlay"></div>
+  
+  {# ========= SIDEBAR DE FILTROS (DRAWER - estilo ZARA) ========= #}
+  <aside class="filtros-sidebar" id="filtros-sidebar">
+    {# Header con X para cerrar #}
+    <div class="filtros-header">
+      <button class="btn-cerrar-filtros" id="btn-cerrar-filtros">×</button>
+    </div>
 
-      {# ---------- dropdown de categorías dinámico ---------- #}
-      <div class="custom-select" id="dropdown">
-        <div class="selected">
-          Todo
-          <svg class="chevron" width="6" height="6" viewBox="0 0 10 6" fill="none"
-               xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 1L5 5L9 1" stroke="#1D1D1D" stroke-width="0.5"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+    <div class="filtros-content">
+      {# Limpiar filtros como texto #}
+      <div class="filtro-limpiar">
+        <span class="limpiar-texto" id="btn-limpiar-filtros">LIMPIAR FILTROS</span>
+      </div>
+
+      {# Ordenar por #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">ORDENAR POR</div>
+        <div class="filtro-opciones">
+          <label class="filtro-radio">
+            <input type="radio" name="orden" value="precio_asc" {% if filtros_activos.orden == 'precio_asc' %}checked{% endif %}>
+            <span>PRECIO ASCENDENTE</span>
+          </label>
+          <label class="filtro-radio">
+            <input type="radio" name="orden" value="precio_desc" {% if filtros_activos.orden == 'precio_desc' %}checked{% endif %}>
+            <span>PRECIO DESCENDENTE</span>
+          </label>
         </div>
+      </div>
 
-        <ul class="options">
-          <li data-value="all" class="option selected">Todo</li>
-          {% for cat in categorias %}
-            <li data-value="{{ cat|slugify }}" class="option">{{ cat }}</li>
-          {% endfor %}
-        </ul>
+      {# Tallas #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">TALLA</div>
+        <div class="filtro-opciones" id="filtro-tallas">
+          <span class="loading-text">Cargando...</span>
+        </div>
+      </div>
+
+      {# Colores #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">COLOR</div>
+        <div class="filtro-opciones" id="filtro-colores">
+          <span class="loading-text">Cargando...</span>
+        </div>
+      </div>
+
+      {# Marcas #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">MARCA</div>
+        <div class="filtro-opciones" id="filtro-marcas">
+          <span class="loading-text">Cargando...</span>
+        </div>
+      </div>
+
+      {# En Oferta #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">OFERTA</div>
+        <div class="filtro-opciones">
+          <label class="filtro-check-zara">
+            <input type="checkbox" id="filtro-oferta" {% if filtros_activos.en_oferta == '1' %}checked{% endif %}>
+            <span>EN OFERTA</span>
+          </label>
+        </div>
+      </div>
+
+      {# Precio #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">PRECIO</div>
+        <div class="filtro-opciones filtro-precio">
+          <input type="number" id="precio-min" placeholder="MIN" value="{{ filtros_activos.precio_min }}">
+          <span class="precio-separador">—</span>
+          <input type="number" id="precio-max" placeholder="MAX" value="{{ filtros_activos.precio_max }}">
+        </div>
+      </div>
+
+      {# Búsqueda #}
+      <div class="filtro-grupo-zara">
+        <div class="filtro-titulo">BUSCAR</div>
+        <div class="filtro-opciones">
+          <input type="text" id="filtro-busqueda" class="filtro-busqueda-zara" placeholder="Buscar..." value="{{ filtros_activos.q }}">
+        </div>
       </div>
     </div>
 
-    {# ---------- grid de productos ---------- #}
-    <div class="productos-grid">
-      {% for p in productos %}
-        <div class="producto-card" data-categoria="{{ p.categoria|slugify }}">
-          <div class="imagen-zoom">
-            <a href="{% url 'detalle_producto' p.id %}?from={{ seccion }}">
-              {% if p.imagen %}
-                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="zoomable">
-              {% else %}
-                <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="{{ p.nombre }}" class="zoomable">
-              {% endif %}
-            </a>
+    {# Botón Ver Resultados fijo abajo #}
+    <div class="filtros-footer">
+      <button class="btn-ver-resultados" id="btn-ver-resultados">VER RESULTADOS</button>
+    </div>
+  </aside>
 
-            {# ♥ Botón wishlist #}
-            <button class="wishlist-btn"
-                    aria-label="Añadir a favoritos"
-                    data-product-id="{{ p.id }}">
-              <i class="fa-regular fa-heart"></i>
-            </button>
-          </div>
+  {# ========= SECCIÓN GENÉRICA (sección Mujer u Hombre) ========= #}
+  <section class="{{ seccion }}-section">
+    
+    {# ========= CONTENEDOR PRINCIPAL ========= #}
+    <div class="coleccion-container">
 
-          <div class="info">
-            <h4>{{ p.nombre }}</h4>
-            <h5>${{ p.precio|floatformat:2 }}</h5>
+      {# ========= CONTENIDO PRINCIPAL ========= #}
+      <div class="coleccion-main">
+        
+        {# Header con botón de filtros y título en la misma línea #}
+        <div class="{{ seccion }}-header">
+          {# Botón de Filtros a la izquierda - estilo texto #}
+          <button class="btn-toggle-filtros" id="btn-toggle-filtros">FILTRAR</button>
+          
+          {# Título a la derecha #}
+          <div class="header-info">
+            <h2>{{ titulo }}</h2>
+            <p class="productos-contador">
+              Mostrando <span id="productos-mostrando">{{ productos|length }}</span> de 
+              <span id="productos-total">{{ total_productos }}</span> productos
+            </p>
           </div>
         </div>
 
-      {% empty %}
-        <p>No hay productos disponibles.</p>
-      {% endfor %}
+        {# Pills de filtros activos #}
+        <div class="filtros-activos-pills" id="filtros-pills"></div>
+
+        {# Grid de productos #}
+        <div class="productos-grid" id="productos-grid">
+          {% for p in productos %}
+            <div class="producto-card" data-categoria="{{ p.categoria|slugify }}">
+              <div class="imagen-zoom">
+                <a href="{% url 'detalle_producto' p.id %}?from={{ seccion }}">
+                  {% if p.imagen %}
+                    <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="zoomable" loading="lazy">
+                  {% else %}
+                    <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="{{ p.nombre }}" class="zoomable">
+                  {% endif %}
+                </a>
+
+                {# ♥ Botón wishlist #}
+                <button class="wishlist-btn"
+                        aria-label="Añadir a favoritos"
+                        data-product-id="{{ p.id }}">
+                  <i class="fa-regular fa-heart"></i>
+                </button>
+                
+                {# Badge de oferta #}
+                {% if p.en_oferta %}
+                  <span class="badge-oferta">🔥 Oferta</span>
+                {% endif %}
+              </div>
+
+              <div class="info">
+                <h4>{{ p.nombre }}</h4>
+                {% if p.marca %}
+                  <p class="producto-marca">{{ p.marca }}</p>
+                {% endif %}
+                <h5>${{ p.precio|floatformat:2 }}</h5>
+              </div>
+            </div>
+          {% empty %}
+            <div class="no-productos">
+              <p>No se encontraron productos con los filtros seleccionados.</p>
+              <button class="btn-limpiar-filtros-inline" onclick="document.getElementById('btn-limpiar-filtros').click()">
+                Limpiar filtros
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+
+        {# Paginación #}
+        {% if productos.has_other_pages %}
+        <div class="paginacion">
+          {% if productos.has_previous %}
+            <a href="?pagina={{ productos.previous_page_number }}" class="pag-btn">← Anterior</a>
+          {% endif %}
+          
+          <div class="pag-numeros">
+            {% for num in productos.paginator.page_range %}
+              {% if productos.number == num %}
+                <span class="pag-num active">{{ num }}</span>
+              {% elif num > productos.number|add:'-3' and num < productos.number|add:'3' %}
+                <a href="?pagina={{ num }}" class="pag-num">{{ num }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+          
+          {% if productos.has_next %}
+            <a href="?pagina={{ productos.next_page_number }}" class="pag-btn">Siguiente →</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
     </div>
   </section>
+
+  {# Overlay para móvil #}
+  <div class="filtros-overlay" id="filtros-overlay"></div>
 {% endblock %}
 
 {% block extra_js %}
+  <script>
+    // Pasar datos al JavaScript
+    window.COLECCION_DATA = {
+      genero: '{{ seccion }}',
+      genero_cod: '{{ genero_cod }}',
+      filtros_activos: {
+        categoria: '{{ filtros_activos.categoria|default:"" }}',
+        subcategoria: '{{ filtros_activos.subcategoria|default:"" }}',
+        tallas: '{{ filtros_activos.tallas|default:"" }}',
+        colores: '{{ filtros_activos.colores|default:"" }}',
+        marcas: '{{ filtros_activos.marcas|default:"" }}',
+        precio_min: '{{ filtros_activos.precio_min|default:"" }}',
+        precio_max: '{{ filtros_activos.precio_max|default:"" }}',
+        en_oferta: '{{ filtros_activos.en_oferta|default:"" }}',
+        q: '{{ filtros_activos.q|default:"" }}',
+        orden: '{{ filtros_activos.orden|default:"nuevo" }}'
+      }
+    };
+  </script>
+  <script type="module" src="{% static 'public/productos_genero/js/filtros.js' %}" defer></script>
   <script type="module" src="{% static 'public/productos_genero/js/main.js' %}" defer></script>
 {% endblock %}

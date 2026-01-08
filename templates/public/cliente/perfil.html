@@ -1,16 +1,525 @@
 {% extends 'public/base.html' %}
 {% load static %}
 
+{% block footer %}{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'public/cliente/css/main.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ========== ELEGANT PROFILE OVERRIDE ========== */
+main {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin-top: 70px !important;
+  margin-bottom: 1rem !important;
+}
+
+.profile-header {
+  margin-bottom: 0.75rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.profile-header h1 {
+  font-weight: 200;
+  font-size: 32px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+/* ========== TABS NAVIGATION ========== */
+.profile-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.profile-tabs::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 0.75rem 2rem;
+  font-size: 11px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover { color: #1a1a1a; }
+.tab-btn.active { 
+  color: #1a1a1a; 
+  font-weight: 400; 
+}
+.tab-btn.active::after { background: #1a1a1a; }
+
+/* ========== TAB CONTENT ========== */
+.tab-content { display: none; animation: fadeIn 0.4s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== FORM SECTIONS ========== */
+.form-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* ========== FORM ELEMENTS ========== */
+label {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+select,
+textarea {
+  border: none;
+  border-bottom: 1px solid #ddd;
+  border-radius: 0;
+  padding: 0.75rem 0;
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-bottom-color: #1a1a1a;
+  box-shadow: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #bbb;
+  font-weight: 300;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0 center !important;
+  background-size: 10px !important;
+  padding-right: 1.5rem;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+.field-hint {
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.field-hint.warning {
+  color: #c9a227;
+}
+
+/* ========== VERIFICATION BADGE ========== */
+.profile-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.verification-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 1rem;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 0;
+}
+
+.verification-badge.verified {
+  background: transparent;
+  color: #2d6a4f;
+  border: 1px solid #2d6a4f;
+}
+
+.verification-badge.unverified {
+  background: transparent;
+  color: #b8860b;
+  border: 1px solid #b8860b;
+}
+
+/* ========== VERIFICATION ALERT ========== */
+.verification-alert {
+  background: #fffbeb;
+  border: 1px solid #e5d9b6;
+  border-radius: 0;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.verification-alert .alert-content { flex: 1; min-width: 200px; }
+.verification-alert .alert-title { 
+  font-weight: 400; 
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #8b7355; 
+  margin-bottom: 0.25rem; 
+}
+.verification-alert .alert-text { 
+  font-size: 12px; 
+  font-weight: 300;
+  color: #a08d6f;
+  letter-spacing: 0.3px;
+}
+
+.btn-resend {
+  padding: 0.6rem 1.5rem;
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: transparent;
+  color: #8b7355;
+  border: 1px solid #8b7355;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btn-resend:hover { 
+  background: #8b7355; 
+  color: #fff;
+}
+.btn-resend:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ========== BUTTONS ========== */
+.btn-primary {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 1rem 2.5rem;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+.btn-primary:hover {
+  background: #333;
+  transform: none;
+  box-shadow: none;
+}
+
+.form-actions {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* ========== FORM GRID & GROUPS ========== */
+.form-grid {
+  gap: 1rem !important;
+}
+
+.form-group {
+  margin-bottom: 0.5rem !important;
+}
+
+.form-group label {
+  margin-bottom: 0.25rem !important;
+}
+
+.section-description {
+  font-size: 12px;
+  font-weight: 300;
+  color: #888;
+  margin-bottom: 1rem;
+  letter-spacing: 0.3px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 50px !important;
+  max-height: 80px;
+}
+
+/* ========== EDIT MODE ========== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.btn-edit {
+  padding: 0.5rem 1.25rem;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 90px;
+}
+
+.btn-edit:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.btn-edit.editing {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.btn-edit.editing:hover {
+  background: #333;
+}
+
+.btn-edit.saving {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-edit.success {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: #2d6a4f;
+  border-color: #2d6a4f;
+  color: #fff;
+}
+
+.btn-cancel {
+  padding: 0.5rem 1.25rem;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: transparent;
+  color: #999;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 0.75rem;
+  display: none;
+}
+
+.btn-cancel.visible {
+  display: inline-block;
+}
+
+.btn-cancel:hover {
+  border-color: #999;
+  color: #666;
+}
+
+.section-header-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.form-actions {
+  display: none !important;
+}
+
+/* Campos bloqueados */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: #fafafa !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  border-bottom-color: #eee !important;
+}
+
+.input-readonly {
+  background: #f5f5f5 !important;
+  color: #888 !important;
+}
+
+/* Badge junto al correo */
+.email-field-wrapper {
+  position: relative;
+}
+
+.email-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.email-badge.verified {
+  color: #2d6a4f;
+  border: 1px solid #2d6a4f;
+}
+
+.email-badge.unverified {
+  color: #b8860b;
+  border: 1px solid #b8860b;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  main {
+    margin-top: 60px !important;
+    margin-bottom: 1rem !important;
+    padding: 0 1rem !important;
+  }
+  
+  .profile-header {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .profile-header h1 {
+    font-size: 24px;
+    letter-spacing: 2px;
+  }
+  
+  .subtitle {
+    font-size: 11px;
+  }
+  
+  .profile-tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .profile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tab-btn { 
+    padding: 0.75rem 1rem; 
+    font-size: 10px;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  
+  .section-header {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 11px !important;
+  }
+  
+  .verification-alert { 
+    flex-direction: column; 
+    text-align: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .form-grid {
+    gap: 0.75rem !important;
+  }
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <main class="fade-in">
+  <!-- Header -->
   <div class="profile-header">
     <h1>Mi Perfil</h1>
     <p class="subtitle">Gestiona tu información personal y preferencias de compra</p>
   </div>
+
+  <!-- Alerta de verificación pendiente -->
+  {% if not email_verified %}
+  <div class="verification-alert" id="verification-alert">
+    <div class="alert-content">
+      <div class="alert-title">Verifica tu correo electrónico</div>
+      <div class="alert-text">Te enviamos un enlace de verificación a <strong>{{ cliente.correo }}</strong>. Revisa tu bandeja de entrada o spam.</div>
+    </div>
+    <button type="button" class="btn-resend" id="btn-resend-email" onclick="resendVerification()">
+      Reenviar correo
+    </button>
+  </div>
+  {% endif %}
 
   <!-- Mensajes de éxito/error -->
   {% if messages %}
@@ -21,213 +530,529 @@
   </div>
   {% endif %}
 
+  <!-- Navegación por Tabs -->
+  <nav class="profile-tabs" role="tablist">
+    <button type="button" class="tab-btn active" data-tab="info" role="tab" aria-selected="true">
+      Información
+    </button>
+    <button type="button" class="tab-btn" data-tab="direccion" role="tab" aria-selected="false">
+      Dirección
+    </button>
+    <button type="button" class="tab-btn" data-tab="fiscal" role="tab" aria-selected="false">
+      Facturación
+    </button>
+    <button type="button" class="tab-btn" data-tab="seguridad" role="tab" aria-selected="false">
+      Seguridad
+    </button>
+  </nav>
+
   <form method="POST" id="profile-form" class="profile-form">
     {% csrf_token %}
 
-    <!-- Sección: Información Personal -->
-    <section class="form-section">
-      <h2 class="section-title">
-        <span class="icon">👤</span>
-        Información Personal
-      </h2>
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label for="nombre">Nombre Completo <span class="required">*</span></label>
-          <input type="text" id="nombre" name="nombre" value="{{ cliente.nombre }}" required>
+    <!-- Tab: Información Personal -->
+    <div class="tab-content active" id="tab-info" role="tabpanel">
+      <section class="form-section" data-section="info">
+        <div class="section-header">
+          <h2 class="section-title">Información Personal</h2>
+          <div class="section-header-buttons">
+            <button type="button" class="btn-cancel" data-section="info" onclick="cancelEdit('info')">Cancelar</button>
+            <button type="button" class="btn-edit" data-section="info" onclick="toggleEdit('info', this)">Editar</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="nombre">Nombre Completo <span class="required">*</span></label>
+            <input type="text" id="nombre" name="nombre" value="{{ cliente.nombre }}" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="username">Nombre de Usuario <span class="required">*</span></label>
+            {% if puede_cambiar_username %}
+            <input type="text" id="username" name="username" value="{{ cliente.username }}" 
+                   required minlength="3" pattern="[a-zA-Z0-9._]+" disabled>
+            <small class="field-hint">Solo letras, números, puntos y guiones bajos. Puedes cambiarlo 1 vez al mes.</small>
+            {% else %}
+            <input type="text" id="username" name="username" value="{{ cliente.username }}" 
+                   required readonly class="input-readonly" disabled>
+            <small class="field-hint warning">Podrás cambiar tu nombre de usuario en {{ dias_restantes }} días</small>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="correo">
+              Correo Electrónico <span class="required">*</span>
+              {% if email_verified %}
+              <span class="email-badge verified">Verificado</span>
+              {% else %}
+              <span class="email-badge unverified">Pendiente</span>
+              {% endif %}
+            </label>
+            <input type="email" id="correo" name="correo" value="{{ cliente.correo }}" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="telefono">Teléfono <span class="required">*</span></label>
+            <input type="tel" id="telefono" name="telefono" value="{{ cliente.telefono }}" 
+                   placeholder="3312345678" pattern="[0-9]{10}" required disabled>
+            <small class="field-hint">10 dígitos sin espacios</small>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="username">Nombre de Usuario <span class="required">*</span></label>
-          {% if puede_cambiar_username %}
-          <input type="text" id="username" name="username" value="{{ cliente.username }}" 
-                 required minlength="3" pattern="[a-zA-Z0-9._]+">
-          <small class="field-hint">Solo letras, números, puntos y guiones bajos. Puedes cambiarlo 1 vez al mes.</small>
-          {% else %}
-          <input type="text" id="username" name="username" value="{{ cliente.username }}" 
-                 required readonly class="input-readonly">
-          <small class="field-hint warning">⏳ Podrás cambiar tu nombre de usuario en {{ dias_restantes }} días</small>
-          {% endif %}
+        <div class="form-actions" id="actions-info">
+          <button type="button" class="btn-cancel" onclick="cancelEdit('info')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab: Dirección de Envío -->
+    <div class="tab-content" id="tab-direccion" role="tabpanel">
+      <section class="form-section" data-section="direccion">
+        <div class="section-header">
+          <h2 class="section-title">Dirección de Envío</h2>
+          <div class="section-header-buttons">
+            <button type="button" class="btn-cancel" data-section="direccion" onclick="cancelEdit('direccion')">Cancelar</button>
+            <button type="button" class="btn-edit" data-section="direccion" onclick="toggleEdit('direccion', this)">Editar</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="calle">Calle y Número <span class="required">*</span></label>
+            <input type="text" id="calle" name="calle" value="{{ cliente.calle }}" 
+                   placeholder="Av. Insurgentes 123" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="colonia">Colonia <span class="required">*</span></label>
+            <input type="text" id="colonia" name="colonia" value="{{ cliente.colonia }}" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="codigo_postal">Código Postal <span class="required">*</span></label>
+            <input type="text" id="codigo_postal" name="codigo_postal" 
+                   value="{{ cliente.codigo_postal }}" pattern="[0-9]{5}" 
+                   placeholder="44100" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="ciudad">Ciudad <span class="required">*</span></label>
+            <input type="text" id="ciudad" name="ciudad" value="{{ cliente.ciudad }}" required disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="estado">Estado <span class="required">*</span></label>
+            <select id="estado" name="estado" required disabled>
+              <option value="">Selecciona un estado</option>
+              <option value="Aguascalientes" {% if cliente.estado == "Aguascalientes" %}selected{% endif %}>Aguascalientes</option>
+              <option value="Baja California" {% if cliente.estado == "Baja California" %}selected{% endif %}>Baja California</option>
+              <option value="Baja California Sur" {% if cliente.estado == "Baja California Sur" %}selected{% endif %}>Baja California Sur</option>
+              <option value="Campeche" {% if cliente.estado == "Campeche" %}selected{% endif %}>Campeche</option>
+              <option value="Chiapas" {% if cliente.estado == "Chiapas" %}selected{% endif %}>Chiapas</option>
+              <option value="Chihuahua" {% if cliente.estado == "Chihuahua" %}selected{% endif %}>Chihuahua</option>
+              <option value="Ciudad de México" {% if cliente.estado == "Ciudad de México" %}selected{% endif %}>Ciudad de México</option>
+              <option value="Coahuila" {% if cliente.estado == "Coahuila" %}selected{% endif %}>Coahuila</option>
+              <option value="Colima" {% if cliente.estado == "Colima" %}selected{% endif %}>Colima</option>
+              <option value="Durango" {% if cliente.estado == "Durango" %}selected{% endif %}>Durango</option>
+              <option value="Guanajuato" {% if cliente.estado == "Guanajuato" %}selected{% endif %}>Guanajuato</option>
+              <option value="Guerrero" {% if cliente.estado == "Guerrero" %}selected{% endif %}>Guerrero</option>
+              <option value="Hidalgo" {% if cliente.estado == "Hidalgo" %}selected{% endif %}>Hidalgo</option>
+              <option value="Jalisco" {% if cliente.estado == "Jalisco" %}selected{% endif %}>Jalisco</option>
+              <option value="México" {% if cliente.estado == "México" %}selected{% endif %}>Estado de México</option>
+              <option value="Michoacán" {% if cliente.estado == "Michoacán" %}selected{% endif %}>Michoacán</option>
+              <option value="Morelos" {% if cliente.estado == "Morelos" %}selected{% endif %}>Morelos</option>
+              <option value="Nayarit" {% if cliente.estado == "Nayarit" %}selected{% endif %}>Nayarit</option>
+              <option value="Nuevo León" {% if cliente.estado == "Nuevo León" %}selected{% endif %}>Nuevo León</option>
+              <option value="Oaxaca" {% if cliente.estado == "Oaxaca" %}selected{% endif %}>Oaxaca</option>
+              <option value="Puebla" {% if cliente.estado == "Puebla" %}selected{% endif %}>Puebla</option>
+              <option value="Querétaro" {% if cliente.estado == "Querétaro" %}selected{% endif %}>Querétaro</option>
+              <option value="Quintana Roo" {% if cliente.estado == "Quintana Roo" %}selected{% endif %}>Quintana Roo</option>
+              <option value="San Luis Potosí" {% if cliente.estado == "San Luis Potosí" %}selected{% endif %}>San Luis Potosí</option>
+              <option value="Sinaloa" {% if cliente.estado == "Sinaloa" %}selected{% endif %}>Sinaloa</option>
+              <option value="Sonora" {% if cliente.estado == "Sonora" %}selected{% endif %}>Sonora</option>
+              <option value="Tabasco" {% if cliente.estado == "Tabasco" %}selected{% endif %}>Tabasco</option>
+              <option value="Tamaulipas" {% if cliente.estado == "Tamaulipas" %}selected{% endif %}>Tamaulipas</option>
+              <option value="Tlaxcala" {% if cliente.estado == "Tlaxcala" %}selected{% endif %}>Tlaxcala</option>
+              <option value="Veracruz" {% if cliente.estado == "Veracruz" %}selected{% endif %}>Veracruz</option>
+              <option value="Yucatán" {% if cliente.estado == "Yucatán" %}selected{% endif %}>Yucatán</option>
+              <option value="Zacatecas" {% if cliente.estado == "Zacatecas" %}selected{% endif %}>Zacatecas</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="referencias">Referencias de Ubicación</label>
+            <textarea id="referencias" name="referencias" rows="2" 
+                      placeholder="Ej: Entre calle 5 de Mayo y Morelos, casa color blanco" disabled>{{ cliente.referencias }}</textarea>
+            <small class="field-hint">Ayúdanos a encontrar tu domicilio más fácil</small>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="correo">Correo Electrónico <span class="required">*</span></label>
-          <input type="email" id="correo" name="correo" value="{{ cliente.correo }}" required>
+        <div class="form-actions" id="actions-direccion">
+          <button type="button" class="btn-cancel" onclick="cancelEdit('direccion')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab: Información Fiscal -->
+    <div class="tab-content" id="tab-fiscal" role="tabpanel">
+      <section class="form-section" data-section="fiscal">
+        <div class="section-header">
+          <h2 class="section-title">Información Fiscal</h2>
+          <div class="section-header-buttons">
+            <button type="button" class="btn-cancel" data-section="fiscal" onclick="cancelEdit('fiscal')">Cancelar</button>
+            <button type="button" class="btn-edit" data-section="fiscal" onclick="toggleEdit('fiscal', this)">Editar</button>
+          </div>
+        </div>
+        <p class="section-description">Completa esta sección si requieres factura o eres comprador mayorista</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="tipo_cliente">Tipo de Cliente</label>
+            <select id="tipo_cliente" name="tipo_cliente" disabled>
+              <option value="menudeo" {% if cliente.tipo_cliente == "menudeo" %}selected{% endif %}>Menudeo</option>
+              <option value="mayoreo" {% if cliente.tipo_cliente == "mayoreo" %}selected{% endif %}>Mayoreo</option>
+            </select>
+            <small class="field-hint">Los precios mayoristas aplican desde 6 piezas</small>
+          </div>
+
+          <div class="form-group">
+            <label for="rfc">RFC</label>
+            <input type="text" id="rfc" name="rfc" value="{{ cliente.rfc }}" 
+                   placeholder="XAXX010101000" pattern="[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}" 
+                   style="text-transform: uppercase;" disabled>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="razon_social">Razón Social</label>
+            <input type="text" id="razon_social" name="razon_social" 
+                   value="{{ cliente.razon_social }}" placeholder="Nombre de tu empresa" disabled>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="direccion_fiscal">Dirección Fiscal</label>
+            <input type="text" id="direccion_fiscal" name="direccion_fiscal" 
+                   value="{{ cliente.direccion_fiscal }}" 
+                   placeholder="Si es diferente a tu dirección de envío" disabled>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="telefono">Teléfono <span class="required">*</span></label>
-          <input type="tel" id="telefono" name="telefono" value="{{ cliente.telefono }}" 
-                 placeholder="3312345678" pattern="[0-9]{10}" required>
-          <small class="field-hint">10 dígitos sin espacios</small>
+        <div class="form-actions" id="actions-fiscal">
+          <button type="button" class="btn-cancel" onclick="cancelEdit('fiscal')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab: Seguridad -->
+    <div class="tab-content" id="tab-seguridad" role="tabpanel">
+      <section class="form-section" data-section="seguridad">
+        <div class="section-header">
+          <h2 class="section-title">Cambiar Contraseña</h2>
+          <div class="section-header-buttons">
+            <button type="button" class="btn-cancel" data-section="seguridad" onclick="cancelEdit('seguridad')">Cancelar</button>
+            <button type="button" class="btn-edit" data-section="seguridad" onclick="toggleEdit('seguridad', this)">Editar</button>
+          </div>
+        </div>
+        <p class="section-description">Ingresa tu contraseña actual para cambiarla</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="password_actual">Contraseña Actual</label>
+            <input type="password" id="password_actual" name="password_actual" 
+                   placeholder="Tu contraseña actual" disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="password_nueva">Nueva Contraseña</label>
+            <input type="password" id="password_nueva" name="password_nueva" 
+                   placeholder="Mínimo 8 caracteres" minlength="8" disabled>
+          </div>
+
+          <div class="form-group">
+            <label for="password_confirmar">Confirmar Nueva Contraseña</label>
+            <input type="password" id="password_confirmar" name="password_confirmar" 
+                   placeholder="Repite la nueva contraseña" disabled>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="telefono_alternativo">Teléfono Alternativo</label>
-          <input type="tel" id="telefono_alternativo" name="telefono_alternativo" 
-                 value="{{ cliente.telefono_alternativo }}" placeholder="3398765432" pattern="[0-9]{10}">
+        <div class="form-actions" id="actions-seguridad">
+          <button type="button" class="btn-cancel" onclick="cancelEdit('seguridad')">Cancelar</button>
+          <button type="submit" class="btn-primary">Actualizar</button>
         </div>
-      </div>
-    </section>
-
-    <!-- Sección: Dirección de Envío -->
-    <section class="form-section">
-      <h2 class="section-title">
-        <span class="icon">📍</span>
-        Dirección de Envío
-      </h2>
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label for="calle">Calle y Número <span class="required">*</span></label>
-          <input type="text" id="calle" name="calle" value="{{ cliente.calle }}" 
-                 placeholder="Av. Insurgentes 123" required>
-        </div>
-
-        <div class="form-group">
-          <label for="colonia">Colonia <span class="required">*</span></label>
-          <input type="text" id="colonia" name="colonia" value="{{ cliente.colonia }}" required>
-        </div>
-
-        <div class="form-group">
-          <label for="codigo_postal">Código Postal <span class="required">*</span></label>
-          <input type="text" id="codigo_postal" name="codigo_postal" 
-                 value="{{ cliente.codigo_postal }}" pattern="[0-9]{5}" 
-                 placeholder="44100" required>
-        </div>
-
-        <div class="form-group">
-          <label for="ciudad">Ciudad <span class="required">*</span></label>
-          <input type="text" id="ciudad" name="ciudad" value="{{ cliente.ciudad }}" required>
-        </div>
-
-        <div class="form-group">
-          <label for="estado">Estado <span class="required">*</span></label>
-          <select id="estado" name="estado" required>
-            <option value="">Selecciona un estado</option>
-            <option value="Aguascalientes" {% if cliente.estado == "Aguascalientes" %}selected{% endif %}>Aguascalientes</option>
-            <option value="Baja California" {% if cliente.estado == "Baja California" %}selected{% endif %}>Baja California</option>
-            <option value="Baja California Sur" {% if cliente.estado == "Baja California Sur" %}selected{% endif %}>Baja California Sur</option>
-            <option value="Campeche" {% if cliente.estado == "Campeche" %}selected{% endif %}>Campeche</option>
-            <option value="Chiapas" {% if cliente.estado == "Chiapas" %}selected{% endif %}>Chiapas</option>
-            <option value="Chihuahua" {% if cliente.estado == "Chihuahua" %}selected{% endif %}>Chihuahua</option>
-            <option value="Ciudad de México" {% if cliente.estado == "Ciudad de México" %}selected{% endif %}>Ciudad de México</option>
-            <option value="Coahuila" {% if cliente.estado == "Coahuila" %}selected{% endif %}>Coahuila</option>
-            <option value="Colima" {% if cliente.estado == "Colima" %}selected{% endif %}>Colima</option>
-            <option value="Durango" {% if cliente.estado == "Durango" %}selected{% endif %}>Durango</option>
-            <option value="Guanajuato" {% if cliente.estado == "Guanajuato" %}selected{% endif %}>Guanajuato</option>
-            <option value="Guerrero" {% if cliente.estado == "Guerrero" %}selected{% endif %}>Guerrero</option>
-            <option value="Hidalgo" {% if cliente.estado == "Hidalgo" %}selected{% endif %}>Hidalgo</option>
-            <option value="Jalisco" {% if cliente.estado == "Jalisco" %}selected{% endif %}>Jalisco</option>
-            <option value="México" {% if cliente.estado == "México" %}selected{% endif %}>Estado de México</option>
-            <option value="Michoacán" {% if cliente.estado == "Michoacán" %}selected{% endif %}>Michoacán</option>
-            <option value="Morelos" {% if cliente.estado == "Morelos" %}selected{% endif %}>Morelos</option>
-            <option value="Nayarit" {% if cliente.estado == "Nayarit" %}selected{% endif %}>Nayarit</option>
-            <option value="Nuevo León" {% if cliente.estado == "Nuevo León" %}selected{% endif %}>Nuevo León</option>
-            <option value="Oaxaca" {% if cliente.estado == "Oaxaca" %}selected{% endif %}>Oaxaca</option>
-            <option value="Puebla" {% if cliente.estado == "Puebla" %}selected{% endif %}>Puebla</option>
-            <option value="Querétaro" {% if cliente.estado == "Querétaro" %}selected{% endif %}>Querétaro</option>
-            <option value="Quintana Roo" {% if cliente.estado == "Quintana Roo" %}selected{% endif %}>Quintana Roo</option>
-            <option value="San Luis Potosí" {% if cliente.estado == "San Luis Potosí" %}selected{% endif %}>San Luis Potosí</option>
-            <option value="Sinaloa" {% if cliente.estado == "Sinaloa" %}selected{% endif %}>Sinaloa</option>
-            <option value="Sonora" {% if cliente.estado == "Sonora" %}selected{% endif %}>Sonora</option>
-            <option value="Tabasco" {% if cliente.estado == "Tabasco" %}selected{% endif %}>Tabasco</option>
-            <option value="Tamaulipas" {% if cliente.estado == "Tamaulipas" %}selected{% endif %}>Tamaulipas</option>
-            <option value="Tlaxcala" {% if cliente.estado == "Tlaxcala" %}selected{% endif %}>Tlaxcala</option>
-            <option value="Veracruz" {% if cliente.estado == "Veracruz" %}selected{% endif %}>Veracruz</option>
-            <option value="Yucatán" {% if cliente.estado == "Yucatán" %}selected{% endif %}>Yucatán</option>
-            <option value="Zacatecas" {% if cliente.estado == "Zacatecas" %}selected{% endif %}>Zacatecas</option>
-          </select>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="referencias">Referencias de Ubicación</label>
-          <textarea id="referencias" name="referencias" rows="2" 
-                    placeholder="Ej: Entre calle 5 de Mayo y Morelos, casa color blanco">{{ cliente.referencias }}</textarea>
-          <small class="field-hint">Ayúdanos a encontrar tu domicilio más fácil</small>
-        </div>
-      </div>
-    </section>
-
-    <!-- Sección: Información Fiscal (para mayoristas) -->
-    <section class="form-section">
-      <h2 class="section-title">
-        <span class="icon">🧾</span>
-        Información Fiscal (Opcional)
-      </h2>
-      <p class="section-description">Completa esta sección si requieres factura o eres comprador mayorista</p>
-      
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="tipo_cliente">Tipo de Cliente</label>
-          <select id="tipo_cliente" name="tipo_cliente">
-            <option value="menudeo" {% if cliente.tipo_cliente == "menudeo" %}selected{% endif %}>Menudeo</option>
-            <option value="mayoreo" {% if cliente.tipo_cliente == "mayoreo" %}selected{% endif %}>Mayoreo</option>
-          </select>
-          <small class="field-hint">Los precios mayoristas aplican desde 6 piezas</small>
-        </div>
-
-        <div class="form-group">
-          <label for="rfc">RFC</label>
-          <input type="text" id="rfc" name="rfc" value="{{ cliente.rfc }}" 
-                 placeholder="XAXX010101000" pattern="[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}" 
-                 style="text-transform: uppercase;">
-        </div>
-
-        <div class="form-group full-width">
-          <label for="razon_social">Razón Social</label>
-          <input type="text" id="razon_social" name="razon_social" 
-                 value="{{ cliente.razon_social }}" placeholder="Nombre de tu empresa">
-        </div>
-
-        <div class="form-group full-width">
-          <label for="direccion_fiscal">Dirección Fiscal</label>
-          <input type="text" id="direccion_fiscal" name="direccion_fiscal" 
-                 value="{{ cliente.direccion_fiscal }}" 
-                 placeholder="Si es diferente a tu dirección de envío">
-        </div>
-      </div>
-    </section>
-
-    <!-- Sección: Seguridad -->
-    <section class="form-section">
-      <h2 class="section-title">
-        <span class="icon">🔒</span>
-        Cambiar Contraseña
-      </h2>
-      <p class="section-description">Deja en blanco si no deseas cambiar tu contraseña</p>
-      
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="password_actual">Contraseña Actual</label>
-          <input type="password" id="password_actual" name="password_actual" 
-                 placeholder="Tu contraseña actual">
-        </div>
-
-        <div class="form-group">
-          <label for="password_nueva">Nueva Contraseña</label>
-          <input type="password" id="password_nueva" name="password_nueva" 
-                 placeholder="Mínimo 8 caracteres" minlength="8">
-        </div>
-
-        <div class="form-group">
-          <label for="password_confirmar">Confirmar Nueva Contraseña</label>
-          <input type="password" id="password_confirmar" name="password_confirmar" 
-                 placeholder="Repite la nueva contraseña">
-        </div>
-      </div>
-    </section>
-
-    <!-- Botones de acción -->
-    <div class="form-actions">
-      <button type="button" class="btn-secondary" onclick="window.history.back()">
-        Cancelar
-      </button>
-      <button type="submit" class="btn-primary">
-        <span class="btn-icon">💾</span>
-        Guardar Cambios
-      </button>
+      </section>
     </div>
   </form>
+
 </main>
 
 <script src="{% static 'public/cliente/js/perfil.js' %}"></script>
+<script>
+// ========== TABS NAVIGATION ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.dataset.tab;
+      
+      // Remove active from all tabs
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      
+      // Hide all content
+      contents.forEach(c => c.classList.remove('active'));
+      
+      // Activate clicked tab
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      
+      // Show target content
+      const targetContent = document.getElementById(`tab-${targetId}`);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+      
+      // Save active tab to localStorage
+      localStorage.setItem('perfil_active_tab', targetId);
+    });
+  });
+  
+  // Restore active tab from localStorage
+  const savedTab = localStorage.getItem('perfil_active_tab');
+  if (savedTab) {
+    const tabToActivate = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+    if (tabToActivate) {
+      tabToActivate.click();
+    }
+  }
+});
+
+// ========== RESEND VERIFICATION EMAIL ==========
+async function resendVerification() {
+  const btn = document.getElementById('btn-resend-email');
+  const originalText = btn.textContent;
+  
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  
+  try {
+    const response = await fetch('/api/auth/reenviar-verificacion/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({
+        correo: '{{ cliente.correo }}'
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      btn.textContent = '✓ Enviado';
+      btn.style.background = '#27ae60';
+      showNotification('Correo de verificación enviado. Revisa tu bandeja de entrada.', 'success');
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+        btn.disabled = false;
+      }, 5000);
+    } else {
+      throw new Error(data.error || 'Error al enviar');
+    }
+  } catch (error) {
+    btn.textContent = 'Error';
+    btn.style.background = '#e74c3c';
+    showNotification(error.message, 'error');
+    
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
+
+// ========== NOTIFICATION HELPER ==========
+function showNotification(message, type = 'info') {
+  document.querySelectorAll('.notification-toast').forEach(n => n.remove());
+  
+  const notification = document.createElement('div');
+  notification.className = `notification-toast notification-${type}`;
+  notification.style.cssText = `
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+    color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+  `;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 4000);
+}
+
+// ========== EDIT MODE FUNCTIONS ==========
+// Store original values and edit state
+const originalValues = {};
+const editingState = {};
+let isSaving = false;
+
+function toggleEdit(section, btn) {
+  if (isSaving) return;
+  
+  const sectionEl = document.querySelector(`[data-section="${section}"]`);
+  if (!sectionEl) return;
+  
+  const cancelBtn = sectionEl.querySelector('.btn-cancel');
+  
+  if (!editingState[section]) {
+    // ENTERING EDIT MODE
+    editingState[section] = true;
+    
+    // Store original values
+    originalValues[section] = {};
+    const inputs = sectionEl.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      originalValues[section][input.name] = input.value;
+    });
+    
+    // Enable all inputs except readonly ones
+    inputs.forEach(input => {
+      if (!input.classList.contains('input-readonly')) {
+        input.disabled = false;
+      }
+    });
+    
+    // Change button to "Guardar" and show cancel
+    btn.textContent = 'Guardar';
+    btn.classList.add('editing');
+    if (cancelBtn) cancelBtn.classList.add('visible');
+    
+  } else {
+    // SAVING - Submit via AJAX
+    saveSection(section, btn);
+  }
+}
+
+async function saveSection(section, btn) {
+  if (isSaving) return;
+  isSaving = true;
+  
+  const sectionEl = document.querySelector(`[data-section="${section}"]`);
+  const cancelBtn = sectionEl.querySelector('.btn-cancel');
+  const form = document.getElementById('profile-form');
+  
+  // Add saving state
+  btn.classList.add('saving');
+  btn.textContent = '...';
+  
+  try {
+    const formData = new FormData(form);
+    
+    const response = await fetch(form.action || window.location.href, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+    
+    if (response.ok) {
+      // Success - show checkmark
+      btn.classList.remove('saving', 'editing');
+      btn.classList.add('success');
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      if (cancelBtn) cancelBtn.classList.remove('visible');
+      
+      // Disable inputs
+      const inputs = sectionEl.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => input.disabled = true);
+      
+      // Reset button after 2 seconds
+      setTimeout(() => {
+        btn.classList.remove('success');
+        btn.textContent = 'Editar';
+        btn.style.minWidth = '';
+        btn.style.width = '';
+        btn.style.height = '';
+        btn.style.padding = '';
+        btn.style.borderRadius = '';
+        editingState[section] = false;
+        isSaving = false;
+      }, 2000);
+      
+    } else {
+      throw new Error('Error al guardar');
+    }
+    
+  } catch (error) {
+    // Error - restore button
+    btn.classList.remove('saving');
+    btn.textContent = 'Guardar';
+    isSaving = false;
+    console.error('Error:', error);
+  }
+}
+
+function cancelEdit(section) {
+  if (isSaving) return;
+  
+  const sectionEl = document.querySelector(`[data-section="${section}"]`);
+  if (!sectionEl) return;
+  
+  // Restore original values
+  if (originalValues[section]) {
+    const inputs = sectionEl.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      if (originalValues[section][input.name] !== undefined) {
+        input.value = originalValues[section][input.name];
+      }
+    });
+  }
+  
+  // Disable all inputs
+  const inputs = sectionEl.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    input.disabled = true;
+  });
+  
+  // Reset buttons
+  const editBtn = sectionEl.querySelector('.btn-edit');
+  const cancelBtn = sectionEl.querySelector('.btn-cancel');
+  
+  if (editBtn) {
+    editBtn.textContent = 'Editar';
+    editBtn.classList.remove('editing');
+  }
+  if (cancelBtn) cancelBtn.classList.remove('visible');
+  
+  editingState[section] = false;
+}
+</script>
+
+<style>
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+</style>
 {% endblock %}

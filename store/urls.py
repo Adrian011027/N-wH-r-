@@ -8,11 +8,17 @@ from .views.reset_password import (
 )
 
 # ─────────── Auth con JWT ───────────
-from .views import auth
+from .views import auth, api_filtros
 from .views.views import (
     index, genero_view, registrarse,logout_client,logout_user,
     login_user, login_client, refresh_token, create_categoria, get_categorias, update_categoria, delete_categoria,
     categorias_por_genero, producto_aleatorio_subcategoria
+)
+
+# ─────────── Email Verification ───────────
+from .views.email_verification import (
+    verificar_email, reenviar_verificacion, 
+    estado_verificacion, pagina_verificacion_pendiente
 )
 
 # ─────────── Carrito ───────────
@@ -23,6 +29,7 @@ from .views.carrito import (
     vaciar_carrito_guest, actualizar_cantidad_guest, eliminar_item_guest,
     mostrar_confirmacion_compra, mostrar_formulario_confirmacion,
     enviar_ticket_whatsapp, enviar_ticket_email,
+    checkout_guest_page, finalizar_compra_guest,
 )
 
 # ─────────── Clientes ───────────
@@ -100,6 +107,10 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
+    
+    # APIs de filtros dinámicos
+    path("api/filtros-disponibles/", api_filtros.get_filtros_disponibles, name="filtros_disponibles"),
+    path("api/productos-filtrados/", api_filtros.get_productos_filtrados, name="productos_filtrados"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
@@ -107,7 +118,14 @@ urlpatterns = [
     path("api/auth/logout/",  auth.logout,         name="api_logout"),
     path("api/auth/verify/",  auth.verify_token,   name="api_verify_token"),
     
+    # ---------- Email Verification ----------
+    path("verificar-email/<str:token>/",       verificar_email,               name="verificar_email"),
+    path("verificacion-pendiente/",            pagina_verificacion_pendiente, name="verificacion_pendiente"),
+    path("api/auth/reenviar-verificacion/",    reenviar_verificacion,         name="reenviar_verificacion"),
+    path("api/auth/estado-verificacion/",      estado_verificacion,           name="estado_verificacion"),
+    
     # Auth antiguo (compatibilidad)
+
     path("auth/login_user/",   login_user,    name="login_user"),
     path("auth/login_client/", login_client,  name="login_client"),
     path("auth/refresh/",      refresh_token, name="refresh_token"),
@@ -125,6 +143,10 @@ urlpatterns = [
     # ---------- Carrito (páginas públicas) ----------
     path("carrito/",         carrito_publico,  name="ver_carrito"),
     path("carrito/cliente/", carrito_cliente,  name="carrito_cliente"),
+    
+    # ---------- Checkout Invitados ----------
+    path("checkout/guest/",                     checkout_guest_page,      name="checkout_guest"),
+    path("api/checkout/guest/finalizar/",       finalizar_compra_guest,   name="finalizar_compra_guest"),
 
     # ---------- Carrito API ----------
     path("api/carrito/guest/",                                  detalle_carrito_session,        name="detalle_carrito_session"),

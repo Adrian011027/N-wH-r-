@@ -291,17 +291,26 @@ def auth_required_hybrid(allowed_roles=None):
                 except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
                     pass  # Intentar con cookie si JWT falla
             
-            # Intento 2: Autenticación por Cookie (localStorage -> cookie de sesión simulada)
-            # Verificar si hay un cliente_id o user_id en la URL que coincida con localStorage
+            # Intento 2: Autenticación por Cookie de sesión Django
+            cliente_id_session = request.session.get('cliente_id')
             cliente_id_url = kwargs.get('id')  # El ID viene en la URL
             
-            # Para vistas HTML, podemos confiar en que el usuario tiene acceso si el ID coincide
-            # Esto es menos seguro pero funcional para desarrollo
-            # TODO: En producción, implementar cookie de sesión real
-            
-            if cliente_id_url:
+            # Verificar que hay una sesión activa
+            if cliente_id_session:
                 try:
-                    cliente = Cliente.objects.get(id=cliente_id_url)
+                    cliente = Cliente.objects.get(id=cliente_id_session)
+                    
+                    # SEGURIDAD: Verificar que el cliente solo acceda a SU perfil
+                    if cliente_id_url and int(cliente_id_url) != cliente_id_session:
+                        # Está intentando ver el perfil de otro usuario
+                        if request.content_type == 'application/json' or auth_header:
+                            return JsonResponse({
+                                'error': 'Acceso denegado',
+                                'detail': 'No tienes permiso para ver este perfil'
+                            }, status=403)
+                        else:
+                            return redirect('index')
+                    
                     request.cliente = cliente
                     request.user_id = cliente.id
                     request.user_role = 'cliente'
@@ -312,6 +321,8 @@ def auth_required_hybrid(allowed_roles=None):
                     
                     return view_func(request, *args, **kwargs)
                 except Cliente.DoesNotExist:
+                    # Sesión inválida, limpiar
+                    request.session.flush()
                     return redirect('index')
             
             # Si llegamos aquí, no hay autenticación válida
@@ -319,7 +330,7 @@ def auth_required_hybrid(allowed_roles=None):
             if request.content_type == 'application/json' or auth_header:
                 return JsonResponse({
                     'error': 'Autenticación requerida',
-                    'detail': 'Incluya token JWT o inicie sesión'
+                    'detail': 'Debe iniciar sesión para acceder a esta página'
                 }, status=401)
             else:
                 # Si es navegador, redirigir al home
