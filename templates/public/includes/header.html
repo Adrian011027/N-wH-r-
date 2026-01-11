@@ -182,130 +182,590 @@
   </div>
 </div>
 
-<!-- LOGIN PANEL -->
+<!-- LOGIN PANEL (con Login y Registro en cascada) -->
 <div id="login-panel" class="login-panel">
-  <div class="login-header">
-    <h2>Identificación</h2>
-    <span id="close-login-panel" class="close-btn">×</span>
+  <!-- Vista 1: LOGIN -->
+  <div id="view-login" class="auth-view active">
+    <div class="login-header">
+      <h2>Identificación</h2>
+      <span id="close-login-panel" class="close-btn">×</span>
+    </div>
+    <div class="login-section">
+      <h3>Ya tengo una cuenta</h3>
+      <span class="required-note">Campos requeridos*</span>
+
+      <form id="loginForm" method="POST" action="#">
+        <label for="username">Usuario o correo electrónico*</label>
+        <input type="text" id="username" required placeholder="Tu usuario o correo">
+
+        <label for="password">Contraseña*</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="********" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+          <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+
+        <a href="{% url 'cliente_solicitar_reset' %}" class="forgot-link">¿Olvidó su contraseña?</a>
+
+        <button type="submit" class="login-btn">Iniciar sesión</button>
+        <p id="login-error" class="error-msg"></p>
+      </form>
+    </div>
+    <hr>
+    <div class="login-section">
+      <h3>¿No tienes cuenta?</h3>
+      <p>Crea tu cuenta en segundos y disfruta de una experiencia personalizada.</p>
+      <button type="button" id="btn-show-register" class="register-btn">Crear cuenta</button>
+    </div>
   </div>
-  <div class="login-section">
-    <h3>Ya tengo una cuenta</h3>
-    <span class="required-note">Campos requeridos*</span>
 
-    <form id="loginForm" method="POST" action="#">
-      <label for="username">Usuario o correo electrónico*</label>
-      <input type="text" id="username" required placeholder="Tu usuario o correo">
+  <!-- Vista 2: REGISTRO -->
+  <div id="view-register" class="auth-view">
+    <div class="login-header">
+      <button type="button" id="btn-back-login" class="back-btn" aria-label="Volver al login">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Crear cuenta</h2>
+      <span id="close-register-panel" class="close-btn">×</span>
+    </div>
+    
+    <div class="login-section">
+      <p class="register-subtitle">Únete a NöwHėrē en segundos</p>
+      
+      <form id="registerForm" method="POST" action="#">
+        <label for="reg-email">Correo electrónico*</label>
+        <div class="input-with-icon">
+          <input type="email" id="reg-email" required placeholder="tu@correo.com" autocomplete="email">
+        </div>
 
-      <label for="password">Contraseña*</label>
-      <div class="password-wrapper">
-        <input type="password" id="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
-        <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-          <i class="fa-regular fa-eye"></i>
+        <label for="reg-pwd">Contraseña*</label>
+        <div class="password-wrapper">
+          <input type="password" id="reg-pwd" required minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+        <div class="password-strength" id="regPwdStrength">
+          <div class="strength-bar"><span></span></div>
+          <small class="strength-text"></small>
+        </div>
+
+        <label for="reg-pwd2">Confirmar contraseña*</label>
+        <div class="password-wrapper">
+          <input type="password" id="reg-pwd2" required minlength="8" placeholder="Repite tu contraseña" autocomplete="new-password">
+          <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+
+        <button type="submit" class="login-btn register-submit-btn">
+          <span class="btn-text">Crear cuenta</span>
+          <span class="btn-loading" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> Creando...</span>
         </button>
-      </div>
-
-      <a href="{% url 'cliente_solicitar_reset' %}" class="forgot-link">¿Olvidó su contraseña?</a>
-
-      <p class="login-alt-text">O use un enlace de acceso único para iniciar sesión:<br>
-        <a href="{% url 'cliente_solicitar_reset' %}" class="email-login-link">Enviarme el enlace por correo electrónico</a>
+        <p id="register-error" class="error-msg"></p>
+        <p id="register-success" class="success-msg"></p>
+      </form>
+      
+      <p class="terms-note">
+        Al crear tu cuenta, aceptas nuestros <a href="#">Términos</a> y <a href="#">Privacidad</a>
       </p>
-
-      <button type="submit" class="login-btn">Iniciar sesión</button>
-      <p id="login-error" class="error-msg"></p>
-    </form>
-  </div>
-  <hr>
-  <div class="login-section">
-    <h3>No tengo cuenta</h3>
-    <p>Disfrute de beneficios adicionales y de una experiencia más intensa creando una cuenta personal.</p>
-    <a href="{% url 'registrarse' %}" class="register-btn">Crear cuenta N:</a>
+    </div>
+    
+    <hr>
+    
+    <div class="login-section register-benefits">
+      <h4>Beneficios de tu cuenta</h4>
+      <ul>
+        <li><i class="fa-solid fa-check"></i> Historial de compras</li>
+        <li><i class="fa-solid fa-check"></i> Checkout rápido</li>
+        <li><i class="fa-solid fa-check"></i> Ofertas exclusivas</li>
+      </ul>
+    </div>
   </div>
 </div>
 
 <!-- CLIENTE PANEL -->
 <div id="cliente-panel" class="login-panel">
-  <div class="cliente-header">
-    <h2 id="cliente-header-title">Mi Perfil</h2>
-    <span id="close-cliente-panel" class="close-btn">×</span>
+  
+  <!-- Vista Principal -->
+  <div id="view-cliente-main" class="auth-view active">
+    <div class="cliente-header">
+      <h2 id="cliente-header-title">Mi Perfil</h2>
+      <span id="close-cliente-panel" class="close-btn">×</span>
+    </div>
+    
+    <div class="login-section">
+      <h3>Información de la cuenta</h3>
+      <p class="info-line">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <span id="cliente-username"></span>
+      </p>
+      <p class="info-line">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M22 6L12 13 2 6"/>
+        </svg>
+        <span id="cliente-email"></span>
+      </p>
+    </div>
+    
+    <hr>
+    
+    <div class="login-section quick-links">
+      <a href="#" id="link-editar-perfil">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <line x1="4" y1="12" x2="14" y2="12"/>
+          <line x1="4" y1="18" x2="18" y2="18"/>
+          <circle cx="18" cy="6" r="2"/>
+          <circle cx="12" cy="12" r="2"/>
+          <circle cx="16" cy="18" r="2"/>
+        </svg>
+        Editar perfil
+        <svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+      <a href="#" id="link-mis-pedidos">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="M3 9h18"/>
+          <circle cx="8" cy="15" r="1"/>
+          <circle cx="16" cy="15" r="1"/>
+        </svg>
+        Mis pedidos
+        <svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+      <a href="#" id="link-carrito">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Carrito
+        <svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+      <a href="#" id="link-wishlist">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+        Wishlist
+        <svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+      <a href="#" id="link-contacto">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <path d="M22 6L12 13 2 6"/>
+        </svg>
+        Contáctanos
+        <svg class="chevron-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </a>
+    </div>
+    
+    <hr>
+    
+    <div class="login-section">
+      <a href="#" id="link-logout" class="logout-btn">Cerrar sesión</a>
+    </div>
   </div>
-  
-  <div class="login-section">
-    <h3>Información de la cuenta</h3>
-    <p class="info-line">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-      </svg>
-      <span id="cliente-username"></span>
-    </p>
-    <p class="info-line">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <rect x="2" y="4" width="20" height="16" rx="2"/>
-        <path d="M22 6L12 13 2 6"/>
-      </svg>
-      <span id="cliente-email"></span>
-    </p>
+
+  <!-- Vista Mis Pedidos -->
+  <div id="view-cliente-pedidos" class="auth-view">
+    <div class="cliente-header">
+      <button type="button" id="btn-back-cliente" class="back-btn" aria-label="Volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Mis Pedidos</h2>
+      <span id="close-pedidos-panel" class="close-btn">×</span>
+    </div>
+
+    <div class="login-section">
+      <div id="pedidos-loading" class="pedidos-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> Cargando pedidos...
+      </div>
+      
+      <div id="pedidos-empty" class="pedidos-empty" style="display: none;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <path d="M3 9h18"/>
+        </svg>
+        <p>No tienes pedidos aún</p>
+        <a href="/coleccion/todos/" class="btn-explorar">Explorar productos</a>
+      </div>
+
+      <div id="pedidos-lista" class="pedidos-lista"></div>
+    </div>
+
+    <div class="login-section" id="pedidos-ver-mas" style="display: none;">
+      <a href="{% url 'mis_pedidos' %}" class="btn-ver-historial">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Ver historial completo
+      </a>
+    </div>
   </div>
-  
-  <hr>
-  
-  <div class="login-section quick-links">
-    <a href="#" id="link-perfil">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <line x1="4" y1="6" x2="20" y2="6"/>
-        <line x1="4" y1="12" x2="14" y2="12"/>
-        <line x1="4" y1="18" x2="18" y2="18"/>
-        <circle cx="18" cy="6" r="2"/>
-        <circle cx="12" cy="12" r="2"/>
-        <circle cx="16" cy="18" r="2"/>
+
+  <!-- Vista Editar Perfil -->
+  <div id="view-cliente-perfil" class="auth-view">
+    <div class="cliente-header">
+      <button type="button" id="btn-back-perfil" class="back-btn" aria-label="Volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Editar Perfil</h2>
+      <span id="close-perfil-panel" class="close-btn">×</span>
+    </div>
+
+    <!-- Mensaje para completar perfil -->
+    <div id="perfil-completar-msg" class="perfil-completar-msg" style="display: none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
       </svg>
-      Editar perfil
-    </a>
-    <a href="{% url 'mis_pedidos' %}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <rect x="3" y="5" width="18" height="14" rx="2"/>
-        <path d="M3 9h18"/>
-        <circle cx="8" cy="15" r="1"/>
-        <circle cx="16" cy="15" r="1"/>
-      </svg>
-      Mis pedidos
-    </a>
-    <a href="#" id="link-wishlist" class="open-wishlist">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-      </svg>
-      Wishlist
-    </a>
-    <a href="/contacto/">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" 
-           stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-        <rect x="2" y="4" width="20" height="16" rx="2"/>
-        <path d="M22 6L12 13 2 6"/>
-      </svg>
-      Contáctanos
-    </a>
+      <span>Completa tu perfil para una mejor experiencia de compra</span>
+    </div>
+
+    <!-- Tabs de perfil -->
+    <nav class="perfil-tabs" role="tablist">
+      <button type="button" class="perfil-tab-btn active" data-perfil-tab="info">Información</button>
+      <button type="button" class="perfil-tab-btn" data-perfil-tab="direccion">Dirección</button>
+      <button type="button" class="perfil-tab-btn" data-perfil-tab="seguridad">Seguridad</button>
+    </nav>
+
+    <!-- Tab: Información Personal -->
+    <div class="perfil-tab-content active" id="perfil-tab-info">
+      <div class="login-section">
+        <div class="perfil-section-header">
+          <span class="perfil-section-title">Información Personal</span>
+          <button type="button" class="perfil-btn-edit" id="btn-edit-info">Editar</button>
+        </div>
+        
+        <form id="form-info" class="perfil-form">
+          <div class="perfil-field">
+            <label>Nombre Completo</label>
+            <input type="text" id="perfil-nombre" placeholder="Agrega tu nombre" disabled>
+          </div>
+          
+          <div class="perfil-field">
+            <label>Usuario</label>
+            <input type="text" id="perfil-username" disabled>
+            <small class="perfil-hint" id="username-hint"></small>
+          </div>
+          
+          <div class="perfil-field">
+            <label>
+              Correo Electrónico
+              <span class="perfil-badge" id="email-verified-badge"></span>
+            </label>
+            <input type="email" id="perfil-correo" disabled>
+          </div>
+          
+          <div class="perfil-field">
+            <label>Teléfono</label>
+            <input type="tel" id="perfil-telefono" placeholder="10 dígitos" disabled>
+          </div>
+
+          <div class="perfil-form-actions" id="actions-info" style="display: none;">
+            <button type="button" class="perfil-btn-cancel" onclick="cancelarEdicionPerfil('info')">Cancelar</button>
+            <button type="submit" class="perfil-btn-save">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab: Dirección -->
+    <div class="perfil-tab-content" id="perfil-tab-direccion">
+      <div class="login-section">
+        <div class="perfil-section-header">
+          <span class="perfil-section-title">Dirección de Envío</span>
+          <button type="button" class="perfil-btn-edit" id="btn-edit-direccion">Editar</button>
+        </div>
+        
+        <form id="form-direccion" class="perfil-form">
+          <div class="perfil-field">
+            <label>Calle y Número</label>
+            <input type="text" id="perfil-calle" placeholder="Av. Ejemplo 123" disabled>
+          </div>
+          
+          <div class="perfil-field-row">
+            <div class="perfil-field">
+              <label>Colonia</label>
+              <input type="text" id="perfil-colonia" disabled>
+            </div>
+            <div class="perfil-field">
+              <label>C.P.</label>
+              <input type="text" id="perfil-cp" placeholder="00000" maxlength="5" disabled>
+            </div>
+          </div>
+          
+          <div class="perfil-field-row">
+            <div class="perfil-field">
+              <label>Ciudad</label>
+              <input type="text" id="perfil-ciudad" disabled>
+            </div>
+            <div class="perfil-field">
+              <label>Estado</label>
+              <select id="perfil-estado" disabled>
+                <option value="">Seleccionar</option>
+                <option value="Aguascalientes">Aguascalientes</option>
+                <option value="Baja California">Baja California</option>
+                <option value="Baja California Sur">Baja California Sur</option>
+                <option value="Campeche">Campeche</option>
+                <option value="Chiapas">Chiapas</option>
+                <option value="Chihuahua">Chihuahua</option>
+                <option value="Ciudad de México">Ciudad de México</option>
+                <option value="Coahuila">Coahuila</option>
+                <option value="Colima">Colima</option>
+                <option value="Durango">Durango</option>
+                <option value="Guanajuato">Guanajuato</option>
+                <option value="Guerrero">Guerrero</option>
+                <option value="Hidalgo">Hidalgo</option>
+                <option value="Jalisco">Jalisco</option>
+                <option value="México">Estado de México</option>
+                <option value="Michoacán">Michoacán</option>
+                <option value="Morelos">Morelos</option>
+                <option value="Nayarit">Nayarit</option>
+                <option value="Nuevo León">Nuevo León</option>
+                <option value="Oaxaca">Oaxaca</option>
+                <option value="Puebla">Puebla</option>
+                <option value="Querétaro">Querétaro</option>
+                <option value="Quintana Roo">Quintana Roo</option>
+                <option value="San Luis Potosí">San Luis Potosí</option>
+                <option value="Sinaloa">Sinaloa</option>
+                <option value="Sonora">Sonora</option>
+                <option value="Tabasco">Tabasco</option>
+                <option value="Tamaulipas">Tamaulipas</option>
+                <option value="Tlaxcala">Tlaxcala</option>
+                <option value="Veracruz">Veracruz</option>
+                <option value="Yucatán">Yucatán</option>
+                <option value="Zacatecas">Zacatecas</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="perfil-field">
+            <label>Referencias</label>
+            <textarea id="perfil-referencias" rows="2" placeholder="Entre calles, color de casa, etc." disabled></textarea>
+          </div>
+
+          <div class="perfil-form-actions" id="actions-direccion" style="display: none;">
+            <button type="button" class="perfil-btn-cancel" onclick="cancelarEdicionPerfil('direccion')">Cancelar</button>
+            <button type="submit" class="perfil-btn-save">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab: Seguridad -->
+    <div class="perfil-tab-content" id="perfil-tab-seguridad">
+      <div class="login-section">
+        <div class="perfil-section-header">
+          <span class="perfil-section-title">Cambiar Contraseña</span>
+        </div>
+        
+        <form id="form-seguridad" class="perfil-form">
+          <div class="perfil-field">
+            <label>Contraseña Actual</label>
+            <div class="password-wrapper">
+              <input type="password" id="perfil-pwd-actual" placeholder="••••••••">
+              <button type="button" class="toggle-password"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+          
+          <div class="perfil-field">
+            <label>Nueva Contraseña</label>
+            <div class="password-wrapper">
+              <input type="password" id="perfil-pwd-nueva" placeholder="Mínimo 8 caracteres">
+              <button type="button" class="toggle-password"><i class="fa-regular fa-eye"></i></button>
+            </div>
+            <div class="password-strength" id="perfilPwdStrength">
+              <div class="strength-bar"></div>
+              <small class="strength-text"></small>
+            </div>
+          </div>
+          
+          <div class="perfil-field">
+            <label>Confirmar Nueva Contraseña</label>
+            <div class="password-wrapper">
+              <input type="password" id="perfil-pwd-confirmar" placeholder="Repite la contraseña">
+              <button type="button" class="toggle-password"><i class="fa-regular fa-eye"></i></button>
+            </div>
+          </div>
+
+          <div class="perfil-form-actions" style="display: flex;">
+            <button type="submit" class="perfil-btn-save" style="width: 100%;">Cambiar Contraseña</button>
+          </div>
+          
+          <p id="seguridad-error" class="error-msg"></p>
+          <p id="seguridad-success" class="success-msg"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Mensajes generales -->
+    <p id="perfil-error" class="error-msg" style="padding: 0 20px;"></p>
+    <p id="perfil-success" class="success-msg" style="padding: 0 20px;"></p>
   </div>
-  
-  <hr>
-  
-  <div class="login-section">
-    <a href="#" id="link-logout" class="logout-btn">Cerrar sesión</a>
+
+  <!-- Vista Carrito -->
+  <div id="view-cliente-carrito" class="auth-view">
+    <div class="cliente-header">
+      <button type="button" id="btn-back-carrito" class="back-btn" aria-label="Volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Mi Carrito</h2>
+      <span id="close-carrito-panel" class="close-btn">×</span>
+    </div>
+
+    <!-- Info de mayoreo -->
+    <div id="carrito-mayoreo-msg" class="carrito-mayoreo-msg" style="display: none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <span>¡Precio de mayoreo aplicado!</span>
+    </div>
+
+    <!-- Contador de items -->
+    <div class="carrito-counter">
+      <span id="carrito-items-count">0 productos</span>
+    </div>
+
+    <!-- Lista de productos -->
+    <div class="carrito-section">
+      <div class="carrito-section-header">
+        <span class="carrito-section-title">Productos</span>
+        <button type="button" id="btn-vaciar-carrito" class="carrito-btn-vaciar" title="Vaciar carrito">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          Vaciar
+        </button>
+      </div>
+      <div class="carrito-items-list" id="carrito-items-container">
+        <p class="carrito-loading">Cargando...</p>
+      </div>
+    </div>
+
+    <!-- Resumen del pedido -->
+    <div class="carrito-section carrito-resumen">
+      <div class="carrito-section-header">
+        <span class="carrito-section-title">Resumen</span>
+      </div>
+      <div class="carrito-resumen-rows">
+        <div class="carrito-resumen-row">
+          <span>Subtotal</span>
+          <span id="carrito-subtotal">$0</span>
+        </div>
+        <div class="carrito-resumen-row">
+          <span>Envío</span>
+          <span id="carrito-envio" class="carrito-envio-calc">Calcular al checkout</span>
+        </div>
+        <div class="carrito-resumen-row carrito-total-row">
+          <span>Total</span>
+          <strong id="carrito-total-final">$0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de checkout -->
+    <div class="carrito-actions">
+      <a href="/carrito/cliente/" class="carrito-btn-checkout" id="btn-checkout">
+        Proceder al pago
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+      <p class="carrito-secure-text">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Pago 100% seguro
+      </p>
+    </div>
+  </div>
+
+  <!-- Vista Wishlist -->
+  <div id="view-cliente-wishlist" class="auth-view">
+    <div class="cliente-header">
+      <button type="button" id="btn-back-wishlist" class="back-btn" aria-label="Volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Mis Favoritos</h2>
+      <span id="close-wishlist-panel" class="close-btn">×</span>
+    </div>
+    <div class="wishlist-content">
+      <p>Cargando tus productos favoritos...</p>
+    </div>
+  </div>
+
+  <!-- Vista Contáctanos -->
+  <div id="view-cliente-contacto" class="auth-view">
+    <div class="cliente-header">
+      <button type="button" id="btn-back-contacto" class="back-btn" aria-label="Volver">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Llámenos</h2>
+      <span id="close-contacto-panel" class="close-btn">×</span>
+    </div>
+
+    <div class="contact-content">
+      <p>Donde sea que esté, nuestro equipo estará encantado de atenderle.</p>
+      <div class="contact-line"><i class="fa-solid fa-phone"></i><span>+52 332 211 8360</span></div>
+      <div class="contact-line"><i class="fa-brands fa-whatsapp"></i><a href="https://wa.me/3322118360" target="_blank">WhatsApp</a></div>
+      <hr>
+      <p><strong>¿Necesita ayuda?</strong></p>
+      <ul class="contact-list">
+        <li><a href="#">Preguntas Frecuentes</a></li>
+        <li><a href="#">Servicio de Cuidados</a></li>
+        <li><a href="#">Encontrar una Tienda</a></li>
+        <li><a href="mailto:contacto@nowhere.mx">Enviar Correo</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<!-- WISHLIST PANEL -->
+<!-- WISHLIST PANEL (panel separado desde header) -->
 <div id="wishlist-panel" class="login-panel">
-  <div class="wishlist-header">
-    <h2 id="wishlist-header-title">Favoritos</h2>
-    <span id="close-wishlist-panel" class="close-btn">×</span>
+  <div class="login-header">
+    <h2 id="wishlist-header-title">Mis Favoritos</h2>
+    <span id="close-wishlist-header" class="close-btn">×</span>
   </div>
-  <div class="wishlist-content">
-    <p>Cargando tus productos favoritos...</p>
+  <div class="wishlist-content wishlist-header-content">
+    <!-- JS renderiza los productos -->
   </div>
 </div>
 

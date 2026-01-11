@@ -48,7 +48,7 @@
   {% if clientes %}
   <div class="clientes-grid" id="clientes-grid">
     {% for cliente in clientes %}
-    <div class="cliente-card" data-search="{{ cliente.nombre|lower }} {{ cliente.username|lower }} {{ cliente.correo|lower }} {{ cliente.telefono|lower }}">
+    <div class="cliente-card" data-id="{{ cliente.id }}" data-search="{{ cliente.nombre|lower }} {{ cliente.username|lower }} {{ cliente.correo|lower }} {{ cliente.telefono|lower }}">
       <div class="cliente-card-header">
         <div class="cliente-avatar">
           {{ cliente.nombre|slice:":1"|default:cliente.username|slice:":1" }}
@@ -171,10 +171,7 @@
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-modal-cancel" onclick="cerrarModal()">Cancelar</button>
-      <form id="delete-form" method="post" style="flex: 1;">
-        {% csrf_token %}
-        <button type="submit" class="btn-modal-confirm" style="width: 100%;">Eliminar</button>
-      </form>
+      <button type="button" id="btn-delete-confirm" class="btn-modal-confirm" style="flex: 1;">Eliminar</button>
     </div>
   </div>
 </div>
@@ -183,6 +180,8 @@
 <div id="toast" class="toast"></div>
 
 <script>
+let clienteIdToDelete = null;
+
 // Filtrar clientes
 function filtrarClientes() {
   const query = document.getElementById('search-cliente').value.toLowerCase();
@@ -214,8 +213,8 @@ function filtrarClientes() {
 
 // Modal de confirmación
 function confirmarEliminar(id, nombre) {
+  clienteIdToDelete = id;
   document.getElementById('delete-nombre').textContent = nombre;
-  document.getElementById('delete-form').action = `/api/clientes/eliminar/${id}/`;
   document.getElementById('delete-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -223,6 +222,56 @@ function confirmarEliminar(id, nombre) {
 function cerrarModal() {
   document.getElementById('delete-modal').classList.remove('open');
   document.body.style.overflow = '';
+  clienteIdToDelete = null;
+}
+
+// Eliminar cliente con JWT
+document.getElementById('btn-delete-confirm').addEventListener('click', async () => {
+  if (!clienteIdToDelete) return;
+  
+  const token = localStorage.getItem('access');
+  if (!token) {
+    showToast('No tienes sesión activa', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-delete-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Eliminando...';
+
+  try {
+    const res = await fetch(`/clientes/delete/${clienteIdToDelete}/`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      showToast('Cliente eliminado correctamente', 'success');
+      cerrarModal();
+      // Eliminar la card del DOM
+      const card = document.querySelector(`.cliente-card[data-id="${clienteIdToDelete}"]`);
+      if (card) card.remove();
+    } else {
+      const data = await res.json();
+      showToast(data.error || 'Error al eliminar', 'error');
+    }
+  } catch (err) {
+    showToast('Error de conexión', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Eliminar';
+  }
+});
+
+// Toast notification
+function showToast(message, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 // Cerrar modal con ESC

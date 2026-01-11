@@ -270,9 +270,16 @@ def detalle_client(request, id):
         'id': cliente.id,
         'username': cliente.username,
         'nombre': cliente.nombre,
-        'email': cliente.correo,
+        'correo': cliente.correo,
         'telefono': cliente.telefono,
-        'direccion': cliente.direccion
+        'email_verified': cliente.email_verified,
+        # Campos de dirección
+        'calle': cliente.calle,
+        'colonia': cliente.colonia,
+        'codigo_postal': cliente.codigo_postal,
+        'ciudad': cliente.ciudad,
+        'estado': cliente.estado,
+        'referencias': cliente.referencias,
     })
 
 # ========= CREATE CLIENT ========= #
@@ -280,61 +287,94 @@ def detalle_client(request, id):
 @rate_limit(register_limiter)
 @require_http_methods(["POST"])
 def create_client(request):
+    """
+    Registro simplificado: solo requiere correo y contraseña.
+    El username se genera automáticamente desde el correo.
+    """
     try:
         data = json.loads(request.body)
-        username  = data.get('username', '').strip().lower()
         password  = data.get('password')
         correo    = data.get('correo', '').strip().lower()
+        
+        # Campos opcionales
+        username_custom = data.get('username', '').strip().lower()
         nombre    = data.get('nombre', '').strip()
         telefono  = data.get('telefono', '').strip()
         direccion = data.get('direccion', '').strip()
 
-        if not username or not password or not correo:
-            return JsonResponse({'error': 'Username, password y correo son obligatorios'}, status=400)
+        # Validaciones mínimas
+        if not password or not correo:
+            return JsonResponse({'error': 'Correo y contraseña son obligatorios'}, status=400)
 
         if not re.match(EMAIL_REGEX, correo):
-            return JsonResponse({'error': 'Correo inválido'}, status=400)
+            return JsonResponse({'error': 'Correo electrónico inválido'}, status=400)
 
         if len(password) < 8:
             return JsonResponse({'error': 'La contraseña debe tener al menos 8 caracteres'}, status=400)
 
-        if Cliente.objects.filter(username=username).exists():
-            return JsonResponse({'error': 'El nombre de usuario ya existe'}, status=409)
-
         if Cliente.objects.filter(correo=correo).exists():
-            return JsonResponse({'error': 'El correo ya está registrado'}, status=409)
+            return JsonResponse({'error': 'Este correo ya está registrado. ¿Quieres iniciar sesión?'}, status=409)
 
-        if telefono and not telefono.isdigit():
-            return JsonResponse({'error': 'El teléfono debe contener solo dígitos'}, status=400)
+        # Generar username desde el correo si no se proporciona
+        if username_custom:
+            username = username_custom
+        else:
+            # Extraer parte antes del @ y sanitizar
+            base_username = correo.split('@')[0]
+            # Remover caracteres especiales, solo letras, números, puntos y guiones bajos
+            base_username = re.sub(r'[^a-z0-9._]', '', base_username)
+            
+            # Asegurar mínimo 3 caracteres
+            if len(base_username) < 3:
+                base_username = base_username + 'user'
+            
+            # Verificar si ya existe y agregar sufijo si es necesario
+            username = base_username
+            counter = 1
+            while Cliente.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+        # Validar longitud de username
+        if len(username) < 3:
+            return JsonResponse({'error': 'El nombre de usuario es demasiado corto'}, status=400)
+
+        # Validar formato de teléfono si se proporciona
+        if telefono:
+            telefono_limpio = ''.join(filter(str.isdigit, telefono))
+            if telefono_limpio and len(telefono_limpio) < 10:
+                return JsonResponse({'error': 'El teléfono debe tener al menos 10 dígitos'}, status=400)
+            telefono = telefono_limpio if telefono_limpio else None
 
         cliente = Cliente.objects.create(
             username=username,
             password=make_password(password),
             correo=correo,
-            nombre=nombre,
+            nombre=nombre or None,  # Guardar None si está vacío
             telefono=telefono,
-            direccion=direccion,
-            email_verified=False  # Por defecto no verificado
+            direccion=direccion or None,
+            email_verified=False
         )
         
         # Enviar correo de verificación
         email_sent = send_verification_email(cliente, request)
         
-        # Registrar intento exitoso (no bloquear después de registro exitoso)
+        # Registrar intento exitoso
         ip = get_client_ip(request)
         register_limiter.record_attempt(f"ip:{ip}", success=True)
         
         return JsonResponse({
-            'username': cliente.username, 
-            'message': 'Cliente creado con éxito. Revisa tu correo para verificar tu cuenta.',
+            'username': cliente.username,
+            'correo': cliente.correo,
+            'message': '¡Cuenta creada! Revisa tu correo para verificar tu cuenta.',
             'email_verification_sent': email_sent,
             'requires_verification': True
         }, status=201)
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Formato JSON inválido'}, status=400)
+        return JsonResponse({'error': 'Formato de datos inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Error al crear la cuenta. Intenta de nuevo.'}, status=500)
 
 # ========= UPDATE CLIENT ========= #
 @csrf_exempt
@@ -446,6 +486,50 @@ def send_contact(request, id):
             mensaje=mensaje
         )
         return JsonResponse({'message': 'Mensaje enviado con éxito'}, status=201)
+
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# ========= API CONTACTO (Panel Cliente) ========= #
+@csrf_exempt
+@jwt_role_required()
+@require_http_methods(["POST"])
+def api_contacto(request):
+    """
+    Endpoint para enviar mensaje de contacto desde el panel del cliente.
+    Usa el user_id del JWT para identificar al cliente.
+    """
+    try:
+        data = json.loads(request.body)
+        asunto = data.get('asunto', '').strip()
+        mensaje = data.get('mensaje', '').strip()
+
+        if not asunto or not mensaje:
+            return JsonResponse({'error': 'Asunto y mensaje son obligatorios'}, status=400)
+
+        # Obtener cliente del JWT
+        cliente = Cliente.objects.get(id=request.user_id)
+        
+        # Crear registro de contacto (usando email del cliente)
+        # Como ContactoCliente es OneToOne, usamos update_or_create
+        ContactoCliente.objects.update_or_create(
+            cliente=cliente,
+            defaults={
+                'nombre': cliente.nombre or cliente.username,
+                'email': cliente.correo,
+                'mensaje': f"[{asunto.upper()}] {mensaje}"
+            }
+        )
+        
+        return JsonResponse({
+            'message': 'Mensaje enviado con éxito',
+            'detail': 'Te responderemos a tu correo lo antes posible'
+        }, status=201)
 
     except Cliente.DoesNotExist:
         return JsonResponse({'error': 'Cliente no encontrado'}, status=404)

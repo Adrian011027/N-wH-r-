@@ -61,10 +61,14 @@ export function initWishlist({
   /* ========== DOM Refs ========== */
   const dom = {
     wishlistPanel   : document.getElementById('wishlist-panel'),
-    wishlistContent : document.querySelector('#wishlist-panel .wishlist-content'),
+    // Contenedor principal: primero buscar en panel separado, luego en cascada
+    wishlistContent : document.querySelector('#wishlist-panel .wishlist-header-content') 
+                     || document.querySelector('#view-cliente-wishlist .wishlist-content'),
+    // También referencia al contenedor de cascada para renderizar en ambos
+    wishlistCascade : document.querySelector('#view-cliente-wishlist .wishlist-content'),
     overlay         : document.querySelector('.page-overlay'),
     wishlistBtn     : document.getElementById('btn-wishlist-panel'),
-    closeBtn        : document.getElementById('close-wishlist-panel'),
+    closeBtn        : document.getElementById('close-wishlist-header'), // Botón X del panel separado
     wishlistIcon    : document.querySelector('#btn-wishlist-panel i'),
     wishlistCount   : document.querySelector('#btn-wishlist-panel .wishlist-count'),
     headerTitle     : document.getElementById('wishlist-header-title')
@@ -435,18 +439,24 @@ export function initWishlist({
     </div>
   `).join('');
 
+  // Helper para renderizar en un contenedor específico
+  function renderToContainer(container, html) {
+    if (container) container.innerHTML = html;
+  }
+
   async function renderWishlistPanel() {
     const ids = getList();
+    const containers = [dom.wishlistContent, dom.wishlistCascade].filter(Boolean);
+    
     if (!ids.length) {
-      dom.headerTitle && (dom.headerTitle.style.visibility = 'hidden');
-      dom.wishlistContent.innerHTML = isAuthenticated ? EMPTY_USER : EMPTY_GUEST;
+      const emptyHTML = isAuthenticated ? EMPTY_USER : EMPTY_GUEST;
+      containers.forEach(c => renderToContainer(c, emptyHTML));
       updateHeaderUI([]);
       return;
     }
-    dom.headerTitle && (dom.headerTitle.style.visibility = 'visible');
 
     try {
-      dom.wishlistContent.textContent = 'Cargando…';
+      containers.forEach(c => c.textContent = 'Cargando…');
       const url = isAuthenticated
         ? `${backendURL}${safeClienteId}/?full=true`
         : `${fetchProductoURL}${ids.join(',')}`;
@@ -461,13 +471,14 @@ export function initWishlist({
         setList(validIds); // Actualiza localStorage con solo IDs válidos
       }
 
-      dom.wishlistContent.innerHTML = productos.length
+      const resultHTML = productos.length
         ? buildCards(productos, inCart)
         : 'No tienes productos en tu wishlist.';
-
+      
+      containers.forEach(c => renderToContainer(c, resultHTML));
       updateHeaderUI(validIds);
     } catch (err) {
-      dom.wishlistContent.textContent = 'Error al cargar tu wishlist.';
+      containers.forEach(c => c.textContent = 'Error al cargar tu wishlist.');
     }
 
     if (!isAuthenticated) injectHint();
@@ -496,12 +507,17 @@ export function initWishlist({
     </div>`;
 
   function injectHint() {
-    dom.wishlistContent.insertAdjacentHTML('beforeend', `
+    const hint = `
       <div class="wishlist-hint">
         ¿Quieres conservar tus favoritos?
         <a href="#" id="open-login-hint" class="wishlist-link">Inicia sesión</a> o
         <a href="/registrarse/" class="wishlist-link">crea una cuenta</a>.
-      </div>`);
+      </div>`;
+    [dom.wishlistContent, dom.wishlistCascade].filter(Boolean).forEach(c => {
+      if (!c.querySelector('.wishlist-hint')) {
+        c.insertAdjacentHTML('beforeend', hint);
+      }
+    });
   }
 
   // 👇 corregido: cerrar wishlist al abrir login
