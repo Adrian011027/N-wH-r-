@@ -7,7 +7,6 @@
    ──────────────────────────────────────────────────────────── */
 export function setupCategoriaCards() {
   const cards = document.querySelectorAll('.categoria-card');
-  console.log('🟢 Encontradas:', cards.length, 'tarjetas');
 
   if (!cards.length) return;
 
@@ -41,7 +40,7 @@ export function setupIntroAnimation() {
   const introItems = document.querySelectorAll(
     '.promo-intro__title, .promo-intro__subtitle'
   );
-  console.log('🟢 Encontrados:', introItems.length, 'elementos de intro');
+
 
   if (!introItems.length) return;
 

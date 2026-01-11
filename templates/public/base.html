@@ -137,48 +137,8 @@
   (function() {
     // Mensaje de advertencia estilizado en la consola
     const warningStyle = 'color: red; font-size: 24px; font-weight: bold;';
-    const infoStyle = 'color: #333; font-size: 14px;';
-    const linkStyle = 'color: blue; font-size: 14px;';
-    
-    // Mostrar advertencia
-    console.log('%c⚠️ ¡ALTO!', warningStyle);
-    console.log('%cEsta función del navegador está pensada para desarrolladores.', infoStyle);
-    console.log('%cSi alguien te dijo que copiaras y pegaras algo aquí para obtener descuentos, acceso a cuentas o cualquier otra cosa, es un fraude.', infoStyle);
-    console.log('%cPegar código aquí podría dar a los atacantes acceso a tu cuenta de NöwHėrē.', infoStyle);
-    console.log('%cMás información: https://es.wikipedia.org/wiki/Self-XSS', linkStyle);
-    
-    // Detectar si DevTools está abierto (método básico)
-    let devtoolsOpen = false;
-    const threshold = 160;
-    
-    const checkDevTools = function() {
-      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-      
-      if (widthThreshold || heightThreshold) {
-        if (!devtoolsOpen) {
-          devtoolsOpen = true;
-          console.clear();
-          console.log('%c⚠️ ¡ALTO!', warningStyle);
-          console.log('%cEsta función del navegador está pensada para desarrolladores.', infoStyle);
-          console.log('%cSi alguien te dijo que copiaras y pegaras algo aquí, es probablemente un intento de fraude.', infoStyle);
-        }
-      } else {
-        devtoolsOpen = false;
-      }
-    };
-    
-    // Verificar periódicamente (solo en producción)
-    {% if not debug %}
-    setInterval(checkDevTools, 1000);
-    {% endif %}
-    
-    // Deshabilitar clic derecho en elementos sensibles (opcional)
-    document.addEventListener('contextmenu', function(e) {
-      if (e.target.closest('.no-context')) {
-        e.preventDefault();
-      }
-    });
+    // Protección DevTools deshabilitada temporalmente para desarrollo
+    // Para reactivar en producción, descomentar el código anterior
   })();
   </script>
 

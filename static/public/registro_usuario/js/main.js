@@ -291,35 +291,25 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const username  = form.username.value.trim();
     const email     = form.email.value.trim().toLowerCase();
-    const email2    = form.email2.value.trim().toLowerCase();
     const pwd       = form.pwd.value;
     const pwd2      = form.pwd2.value;
-    const nombre    = form.nombre.value.trim();
-    const telefono  = form.telefono.value.trim();
-    const direccion = form.direccion.value.trim();
 
     // Validaciones con mensajes amigables
-    if (!username) {
-      showMessage('Por favor, ingresa un nombre de usuario', 'error');
-      form.username.focus();
+    if (!email) {
+      showMessage('Por favor, ingresa tu correo electrónico', 'error');
+      form.email.focus();
       return;
     }
-    if (username.length < 4) {
-      showMessage('El nombre de usuario debe tener al menos 4 caracteres', 'error');
-      form.username.focus();
+    
+    // Validar formato de email básico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showMessage('Por favor, ingresa un correo electrónico válido', 'error');
+      form.email.focus();
       return;
     }
-    if (!email || !email2) {
-      showMessage('Por favor, ingresa tu correo electrónico y confírmalo', 'error');
-      return;
-    }
-    if (email !== email2) {
-      showMessage('Los correos electrónicos no coinciden. Verifica que sean iguales', 'error');
-      form.email2.focus();
-      return;
-    }
+    
     if (!pwd || !pwd2) {
       showMessage('Por favor, ingresa tu contraseña y confírmala', 'error');
       return;
@@ -335,14 +325,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // El backend generará el username automáticamente desde el email
     const datos = {
-      username: username,
+      correo: email,
       password: pwd,
-      correo  : email,
     };
-    if (nombre)    datos.nombre    = nombre;
-    if (telefono)  datos.telefono  = telefono;
-    if (direccion) datos.direccion = direccion;
+
+    // Mostrar estado de carga
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creando cuenta...';
+    submitBtn.disabled = true;
 
     try {
       // ℹ️ NOTA: /clientes/crear/ es un endpoint PÚBLICO, no requiere JWT
@@ -359,13 +352,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        showMessage('¡Cuenta creada exitosamente! Redirigiendo...', 'success');
-        setTimeout(() => window.location.href = '/', 1500);
+        showMessage('¡Cuenta creada! Revisa tu correo para verificar tu cuenta.', 'success');
+        setTimeout(() => window.location.href = '/', 2000);
       } else {
         showMessage(data.error || 'Error al crear la cuenta. Intenta de nuevo.', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
       }
     } catch (err) {
       showMessage('Error de conexión. Verifica tu internet e intenta de nuevo.', 'error');
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     }
   });
 });

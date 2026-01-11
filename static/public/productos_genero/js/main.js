@@ -3,7 +3,7 @@
 window.addEventListener('load', () => {
   // 1. Fade-in dinámico de sección (PRIMERO - antes de cualquier validación)
   const sections = document.querySelectorAll('.dama-section, .caballero-section, .hombre-section, .mujer-section');
-  console.log('Secciones encontradas:', sections.length);
+
   sections.forEach(sec => {
     console.log('Agregando fade-in a:', sec.className);
     sec.classList.add('fade-in');

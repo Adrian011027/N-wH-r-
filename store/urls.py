@@ -29,7 +29,7 @@ from .views.carrito import (
 from .views.client import (
     detalle_client, get_all_clients,
     create_client, update_client, delete_client, send_contact,
-    editar_perfil, mis_pedidos,
+    editar_perfil, mis_pedidos, get_ordenes_cliente, api_contacto,
 )
 
 # ─────────── Usuarios (admin) ───────────
@@ -77,6 +77,7 @@ from .views.views import (
 from .views.search import (
     search_products, get_filter_options, search_page
 )
+from .views.api_filtros import get_filtros_disponibles
 
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
@@ -106,6 +107,7 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
+    path("api/filtros-disponibles/",   get_filtros_disponibles, name="filtros_disponibles"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
@@ -151,8 +153,10 @@ urlpatterns = [
     path("clientes/delete/<int:id>/", delete_client,   name="delete_client"),
     path("perfil/<int:id>/",          editar_perfil,   name="editar_perfil"),
     path("mis-pedidos/",              mis_pedidos,     name="mis_pedidos"),
+    path("api/cliente/ordenes/",       get_ordenes_cliente, name="api_ordenes_cliente"),
     path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
     path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
+    path("api/contacto/",                  api_contacto,   name="api_contacto"),
 
     # ---------- Usuarios (solo admin JWT) ----------
     path("api/users/",                  get_user,    name="get_user"),

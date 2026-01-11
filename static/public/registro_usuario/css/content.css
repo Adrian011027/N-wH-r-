@@ -295,6 +295,95 @@ input::placeholder {
     text-decoration: underline;
 }
 
+/* ========= BENEFICIOS DE REGISTRO ========= */
+.registro-benefits {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    border: 1px solid #eee;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.registro-benefits h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--c-text);
+}
+
+.registro-benefits ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .75rem;
+}
+
+.registro-benefits li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    font-size: .875rem;
+    color: var(--c-grey);
+}
+
+.registro-benefits li i {
+    color: #22c55e;
+    font-size: .9rem;
+}
+
+/* ========= MENSAJES DE FEEDBACK ========= */
+.form-message {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-message-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.form-message-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.form-message .close-msg {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0;
+    line-height: 1;
+}
+
+.form-message .close-msg:hover {
+    opacity: 1;
+}
+
 /* ========= MODAL DEL MAPA ========= */
 .map-modal {
     display: none;

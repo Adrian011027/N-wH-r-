@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   async function patchCantidad(varId, cant) {
-    // 🔐 JWT: Usa fetchPatch que agrega automáticamente el token
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
     
     const res = await fetchWithAuth(`${API_BASE}/item/${varId}/actualizar/`, {
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   async function renderCarritoDesdeAPI() {
-    // 🔐 JWT: fetchWithAuth agrega token automáticamente para usuarios logueados
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
     const res = await fetchWithAuth(`${API_BASE}/`, {
       headers
@@ -41,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const data = await res.json();
-    const contenedor = document.querySelector('.carrito-items');
+    const contenedor = document.getElementById('carrito-items');
     if (!contenedor || !Array.isArray(data.items)) return;
 
     const actuales = new Set([...contenedor.children].map(el => el.dataset.varianteId));
@@ -62,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (actuales.has(id)) continue;
 
       const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
+      const galeria = item.imagenes_galeria || [item.imagen];
 
       const div = document.createElement('div');
       div.className = 'carrito-item';
@@ -71,9 +70,25 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<button class="btn-minus trash" title="Eliminar"><i class="fa-solid fa-trash"></i></button>`
         : `<button class="btn-minus">−</button>`;
 
+      // Mini carrusel si hay múltiples imágenes
+      let imagenHTML = '';
+      if (galeria.length > 1) {
+        imagenHTML = `
+          <div class="carrusel-mini-viewport">
+            <div class="carrusel-mini-track">
+              ${galeria.map(img => `<img src="${img}" class="carrusel-mini-slide" alt="${item.producto}">`).join('')}
+            </div>
+          </div>
+          <button class="carrusel-mini-prev">‹</button>
+          <button class="carrusel-mini-next">›</button>
+        `;
+      } else {
+        imagenHTML = `<img src="${item.imagen || '/static/images/placeholder.png'}" alt="${item.producto}">`;
+      }
+
       div.innerHTML = `
         <div class="item-imagen">
-          <img src="${item.imagen || '/static/img/no-image.jpg'}" alt="${item.producto}">
+          ${imagenHTML}
         </div>
 
         <div class="item-detalles">
@@ -82,44 +97,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="item-precio-cantidad">
             <div class="item-precio">
-              <span class="precio-unitario-wrapper">
-                <span class="precio-unitario">$${precio.toFixed(2)}</span>
-              </span>
-              <span class="badge ${data.mayoreo ? 'badge-mayoreo' : 'badge-menudeo'}">
-                (${data.mayoreo ? 'mayoreo' : 'menudeo'})
-              </span>
+              <span class="precio-unitario-wrapper">$${precio.toFixed(2)}</span>
+              ${data.mayoreo && item.precio_menudeo !== item.precio_mayorista ? 
+                `<span class="precio-original">$${item.precio_menudeo.toFixed(2)}</span>` : ''}
             </div>
 
             <div class="item-cantidad qty-wrap">
               ${minusBtn}
               <input type="number" class="qty" min="1" value="${item.cantidad}">
-              <button class="btn-plus">＋</button>
+              <button class="btn-plus">+</button>
             </div>
+
+            <div class="item-subtotal">$${(precio * item.cantidad).toFixed(2)}</div>
           </div>
         </div>
+        
+        <button class="item-remove" title="Eliminar" data-variante="${item.variante_id}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       `;
 
       contenedor.appendChild(div);
       requestAnimationFrame(() => div.classList.add('fade-in'));
+      
+      // Inicializar mini carrusel si existe
+      initMiniCarrusel(div);
     }
 
-    // subtotal
+    // Actualizar contador y subtotal
+    const totalItems = data.items.reduce((acc, item) => acc + item.cantidad, 0);
     const total = data.items.reduce((acc, item) => {
       const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
       return acc + precio * item.cantidad;
     }, 0);
+    
+    const countEl = document.getElementById('carrito-count');
+    if (countEl) countEl.textContent = `${totalItems} artículo${totalItems !== 1 ? 's' : ''}`;
+    
     document.getElementById('carrito-subtotal').textContent = `$${total.toFixed(2)}`;
+    
+    const resumenTotal = document.getElementById('resumen-total');
+    if (resumenTotal) resumenTotal.textContent = `$${total.toFixed(2)}`;
 
-    if (data.items.length > 0) {
+    console.log('[Carrito] data.carrito_id:', data.carrito_id, 'items.length:', data.items.length);
+    
+    if (data.items.length > 0 && data.carrito_id) {
       ensureConfirmButtonVisible(data.carrito_id);
+    } else {
+      console.warn('[Carrito] No se llamó ensureConfirmButtonVisible - carrito_id:', data.carrito_id);
     }
 
     window.alternarVistaCarrito?.(data.items.length);
   }
+  
+  // Inicializar mini carrusel de imágenes
+  function initMiniCarrusel(itemEl) {
+    const track = itemEl.querySelector('.carrusel-mini-track');
+    const prev = itemEl.querySelector('.carrusel-mini-prev');
+    const next = itemEl.querySelector('.carrusel-mini-next');
+    if (!track || !prev || !next) return;
+    
+    const slides = track.querySelectorAll('.carrusel-mini-slide');
+    let current = 0;
+    
+    prev.addEventListener('click', (e) => {
+      e.stopPropagation();
+      current = (current - 1 + slides.length) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+    });
+    
+    next.addEventListener('click', (e) => {
+      e.stopPropagation();
+      current = (current + 1) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+    });
+  }
 
   // ────────────────────────────────
   async function updateTotals() {
-    // 🔐 JWT: fetchWithAuth agrega token automáticamente
     const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
     const res = await fetchWithAuth(`${API_BASE}/`, {
       headers
@@ -135,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!hay) {
       document.getElementById('carrito-subtotal').textContent = '$0.00';
+      const resumenTotal = document.getElementById('resumen-total');
+      if (resumenTotal) resumenTotal.textContent = '$0.00';
       if (alertaMay)  alertaMay.style.display  = 'none';
       if (alertaMeta) alertaMeta.style.display = 'none';
       return;
@@ -145,32 +205,53 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.piezas-restantes')
       .forEach(el => el.textContent = faltan);
 
-    if (alertaMay)  alertaMay.style.display  = data.mayoreo ? 'block' : 'none';
-    if (alertaMeta) alertaMeta.style.display = (!data.mayoreo && faltan > 0) ? 'block' : 'none';
+    if (alertaMay)  alertaMay.style.display  = data.mayoreo ? 'flex' : 'none';
+    if (alertaMeta) alertaMeta.style.display = (!data.mayoreo && faltan > 0) ? 'flex' : 'none';
 
-    // 🔄 Actualizar precios unitarios visibles si cambia a mayoreo
+    // Actualizar precios y subtotales si cambia a mayoreo
     if (Array.isArray(data.items)) {
       data.items.forEach(item => {
         const itemEl = document.querySelector(`.carrito-item[data-variante-id="${item.variante_id}"]`);
         if (!itemEl) return;
 
         const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
-        const precioEl = itemEl.querySelector('.precio-unitario');
-        const badgeEl  = itemEl.querySelector('.badge');
+        const precioEl = itemEl.querySelector('.precio-unitario-wrapper');
+        const subtotalEl = itemEl.querySelector('.item-subtotal');
 
         if (precioEl) precioEl.textContent = `$${precio.toFixed(2)}`;
-        if (badgeEl) {
-          badgeEl.textContent = `(${data.mayoreo ? 'mayoreo' : 'menudeo'})`;
-          badgeEl.className   = `badge ${data.mayoreo ? 'badge-mayoreo' : 'badge-menudeo'}`;
-        }
+        if (subtotalEl) subtotalEl.textContent = `$${(precio * item.cantidad).toFixed(2)}`;
       });
     }
-
   }
 
   // ────────────────────────────────
   // click en + / − / eliminar
   document.body.addEventListener('click', async e => {
+    // Botón eliminar (X)
+    const removeBtn = e.target.closest('.item-remove');
+    if (removeBtn) {
+      const varId = removeBtn.dataset.variante;
+      const item = removeBtn.closest('.carrito-item');
+      item.classList.add('fade-out');
+      item.addEventListener('animationend', async () => {
+        const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
+        const r = await fetchWithAuth(`${API_BASE}/item/${varId}/eliminar/`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(IS_LOGGED && { Authorization: `Bearer ${TOKEN}` })
+          }
+        });
+        if (r.ok) {
+          item.remove();
+          document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+        } else {
+          item.classList.remove('fade-out');
+        }
+      }, { once: true });
+      return;
+    }
+    
     const plus  = e.target.closest('.btn-plus');
     const minus = e.target.closest('.btn-minus');
     if (!plus && !minus) return;
@@ -190,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = wrap.closest('.carrito-item');
         item.classList.add('fade-out');
         item.addEventListener('animationend', async () => {
-          // 🔐 JWT: fetchDelete agrega token automáticamente
           const headers = IS_LOGGED ? {} : { 'X-Session-Key': SESSION_KEY };
 
           const r = await fetchWithAuth(`${API_BASE}/item/${varId}/eliminar/`, {
@@ -273,28 +353,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   function ensureConfirmButtonVisible(carritoId) {
-    const botonesWrapper = document.querySelector('.carrito-botones');
-    if (!botonesWrapper) return;
+    console.log('[Carrito] ensureConfirmButtonVisible llamado con carritoId:', carritoId);
+    const btnCheckout = document.getElementById('btn-checkout');
+    if (!btnCheckout) {
+      console.warn('[Carrito] btn-checkout no encontrado');
+      return;
+    }
+    
+    btnCheckout.disabled = false;
+    console.log('[Carrito] IS_LOGGED:', IS_LOGGED);
 
-    const existente = botonesWrapper.querySelector('.btn-finalizar');
-    if (existente) existente.remove();
-
-    const seguirBtn = botonesWrapper.querySelector('.btn-seguir');
+    // Clonar el botón para eliminar todos los event listeners anteriores
+    const newBtn = btnCheckout.cloneNode(true);
+    btnCheckout.parentNode.replaceChild(newBtn, btnCheckout);
 
     if (IS_LOGGED) {
-      const enlace = document.createElement('a');
-      enlace.className = 'btn-finalizar';
-      enlace.textContent = 'Finalizar compra';
-      enlace.href = `/ordenar/${carritoId}/`;
-      botonesWrapper.insertBefore(enlace, seguirBtn);
-    } else {
-      const enlace = document.createElement('button');
-      enlace.className = 'btn-finalizar';
-      enlace.textContent = 'Finalizar compra';
-      enlace.addEventListener('click', e => {
-        e.preventDefault(); modalGuest();
+      const targetUrl = `/ordenar/${carritoId}/`;
+      console.log('[Carrito] Configurando click a:', targetUrl);
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('[Carrito] Botón clickeado! Redirigiendo a:', targetUrl);
+        window.location.href = targetUrl;
       });
-      botonesWrapper.insertBefore(enlace, seguirBtn);
+    } else {
+      newBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modalGuest();
+      });
     }
   }
 
@@ -326,8 +411,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ────────────────────────────────
   window.alternarVistaCarrito = hay => {
-    document.getElementById('carrito-activo').style.display = hay ? 'block' : 'none';
-    document.getElementById('carrito-vacio').style.display  = hay ? 'none'  : 'block';
+    const activo = document.getElementById('carrito-activo');
+    const vacio = document.getElementById('carrito-vacio');
+    const btnCheckout = document.getElementById('btn-checkout');
+    
+    if (activo) {
+      if (hay) {
+        activo.style.display = '';
+        activo.classList.add('visible');
+      } else {
+        activo.style.display = 'none';
+        activo.classList.remove('visible');
+      }
+    }
+    if (vacio) vacio.style.display = hay ? 'none' : 'flex';
+    if (btnCheckout) btnCheckout.disabled = !hay;
   };
 
   window.updateTotals = updateTotals;
@@ -339,5 +437,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderCarritoDesdeAPI();
   updateTotals();
-  document.getElementById('carrito-container')?.classList.add('fade-in-carrito');
 });

@@ -50,7 +50,7 @@
     }
 
     setupEventListeners();
-    console.log('✅ Menú de navegación tipo Louis Vuitton (3 divs separados) inicializado');
+    
   }
 
   /**
