@@ -274,10 +274,14 @@ TWILIO_ADMIN_PHONE    = config("TWILIO_ADMIN_PHONE")  # ← agrega esta variable
 
 
 # ───────── Configuración Conekta (Pasarela de Pago) ──────────
+# Llave privada (API Key) - para operaciones del servidor
 CONEKTA_API_KEY = config("CONEKTA_API_KEY", default="")
+# Llave pública - para el iframe del checkout en frontend
 CONEKTA_PUBLIC_KEY = config("CONEKTA_PUBLIC_KEY", default="")
+# Webhook secret para validar firmas
 CONEKTA_WEBHOOK_SECRET = config("CONEKTA_WEBHOOK_SECRET", default="")
-CONEKTA_MODE = config("CONEKTA_MODE", default="sandbox")  # sandbox o production
+# Modo: sandbox o production
+CONEKTA_MODE = config("CONEKTA_MODE", default="sandbox")
 # URL de retorno después del pago (ajustar según tu dominio)
 CONEKTA_SUCCESS_URL = config("CONEKTA_SUCCESS_URL", default="http://127.0.0.1:8000/pago/exitoso/")
 CONEKTA_CANCEL_URL = config("CONEKTA_CANCEL_URL", default="http://127.0.0.1:8000/pago/cancelado/")

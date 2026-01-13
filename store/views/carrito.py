@@ -447,6 +447,10 @@ def carrito_publico(request):
         carrito = get_carrito_by_session(session_key)
 
     datos = _carrito_to_template(carrito)
+    
+    # Obtener llave pública de Conekta desde settings
+    from django.conf import settings
+    conekta_public_key = getattr(settings, 'CONEKTA_PUBLIC_KEY', '')
 
     return render(
         request,
@@ -456,6 +460,7 @@ def carrito_publico(request):
             "mayoreo": datos["mayoreo"],
             "session_key": session_key,  # Puedes usarlo en el HTML si quieres
             "carrito": carrito,
+            "conekta_public_key": conekta_public_key,  # Para el iframe de Conekta
         }
     )
 

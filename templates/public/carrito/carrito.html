@@ -3,143 +3,516 @@
 
 {% block title %}Mi Carrito - NöwHėrē{% endblock %}
 
+{% block extra_head %}
+<!-- Script de Conekta Checkout - Debe estar en el head -->
+<script type="text/javascript" src="https://pay.conekta.com/v1.0/js/conekta-checkout.min.js"></script>
+{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}">
+<link rel="stylesheet" href="{% static 'public/carrito/css/checkout.css' %}">
+<style>
+  /* Estilos para el iframe de Conekta */
+  #conektaIframeContainer {
+    min-height: 650px;
+    background: #fafafa;
+    border-radius: 8px;
+  }
+  
+  .conekta-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    color: #666;
+  }
+  
+  .conekta-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #1a1a2e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .secure-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .conekta-error {
+    text-align: center;
+    padding: 40px;
+    color: #c62828;
+  }
+  
+  .conekta-error h3 {
+    margin-bottom: 10px;
+  }
+  
+  .btn-retry {
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  /* Ocultar sidebar en steps 3 y 4 */
+  .checkout-sidebar-col.hidden {
+    display: none !important;
+  }
+  
+  /* Cuando el sidebar está oculto, centrar y expandir la columna principal */
+  .checkout-layout.full-width {
+    display: block;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  .checkout-layout.full-width .checkout-main-col {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  /* Formulario compacto */
+  .compact-form .form-row {
+    margin-bottom: 12px;
+  }
+  
+  .compact-form .form-group {
+    margin-bottom: 0;
+  }
+  
+  .compact-form label {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+  
+  .compact-form input,
+  .compact-form select {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  
+  /* 3 columnas para colonia, CP, ciudad */
+  .form-row.three-cols {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    gap: 12px;
+  }
+  
+  /* Responsive: en móvil siempre full width */
+  @media (max-width: 768px) {
+    .checkout-layout.full-width {
+      max-width: 100%;
+      padding: 0;
+    }
+    
+    .form-row.three-cols {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .form-row.three-cols .form-group:last-child {
+      grid-column: span 2;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="carrito-page">
   
-  <!-- Header de la página -->
-  <div class="carrito-page-header">
-    <a href="{% url 'index' %}" class="carrito-back-link">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      Seguir comprando
-    </a>
-    <h1>Mi Carrito</h1>
-  </div>
-
-  <!-- Alerta de mayoreo -->
-  <div id="alerta-meta-mayoreo" class="carrito-alert carrito-alert-info" style="display: none;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <path d="M12 16v-4M12 8h.01"/>
-    </svg>
-    <span>Te faltan <strong class="piezas-restantes">4</strong> piezas para precio de mayoreo</span>
-  </div>
-
-  <div id="alerta-mayoreo" class="carrito-alert carrito-alert-success" style="display: none;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-    </svg>
-    <span>¡Precio de <strong>mayoreo</strong> aplicado!</span>
-  </div>
-
-  <!-- Layout principal -->
-  <div class="carrito-layout" id="carrito-activo">
-    
-    <!-- Columna izquierda: Productos -->
-    <div class="carrito-productos-col">
-      <div class="carrito-section-card">
-        <div class="carrito-section-header">
-          <span class="carrito-section-title">Productos</span>
-          <span class="carrito-count" id="carrito-count">0 artículos</span>
-        </div>
-        
-        <div class="carrito-items-list" id="carrito-items">
-          <!-- Items inyectados por JS -->
-        </div>
-
-        <!-- Vaciar carrito -->
-        <div class="carrito-vaciar-wrapper" id="vaciar-wrapper">
-          <button type="button" class="btn-vaciar-carrito btn-vaciar">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-            Vaciar carrito
-          </button>
-        </div>
-      </div>
+  <!-- ═══════════════════════════════════════════════════════════
+       VISTA 1: CARRITO
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="vista-carrito">
+    <!-- Header de la página -->
+    <div class="carrito-page-header">
+      <a href="{% url 'index' %}" class="carrito-back-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Seguir comprando
+      </a>
+      <h1>Mi Carrito</h1>
     </div>
 
-    <!-- Columna derecha: Resumen -->
-    <div class="carrito-resumen-col" id="resumen-col">
-      <div class="carrito-section-card carrito-resumen-card">
-        <div class="carrito-section-header">
-          <span class="carrito-section-title">Resumen del pedido</span>
-        </div>
+    <!-- Alerta de mayoreo -->
+    <div id="alerta-meta-mayoreo" class="carrito-alert carrito-alert-info" style="display: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <span>Te faltan <strong class="piezas-restantes">4</strong> piezas para precio de mayoreo</span>
+    </div>
 
-        <div class="carrito-resumen-content">
-          <div class="resumen-row">
-            <span>Subtotal</span>
-            <span id="carrito-subtotal">$0</span>
-          </div>
-          <div class="resumen-row">
-            <span>Envío</span>
-            <span class="resumen-envio-text">Calcular en siguiente paso</span>
-          </div>
-          <div class="resumen-row resumen-total">
-            <span>Total</span>
-            <strong id="resumen-total">$0</strong>
+    <div id="alerta-mayoreo" class="carrito-alert carrito-alert-success" style="display: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <span>¡Precio de <strong>mayoreo</strong> aplicado!</span>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="carrito-layout" id="carrito-activo">
+      
+      <!-- Columna izquierda: Productos -->
+      <div class="carrito-productos-col">
+        <div class="carrito-section-card">
+          <div class="carrito-section-header">
+            <span class="carrito-section-title">Productos</span>
+            <span class="carrito-count" id="carrito-count">0 artículos</span>
           </div>
           
-          <button type="button" class="btn-checkout" id="btn-checkout">
-            Continuar al pago
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="5" y1="12" x2="19" y2="12"/>
-              <polyline points="12 5 19 12 12 19"/>
-            </svg>
-          </button>
-        </div>
+          <div class="carrito-items-list" id="carrito-items">
+            <!-- Items inyectados por JS -->
+          </div>
 
-        <div class="carrito-seguridad">
-          <div class="seguridad-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <span>Pago seguro</span>
-          </div>
-          <div class="seguridad-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <span>Datos protegidos</span>
-          </div>
-          <div class="seguridad-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-              <line x1="1" y1="10" x2="23" y2="10"/>
-            </svg>
-            <span>Múltiples métodos</span>
+          <!-- Vaciar carrito -->
+          <div class="carrito-vaciar-wrapper" id="vaciar-wrapper">
+            <button type="button" class="btn-vaciar-carrito btn-vaciar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Vaciar carrito
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Columna derecha: Resumen -->
+      <div class="carrito-resumen-col" id="resumen-col">
+        <div class="carrito-section-card carrito-resumen-card">
+          <div class="carrito-section-header">
+            <span class="carrito-section-title">Resumen del pedido</span>
+          </div>
+
+          <div class="carrito-resumen-content">
+            <div class="resumen-row">
+              <span>Subtotal</span>
+              <span id="carrito-subtotal">$0</span>
+            </div>
+            <div class="resumen-row">
+              <span>Envío</span>
+              <span class="resumen-envio-text">Calcular en siguiente paso</span>
+            </div>
+            <div class="resumen-row resumen-total">
+              <span>Total</span>
+              <strong id="resumen-total">$0</strong>
+            </div>
+            
+            <a href="#" class="btn-checkout" id="btn-checkout" onclick="iniciarCheckout(event)">
+              Continuar al pago
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="carrito-seguridad">
+            <div class="seguridad-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Pago seguro</span>
+            </div>
+            <div class="seguridad-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span>Datos protegidos</span>
+            </div>
+            <div class="seguridad-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                <line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              <span>Múltiples métodos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
+    <!-- Vista carrito vacío -->
+    <div id="carrito-vacio" class="carrito-empty-state" style="display: none;">
+      <div class="empty-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </div>
+      <h2>Tu carrito está vacío</h2>
+      <p id="carrito-msg">Añade productos para verlos aquí</p>
+      <a href="{% url 'index' %}" class="btn-explorar" id="carrito-cta">
+        Explorar productos
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    </div>
   </div>
 
-  <!-- Vista carrito vacío -->
-  <div id="carrito-vacio" class="carrito-empty-state" style="display: none;">
-    <div class="empty-icon">
-      <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1">
-        <circle cx="9" cy="21" r="1"/>
-        <circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-      </svg>
+  <!-- ═══════════════════════════════════════════════════════════
+       VISTA 2: CHECKOUT (Steps)
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="vista-checkout" class="checkout-page" style="display: none;">
+    
+    <!-- Header -->
+    <div class="checkout-header">
+      <a href="#" class="checkout-back-link" id="checkout-back-btn" onclick="volverPasoAnterior(event)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        <span id="checkout-back-text">Volver al carrito</span>
+      </a>
+      <h1>Finalizar Compra</h1>
     </div>
-    <h2>Tu carrito está vacío</h2>
-    <p id="carrito-msg">Añade productos para verlos aquí</p>
-    <a href="{% url 'index' %}" class="btn-explorar" id="carrito-cta">
-      Explorar productos
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="5" y1="12" x2="19" y2="12"/>
-        <polyline points="12 5 19 12 12 19"/>
-      </svg>
-    </a>
+
+    <!-- Progress Steps -->
+    <div class="checkout-steps">
+      <div class="step completed" data-step="1">
+        <div class="step-number">1</div>
+        <span class="step-label">Carrito</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step active" data-step="2">
+        <div class="step-number">2</div>
+        <span class="step-label">Resumen</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3">
+        <div class="step-number">3</div>
+        <span class="step-label">Envío</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="4">
+        <div class="step-number">4</div>
+        <span class="step-label">Pago</span>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="checkout-layout">
+      
+      <!-- Left Column: Steps Content -->
+      <div class="checkout-main-col">
+        
+        <!-- Step 2: Order Summary -->
+        <div class="checkout-step-content active" id="step-2">
+          <div class="checkout-card">
+            <div class="card-header">
+              <h2>Resumen del Pedido</h2>
+              <span class="item-count" id="checkout-item-count">0 artículos</span>
+            </div>
+            
+            <div class="checkout-items" id="checkout-items">
+              <!-- Items clonados del carrito por JS -->
+            </div>
+
+            <div class="step-actions">
+              <button type="button" class="btn-next" onclick="goToStep(3)">
+                Continuar a Envío
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Shipping -->
+        <div class="checkout-step-content" id="step-3">
+          <div class="checkout-card">
+            <div class="card-header">
+              <h2>Dirección de Envío</h2>
+            </div>
+            
+            <form id="shipping-form" class="checkout-form compact-form">
+              <div class="form-row two-cols">
+                <div class="form-group">
+                  <label for="nombre">Nombre completo</label>
+                  <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                  <label for="telefono">Teléfono</label>
+                  <input type="tel" id="telefono" name="telefono" required>
+                </div>
+              </div>
+              
+              <div class="form-row two-cols">
+                <div class="form-group">
+                  <label for="email">Correo electrónico</label>
+                  <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                  <label for="direccion">Dirección</label>
+                  <input type="text" id="direccion" name="direccion" placeholder="Calle y número" required>
+                </div>
+              </div>
+
+              <div class="form-row three-cols">
+                <div class="form-group">
+                  <label for="colonia">Colonia</label>
+                  <input type="text" id="colonia" name="colonia" required>
+                </div>
+                <div class="form-group">
+                  <label for="cp">C.P.</label>
+                  <input type="text" id="cp" name="cp" maxlength="5" required>
+                </div>
+                <div class="form-group">
+                  <label for="ciudad">Ciudad</label>
+                  <input type="text" id="ciudad" name="ciudad" required>
+                </div>
+              </div>
+
+              <div class="form-row two-cols">
+                <div class="form-group">
+                  <label for="estado">Estado</label>
+                  <select id="estado" name="estado" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="AGS">Aguascalientes</option>
+                    <option value="BC">Baja California</option>
+                    <option value="BCS">Baja California Sur</option>
+                    <option value="CAM">Campeche</option>
+                    <option value="CHIS">Chiapas</option>
+                    <option value="CHIH">Chihuahua</option>
+                    <option value="CDMX">Ciudad de México</option>
+                    <option value="COAH">Coahuila</option>
+                    <option value="COL">Colima</option>
+                    <option value="DGO">Durango</option>
+                    <option value="GTO">Guanajuato</option>
+                    <option value="GRO">Guerrero</option>
+                    <option value="HGO">Hidalgo</option>
+                    <option value="JAL">Jalisco</option>
+                    <option value="MEX">Estado de México</option>
+                    <option value="MICH">Michoacán</option>
+                    <option value="MOR">Morelos</option>
+                    <option value="NAY">Nayarit</option>
+                    <option value="NL">Nuevo León</option>
+                    <option value="OAX">Oaxaca</option>
+                    <option value="PUE">Puebla</option>
+                    <option value="QRO">Querétaro</option>
+                    <option value="QROO">Quintana Roo</option>
+                    <option value="SLP">San Luis Potosí</option>
+                    <option value="SIN">Sinaloa</option>
+                    <option value="SON">Sonora</option>
+                    <option value="TAB">Tabasco</option>
+                    <option value="TAM">Tamaulipas</option>
+                    <option value="TLAX">Tlaxcala</option>
+                    <option value="VER">Veracruz</option>
+                    <option value="YUC">Yucatán</option>
+                    <option value="ZAC">Zacatecas</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="referencias">Referencias (opcional)</label>
+                  <input type="text" id="referencias" name="referencias" placeholder="Entre calles, color de casa...">
+                </div>
+              </div>
+            </form>
+
+            <div class="step-actions">
+              <button type="button" class="btn-back" onclick="goToStep(2)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="19" y1="12" x2="5" y2="12"/>
+                  <polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Volver
+              </button>
+              <button type="button" class="btn-next" onclick="validarYProcederAlPago()">
+                Continuar a Pago
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Conekta Checkout iFrame -->
+        <div class="checkout-step-content" id="step-4">
+          <div class="checkout-card" style="padding: 0; background: transparent; box-shadow: none;">
+            <!-- Contenedor del iframe de Conekta -->
+            <div id="conektaIframeContainer" style="min-height: 600px; background: #fff; border-radius: 8px;">
+              <div class="conekta-loading" id="conektaLoading">
+                <div class="spinner"></div>
+                <p>Cargando opciones de pago...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Order Summary Sidebar -->
+      <div class="checkout-sidebar-col">
+        <div class="checkout-card sticky">
+          <div class="card-header">
+            <h3>Tu Pedido</h3>
+          </div>
+
+          <div class="sidebar-items" id="sidebar-items">
+            <!-- Items inyectados por JS -->
+          </div>
+
+          <div class="sidebar-totals">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <span id="checkout-subtotal">$0</span>
+            </div>
+            <div class="total-row">
+              <span>Envío</span>
+              <span class="shipping-calc">Por calcular</span>
+            </div>
+            <div class="total-row grand-total">
+              <span>Total</span>
+              <strong id="checkout-total">$0</strong>
+            </div>
+          </div>
+
+          <div class="sidebar-security">
+            <div class="security-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <span>Pago 100% seguro</span>
+            </div>
+            <div class="security-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span>Datos encriptados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
 </div>
@@ -154,8 +527,311 @@
   const CLIENTE_ID = localStorage.getItem("user_id") || 0;
   const TOKEN = localStorage.getItem("access");
   const IS_LOGGED = !!TOKEN;
+  
+  // Variables globales
+  window.CARRITO_ID = null;
+  window.CARRITO_ITEMS = [];
+  window.CARRITO_TOTAL = 0;
 
-  document.addEventListener("DOMContentLoaded", () => {
+  // ═══════════════════════════════════════════════════════════
+  // NAVEGACIÓN CARRITO ↔ CHECKOUT
+  // ═══════════════════════════════════════════════════════════
+  
+  function iniciarCheckout(e) {
+    e.preventDefault();
+    
+    if (!IS_LOGGED) {
+      if (typeof mostrarLoginPanel === 'function') mostrarLoginPanel();
+      return;
+    }
+    
+    if (!window.CARRITO_ID || window.CARRITO_ITEMS.length === 0) {
+      alert('Tu carrito está vacío');
+      return;
+    }
+    
+    // Poblar la vista de checkout con los items
+    poblarCheckout();
+    
+    // Mostrar checkout, ocultar carrito
+    document.getElementById('vista-carrito').style.display = 'none';
+    document.getElementById('vista-checkout').style.display = 'block';
+    
+    // Iniciar en step 2 (Resumen) - Step 1 es el Carrito
+    goToStep(2);
+    
+    // Scroll arriba
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  function volverAlCarrito(e) {
+    e.preventDefault();
+    
+    document.getElementById('vista-checkout').style.display = 'none';
+    document.getElementById('vista-carrito').style.display = 'block';
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  // ═══════════════════════════════════════════════════════════
+  // POBLAR CHECKOUT CON ITEMS DEL CARRITO
+  // ═══════════════════════════════════════════════════════════
+  
+  function poblarCheckout() {
+    const checkoutItems = document.getElementById('checkout-items');
+    const sidebarItems = document.getElementById('sidebar-items');
+    
+    // Limpiar
+    checkoutItems.innerHTML = '';
+    sidebarItems.innerHTML = '';
+    
+    // Generar items para el step 1
+    window.CARRITO_ITEMS.forEach(item => {
+      // Item grande para step 1
+      const itemEl = document.createElement('div');
+      itemEl.className = 'checkout-item';
+      itemEl.innerHTML = `
+        <div class="item-image">
+          <img src="${item.imagen}" alt="${item.nombre}">
+        </div>
+        <div class="item-info">
+          <h4>${item.nombre}</h4>
+          <p class="item-variant">Talla: ${item.talla}${item.color ? ' · ' + item.color : ''}</p>
+          <div class="item-qty-price">
+            <span class="qty">Cant: ${item.cantidad}</span>
+            <span class="price">$${item.subtotal.toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+      checkoutItems.appendChild(itemEl);
+      
+      // Item pequeño para sidebar
+      const sidebarItem = document.createElement('div');
+      sidebarItem.className = 'sidebar-item';
+      sidebarItem.innerHTML = `
+        <span class="item-name">${item.nombre} <small>x${item.cantidad}</small></span>
+        <span class="item-price">$${item.subtotal.toFixed(2)}</span>
+      `;
+      sidebarItems.appendChild(sidebarItem);
+    });
+    
+    // Actualizar contadores y totales
+    const totalPiezas = window.CARRITO_ITEMS.reduce((sum, i) => sum + i.cantidad, 0);
+    document.getElementById('checkout-item-count').textContent = 
+      `${totalPiezas} artículo${totalPiezas > 1 ? 's' : ''}`;
+    
+    document.getElementById('checkout-subtotal').textContent = `$${window.CARRITO_TOTAL.toFixed(2)}`;
+    document.getElementById('checkout-total').textContent = `$${window.CARRITO_TOTAL.toFixed(2)}`;
+    
+    // Pre-llenar datos del cliente si existen
+    cargarDatosCliente();
+  }
+  
+  async function cargarDatosCliente() {
+    if (!IS_LOGGED || !CLIENTE_ID) return;
+    
+    try {
+      const res = await fetch(`/clientes/${CLIENTE_ID}/`, {
+        headers: { 'Authorization': `Bearer ${TOKEN}` }
+      });
+      if (res.ok) {
+        const cliente = await res.json();
+        if (cliente.nombre) document.getElementById('nombre').value = cliente.nombre;
+        if (cliente.telefono) document.getElementById('telefono').value = cliente.telefono;
+        if (cliente.correo) document.getElementById('email').value = cliente.correo;
+      }
+    } catch (e) {
+      console.log('[Checkout] No se pudieron cargar datos del cliente');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // NAVEGACIÓN DE STEPS
+  // ═══════════════════════════════════════════════════════════
+  
+  let currentStep = 2; // Inicia en 2 (Resumen) porque Step 1 es el Carrito
+  
+  function goToStep(stepNum) {
+    currentStep = stepNum;
+    
+    // Actualizar indicadores (Step 1 = Carrito siempre completado)
+    document.querySelectorAll('.checkout-steps .step').forEach((step, idx) => {
+      const num = idx + 1;
+      step.classList.remove('active', 'completed');
+      if (num < stepNum) step.classList.add('completed');
+      if (num === stepNum) step.classList.add('active');
+    });
+
+    // Actualizar contenido visible
+    document.querySelectorAll('.checkout-step-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.getElementById(`step-${stepNum}`).classList.add('active');
+    
+    // Mostrar/ocultar sidebar según el step
+    const sidebar = document.querySelector('.checkout-sidebar-col');
+    const layout = document.querySelector('.checkout-layout');
+    
+    if (stepNum === 2) {
+      // Step 2 (Resumen): mostrar sidebar
+      sidebar.classList.remove('hidden');
+      layout.classList.remove('full-width');
+    } else {
+      // Steps 3 y 4: ocultar sidebar
+      sidebar.classList.add('hidden');
+      layout.classList.add('full-width');
+    }
+    
+    // Actualizar texto del botón "Volver"
+    const backText = document.getElementById('checkout-back-text');
+    if (stepNum === 2) {
+      backText.textContent = 'Volver al carrito';
+    } else {
+      backText.textContent = 'Volver';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  function volverPasoAnterior(e) {
+    e.preventDefault();
+    
+    if (currentStep === 2) {
+      // Si estamos en step 2 (Resumen), volver al carrito
+      volverAlCarrito(e);
+    } else {
+      // Si estamos en step 3 o 4, volver al step anterior
+      if (currentStep === 4) {
+        conektaLoading = false; // Reset flag de Conekta
+      }
+      goToStep(currentStep - 1);
+    }
+  }
+
+  function validateAndGoToStep(stepNum) {
+    const form = document.getElementById('shipping-form');
+    if (form.checkValidity()) {
+      goToStep(stepNum);
+    } else {
+      form.reportValidity();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // VALIDAR Y PROCEDER AL PAGO (desde Step 3 - Envío)
+  // ═══════════════════════════════════════════════════════════
+  
+  let conektaLoading = false; // Flag para evitar doble carga
+  
+  function validarYProcederAlPago() {
+    if (conektaLoading) return; // Evitar doble click
+    
+    const form = document.getElementById('shipping-form');
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    
+    // Guardar datos de envío en sessionStorage
+    const shippingData = {
+      nombre: document.getElementById('nombre').value,
+      telefono: document.getElementById('telefono').value,
+      email: document.getElementById('email').value,
+      direccion: document.getElementById('direccion').value,
+      colonia: document.getElementById('colonia').value,
+      cp: document.getElementById('cp').value,
+      ciudad: document.getElementById('ciudad').value,
+      estado: document.getElementById('estado').value,
+      referencias: document.getElementById('referencias').value
+    };
+    sessionStorage.setItem('checkout_shipping', JSON.stringify(shippingData));
+    
+    // Ir al paso 4 (Pago) y cargar el checkout de Conekta
+    goToStep(4);
+    cargarConektaCheckout();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CARGAR CONEKTA CHECKOUT IFRAME
+  // ═══════════════════════════════════════════════════════════
+  
+  async function cargarConektaCheckout() {
+    if (conektaLoading) return; // Evitar doble llamada
+    conektaLoading = true;
+    
+    const container = document.getElementById('conektaIframeContainer');
+    const loading = document.getElementById('conektaLoading');
+    
+    // Mostrar loading
+    if (loading) loading.style.display = 'flex';
+    
+    try {
+      // Crear checkout en el servidor
+      const response = await fetch('/pago/crear-checkout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          carrito_id: window.CARRITO_ID
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Error al crear checkout');
+      }
+      
+      if (!window.ConektaCheckoutComponents) {
+        throw new Error('Conekta SDK no está cargado. Recarga la página.');
+      }
+      
+      // Preparar contenedor
+      if (loading) loading.style.display = 'none';
+      container.innerHTML = '';
+      container.style.minHeight = '700px';
+      container.style.height = '700px';
+      
+      // Inicializar iframe de Conekta
+      window.ConektaCheckoutComponents.Integration({
+        targetIFrame: "#conektaIframeContainer",
+        checkoutRequestId: data.checkout_id,
+        publicKey: "{{ conekta_public_key|default:'key_NvR95ELYhNf2kskAnMJVZWb' }}",
+        options: {},
+        styles: {},
+        onFinalizePayment: function(event) {
+          console.log('💳 Pago completado');
+          conektaLoading = false;
+          window.location.href = '/pago/exitoso/?orden=' + window.CARRITO_ID;
+        },
+        onErrorPayment: function(event) {
+          console.error('❌ Error en pago:', event);
+          conektaLoading = false;
+          alert('Error en el pago. Por favor intenta nuevamente.');
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error cargando Conekta:', error);
+      conektaLoading = false;
+      if (loading) loading.style.display = 'none';
+      container.innerHTML = `
+        <div class="conekta-error">
+          <h3>⚠️ Error al cargar el checkout</h3>
+          <p>${error.message}</p>
+          <button class="btn-retry" onclick="conektaLoading=false; cargarConektaCheckout()">Reintentar</button>
+        </div>
+      `;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // EVENTOS DOM
+  // ═══════════════════════════════════════════════════════════
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    // Carrito vacío para no logueados
     const msg = document.getElementById("carrito-msg");
     const cta = document.getElementById("carrito-cta");
 
