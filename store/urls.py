@@ -57,7 +57,7 @@ from .views.orden import (
 # ─────────── Pago (Conekta) ───────────
 from .views.payment import (
     mostrar_formulario_pago_conekta, procesar_pago_conekta, webhook_conekta,
-    pago_exitoso, pago_cancelado
+    pago_exitoso, pago_cancelado, crear_checkout_conekta
 )
 
 # ─────────── Subcategorías ───────────
@@ -197,6 +197,8 @@ urlpatterns = [
     
     # ---------- Pago con Conekta ----------
     path("pago/formulario/<int:carrito_id>/",          mostrar_formulario_pago_conekta, name="formulario_pago_conekta"),
+    path("pago/conekta/<int:carrito_id>/",             mostrar_formulario_pago_conekta, name="pago_conekta"),  # Alias
+    path("pago/crear-checkout/",                       crear_checkout_conekta,          name="crear_checkout_conekta"),
     path("pago/procesar/",                             procesar_pago_conekta,           name="procesar_pago_conekta"),
     path("pago/webhook/conekta/",                      webhook_conekta,                 name="webhook_conekta"),
     path("pago/exitoso/",                              pago_exitoso,                    name="pago_exitoso"),

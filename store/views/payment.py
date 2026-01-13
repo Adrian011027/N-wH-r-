@@ -1,153 +1,265 @@
 """
-Vista para integrar pagos con Conekta
+Vista para integrar pagos con Conekta Checkout
 Plataforma de pagos mexicana - API v2.0
+
+Implementación según documentación oficial:
+https://developers.conekta.com/page/checkout
+
+Flujo:
+1. Crear Customer en Conekta (opcional si ya existe)
+2. Crear Order con opciones de checkout
+3. Renderizar iframe con el checkoutRequestId
+4. Recibir webhook cuando el pago se complete
 """
 import json
 import requests
 import hmac
 import hashlib
+import base64
 from decimal import Decimal
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods, require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.urls import reverse
 
 from ..models import Carrito, Orden, OrdenDetalle, Variante, Cliente
 
-# Constantes para Conekta API
-CONEKTA_BASE_URL = "https://api.conekta.io"
-CONEKTA_SANDBOX_URL = "https://api.conekta.io"
+# ═══════════════════════════════════════════════════════════════
+# CONFIGURACIÓN API CONEKTA
+# ═══════════════════════════════════════════════════════════════
+CONEKTA_API_URL = "https://api.conekta.io"
+CONEKTA_API_VERSION = "application/vnd.conekta-v2.0.0+json"
 
 
-# ───────────────────────────────────────────────────────────────
-# Helper: Crear orden en Conekta via API HTTP
-# ───────────────────────────────────────────────────────────────
-def crear_orden_conekta(carrito, cliente):
+def get_conekta_headers():
+    """Genera headers para autenticación con Conekta API"""
+    api_key = settings.CONEKTA_API_KEY
+    # Conekta usa Basic Auth con la API key como usuario y sin password
+    credentials = base64.b64encode(f"{api_key}:".encode()).decode()
+    return {
+        "Authorization": f"Basic {credentials}",
+        "Accept": CONEKTA_API_VERSION,
+        "Content-Type": "application/json",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# PASO 1: CREAR O OBTENER CUSTOMER EN CONEKTA
+# ═══════════════════════════════════════════════════════════════
+def crear_o_obtener_customer_conekta(cliente):
     """
-    Crea una orden en Conekta usando API HTTP.
-    En caso de fallo, devuelve una orden de prueba local.
-    Retorna el objeto Order de Conekta o un mock si hay error.
+    Crea un customer en Conekta o retorna el ID si ya existe.
+    Guarda el conekta_customer_id en el modelo Cliente.
     """
+    # Si el cliente ya tiene un ID de Conekta, usarlo
+    if hasattr(cliente, 'conekta_customer_id') and cliente.conekta_customer_id:
+        return cliente.conekta_customer_id
+    
     try:
-        # Construir línea de items
-        line_items = []
-        for cp in carrito.items.select_related('variante__producto').all():
-            variante = cp.variante
-            producto = variante.producto
-            
-            line_items.append({
-                "title": f"{producto.nombre} - {variante.talla} {variante.color}",
-                "unit_price": int(float(variante.precio if variante.precio else producto.precio) * 100),  # En centavos
-                "quantity": cp.cantidad,
-            })
-        
-        # Payload para crear orden en Conekta
         payload = {
-            "currency": "MXN",
-            "customer_info": {
-                "name": cliente.nombre or cliente.username,
-                "email": cliente.correo,
-                "phone": cliente.telefono or "",
-            },
-            "line_items": line_items,
-            "metadata": {
-                "carrito_id": str(carrito.id),
-                "cliente_id": str(cliente.id),
-            }
-        }
-        
-        # Hacer petición POST a Conekta
-        headers = {
-            "Authorization": f"Bearer {settings.CONEKTA_API_KEY}",
-            "Accept": "application/vnd.conekta-v2.0.0+json",
-            "Content-Type": "application/json",
+            "name": cliente.nombre or cliente.username or "Cliente",
+            "email": cliente.correo,
+            "phone": cliente.telefono or "+5200000000000",
         }
         
         response = requests.post(
-            f"{CONEKTA_BASE_URL}/orders",
+            f"{CONEKTA_API_URL}/customers",
             json=payload,
-            headers=headers,
-            timeout=10
+            headers=get_conekta_headers(),
+            timeout=15
         )
         
-        if response.status_code == 201:
-            return response.json()
+        if response.status_code in [200, 201]:
+            customer_data = response.json()
+            customer_id = customer_data.get('id')
+            print(f"✅ Customer creado en Conekta: {customer_id}")
+            
+            # Guardar el ID en el cliente (si el modelo lo soporta)
+            if hasattr(cliente, 'conekta_customer_id'):
+                cliente.conekta_customer_id = customer_id
+                cliente.save(update_fields=['conekta_customer_id'])
+            
+            return customer_id
         else:
-            print(f"⚠️ Error Conekta ({response.status_code}): {response.text}")
-            # En caso de error, devolver una orden de prueba para desarrollo
-            print(f"⚠️ Usando orden de prueba local (carrito_id={carrito.id})")
-            return {
-                "id": f"test_order_{carrito.id}",
-                "status": "pending_payment",
-                "currency": "MXN",
-                "customer_info": {
-                    "name": cliente.nombre or cliente.username,
-                    "email": cliente.correo,
-                }
-            }
-    
-    except requests.RequestException as e:
-        print(f"⚠️ Error de conexión con Conekta: {e}")
-        # Devolver orden de prueba en caso de error de conexión
-        print(f"⚠️ Usando orden de prueba local (carrito_id={carrito.id})")
-        return {
-            "id": f"test_order_{carrito.id}",
-            "status": "pending_payment",
-            "currency": "MXN",
-            "customer_info": {
-                "name": cliente.nombre or cliente.username,
-                "email": cliente.correo,
-            }
-        }
+            print(f"⚠️ Error creando customer: {response.status_code} - {response.text}")
+            return None
+            
     except Exception as e:
-        print(f"⚠️ Error al crear orden en Conekta: {e}")
-        # Devolver orden de prueba
-        return {
-            "id": f"test_order_{carrito.id}",
-            "status": "pending_payment",
+        print(f"⚠️ Error creando customer en Conekta: {e}")
+        return None
+
+
+# ═══════════════════════════════════════════════════════════════
+# PASO 2: CREAR ORDER CON CHECKOUT EN CONEKTA
+# ═══════════════════════════════════════════════════════════════
+def crear_orden_checkout_conekta(carrito, cliente, customer_id=None):
+    """
+    Crea una orden en Conekta con opciones de checkout.
+    Retorna el checkout_id necesario para el iframe.
+    
+    Según documentación: https://developers.conekta.com/page/checkout
+    """
+    try:
+        # Construir line_items desde el carrito
+        line_items = []
+        total_centavos = 0
+        
+        for cp in carrito.items.select_related('variante__producto').all():
+            variante = cp.variante
+            producto = variante.producto
+            precio = variante.precio if variante.precio else producto.precio
+            precio_centavos = int(float(precio) * 100)
+            subtotal = precio_centavos * cp.cantidad
+            total_centavos += subtotal
+            
+            line_items.append({
+                "name": f"{producto.nombre}",
+                "description": f"Talla: {variante.talla}, Color: {variante.color}",
+                "unit_price": precio_centavos,
+                "quantity": cp.cantidad,
+                "sku": f"VAR-{variante.id}",
+            })
+        
+        # Si no hay items, agregar uno de prueba
+        if not line_items:
+            line_items.append({
+                "name": "Producto de prueba",
+                "unit_price": 10000,  # $100 MXN
+                "quantity": 1,
+            })
+            total_centavos = 10000
+        
+        # Construir payload según documentación de Conekta
+        payload = {
             "currency": "MXN",
+            "line_items": line_items,
             "customer_info": {
-                "name": cliente.nombre or cliente.username,
+                "name": cliente.nombre or cliente.username or "Cliente",
                 "email": cliente.correo,
+                "phone": cliente.telefono or "+5200000000000",
+            },
+            # Configuración del Checkout
+            "checkout": {
+                "type": "Integration",
+                "allowed_payment_methods": ["card", "cash", "bank_transfer"],
+                "monthly_installments_enabled": True,
+                "monthly_installments_options": [3, 6, 9, 12],
+                "needs_shipping_contact": False,
+                "redirection_time": 5,  # Segundos antes de redirigir
+                "success_url": settings.CONEKTA_SUCCESS_URL,
+                "failure_url": settings.CONEKTA_CANCEL_URL,
+            },
+            # Metadata para tracking
+            "metadata": {
+                "carrito_id": str(carrito.id),
+                "cliente_id": str(cliente.id),
+                "source": "django_ecommerce",
             }
         }
+        
+        # Si tenemos customer_id, usarlo
+        if customer_id:
+            payload["customer_info"] = {"customer_id": customer_id}
+        
+        print(f"📤 Enviando orden a Conekta: {json.dumps(payload, indent=2)}")
+        
+        response = requests.post(
+            f"{CONEKTA_API_URL}/orders",
+            json=payload,
+            headers=get_conekta_headers(),
+            timeout=30
+        )
+        
+        print(f"📥 Respuesta Conekta ({response.status_code}): {response.text[:500]}")
+        
+        if response.status_code in [200, 201]:
+            order_data = response.json()
+            
+            # Extraer checkout info
+            checkout_info = order_data.get('checkout', {})
+            checkout_id = checkout_info.get('id')
+            order_id = order_data.get('id')
+            
+            print(f"✅ Orden creada: {order_id}, Checkout ID: {checkout_id}")
+            
+            return {
+                'success': True,
+                'order_id': order_id,
+                'checkout_id': checkout_id,
+                'checkout_url': checkout_info.get('url'),
+                'amount': total_centavos,
+                'order_data': order_data,
+            }
+        else:
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('details', [{}])[0].get('message', response.text)
+            print(f"❌ Error Conekta: {error_msg}")
+            return {
+                'success': False,
+                'error': error_msg,
+                'status_code': response.status_code,
+            }
+            
+    except requests.Timeout:
+        print("⚠️ Timeout conectando con Conekta")
+        return {'success': False, 'error': 'Timeout conectando con Conekta'}
+    except requests.RequestException as e:
+        print(f"⚠️ Error de conexión: {e}")
+        return {'success': False, 'error': f'Error de conexión: {str(e)}'}
+    except Exception as e:
+        print(f"⚠️ Error inesperado: {e}")
+        return {'success': False, 'error': str(e)}
 
 
-# ───────────────────────────────────────────────────────────────
-# 1. GET - Mostrar formulario de pago con Conekta
-# ───────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════
+# VISTA: MOSTRAR CHECKOUT CON IFRAME DE CONEKTA
+# ═══════════════════════════════════════════════════════════════
 @require_http_methods(["GET"])
 def mostrar_formulario_pago_conekta(request, carrito_id):
     """
-    Muestra el formulario de pago integrado con Conekta.
+    PASO 3: Muestra el iframe de Conekta Checkout.
+    
+    1. Obtiene el carrito y cliente
+    2. Crea la orden en Conekta con checkout
+    3. Renderiza el template con el iframe
     """
     try:
         carrito = get_object_or_404(Carrito, id=carrito_id)
         cliente = carrito.cliente
         
         if not cliente:
-            return JsonResponse({
-                'error': 'Carrito sin cliente asociado'
-            }, status=400)
+            return render(request, 'public/pago/error_pago.html', {
+                'error': 'Carrito sin cliente asociado. Por favor inicia sesión.'
+            })
         
-        # Crear orden en Conekta (o usar orden de prueba si falla)
-        orden_conekta = crear_orden_conekta(carrito, cliente)
+        # Crear customer en Conekta (opcional)
+        customer_id = crear_o_obtener_customer_conekta(cliente)
         
-        # Calcular total
+        # Crear orden con checkout en Conekta
+        resultado = crear_orden_checkout_conekta(carrito, cliente, customer_id)
+        
+        if not resultado.get('success'):
+            return render(request, 'public/pago/error_pago.html', {
+                'error': resultado.get('error', 'Error al crear orden en Conekta'),
+                'carrito': carrito,
+            })
+        
+        # Calcular total para mostrar
         total = Decimal('0.00')
         items_detalle = []
-        for cp in carrito.items.all():
+        
+        for cp in carrito.items.select_related('variante__producto').all():
             variante = cp.variante
             producto = variante.producto
-            precio = variante.precio if variante.precio else producto.precio
-            subtotal = Decimal(str(precio)) * cp.cantidad
+            precio = Decimal(str(variante.precio if variante.precio else producto.precio))
+            subtotal = precio * cp.cantidad
             total += subtotal
             
             # Obtener imagen
             galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
-            imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
+            imagen = galeria[0] if galeria else "/static/images/no-image.jpg"
             
             items_detalle.append({
                 'producto': producto.nombre,
@@ -158,259 +270,306 @@ def mostrar_formulario_pago_conekta(request, carrito_id):
                 'imagen': imagen,
             })
         
+        # Guardar orden preliminar en BD
+        orden, created = Orden.objects.get_or_create(
+            carrito=carrito,
+            defaults={
+                'cliente': cliente,
+                'total_amount': total,
+                'status': 'pendiente_pago',
+                'payment_method': 'conekta',
+                'conekta_order_id': resultado.get('order_id'),
+            }
+        )
+        
+        if not created:
+            orden.conekta_order_id = resultado.get('order_id')
+            orden.save()
+        
         context = {
             'carrito': carrito,
             'cliente': cliente,
             'total': total,
             'items': items_detalle,
-            'conekta_order_id': orden_conekta.get('id'),
+            'checkout_id': resultado.get('checkout_id'),
+            'conekta_order_id': resultado.get('order_id'),
             'conekta_public_key': settings.CONEKTA_PUBLIC_KEY,
+            'orden_id': orden.id,
         }
         
-        return render(request, 'public/pago/formulario_conekta.html', context)
+        return render(request, 'public/pago/checkout_conekta.html', context)
     
     except Exception as e:
-        print(f"Error en mostrar_formulario_pago_conekta: {e}")
-        return JsonResponse({
-            'error': f'Error al procesar: {str(e)}'
-        }, status=500)
+        print(f"❌ Error en mostrar_formulario_pago_conekta: {e}")
+        import traceback
+        traceback.print_exc()
+        return render(request, 'public/pago/error_pago.html', {
+            'error': f'Error inesperado: {str(e)}'
+        })
 
 
-# ───────────────────────────────────────────────────────────────
-# 2. POST - Procesar pago con Conekta (AJAX)
-# ───────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════
+# API: CREAR CHECKOUT (para llamadas AJAX)
+# ═══════════════════════════════════════════════════════════════
 @csrf_exempt
 @require_POST
-def procesar_pago_conekta(request):
+def crear_checkout_conekta(request):
     """
-    Procesa el pago mediante Conekta usando el token del cliente.
-    Requiere:
-    - carrito_id: ID del carrito
-    - token: Token de pago de Conekta
-    - payment_method: Método de pago (card, oxxo, etc.)
+    Endpoint AJAX para crear un checkout de Conekta.
+    Retorna el checkout_id para inicializar el iframe.
     """
-    print(f"📍 DEBUG: Entrando a procesar_pago_conekta")
-    print(f"📍 REQUEST METHOD: {request.method}")
-    print(f"📍 REQUEST HEADERS: {dict(request.headers)}")
-    
     try:
-        # Validar JWT si es necesario (agregar si hay middleware JWT)
-        # El @csrf_exempt debería permitir peticiones sin CSRF
-        
-        print(f"📍 DEBUG: Intentando parsear JSON del body")
         data = json.loads(request.body)
-        print(f"📍 DEBUG: Data parseada: {data}")
-        
         carrito_id = data.get('carrito_id')
-        token = data.get('token')
-        payment_method = data.get('payment_method', 'card')
         
-        print(f"📍 DEBUG: carrito_id={carrito_id}, token={token}, payment_method={payment_method}")
+        if not carrito_id:
+            return JsonResponse({'success': False, 'error': 'carrito_id requerido'}, status=400)
         
         carrito = get_object_or_404(Carrito, id=carrito_id)
         cliente = carrito.cliente
         
         if not cliente:
+            return JsonResponse({'success': False, 'error': 'Sin cliente asociado'}, status=400)
+        
+        # Crear orden con checkout
+        resultado = crear_orden_checkout_conekta(carrito, cliente)
+        
+        if resultado.get('success'):
+            return JsonResponse({
+                'success': True,
+                'checkout_id': resultado.get('checkout_id'),
+                'order_id': resultado.get('order_id'),
+            })
+        else:
             return JsonResponse({
                 'success': False,
-                'error': 'Carrito sin cliente'
+                'error': resultado.get('error'),
             }, status=400)
-        
-        # Calcular total en centavos
-        total_centavos = 0
-        for cp in carrito.items.all():
-            variante = cp.variante
-            producto = variante.producto
-            precio = variante.precio if variante.precio else producto.precio
-            total_centavos += int(float(precio) * 100 * cp.cantidad)
-        
-        # Crear cargo en Conekta vía API HTTP
-        payload = {
-            "amount": total_centavos,
-            "payment_method": {
-                "type": payment_method,
-                "token_id": token,
-            }
-        }
-        
-        headers = {
-            "Authorization": f"Bearer {settings.CONEKTA_API_KEY}",
-            "Accept": "application/vnd.conekta-v2.0.0+json",
-            "Content-Type": "application/json",
-        }
-        
-        # Obtener el order_id del carrito (guardado en context anterior)
-        # Para este ejemplo, usamos carrito_id como referencia
-        response = requests.post(
-            f"{CONEKTA_BASE_URL}/orders/{carrito_id}/charges",
-            json=payload,
-            headers=headers,
-            timeout=10
-        )
-        
-        if response.status_code in [200, 201]:
-            charge_data = response.json()
-            charge_status = charge_data.get('status')
             
-            # Si el pago fue exitoso o está pendiente, crear la orden en la BD
-            if charge_status in ['paid', 'pending_payment', 'under_review']:
-                # Crear registro de Orden
-                orden = Orden.objects.create(
-                    carrito=carrito,
-                    cliente=cliente,
-                    total_amount=Decimal(str(total_centavos / 100)),
-                    status='procesando' if charge_status == 'paid' else 'pendiente_pago',
-                    payment_method='conekta',
-                    conekta_order_id=carrito_id,
-                    conekta_charge_id=charge_data.get('id')
-                )
-                
-                # Crear detalles de la orden
-                for cp in carrito.items.all():
-                    variante = cp.variante
-                    producto = variante.producto
-                    precio_unitario = variante.precio if variante.precio else producto.precio
-                    
-                    OrdenDetalle.objects.create(
-                        order=orden,
-                        variante=variante,
-                        cantidad=cp.cantidad,
-                        precio_unitario=precio_unitario
-                    )
-                
-                # Marcar carrito como vacío
-                carrito.status = 'vacio'
-                carrito.save()
-                
-                return JsonResponse({
-                    'success': True,
-                    'mensaje': 'Pago procesado exitosamente',
-                    'orden_id': orden.id,
-                    'redirect': reverse('pago_exitoso')
-                })
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+# ═══════════════════════════════════════════════════════════════
+# VISTA: PROCESAR PAGO (callback del iframe)
+# ═══════════════════════════════════════════════════════════════
+@csrf_exempt
+@require_POST
+def procesar_pago_conekta(request):
+    """
+    Procesa la notificación de pago desde el iframe de Conekta.
+    El iframe llama a onFinalizePayment cuando el pago termina.
+    """
+    try:
+        data = json.loads(request.body)
+        
+        order_id = data.get('order_id') or data.get('conekta_order_id')
+        charge_id = data.get('charge_id')
+        status = data.get('status', 'unknown')
+        carrito_id = data.get('carrito_id')
+        
+        print(f"📍 Procesando pago - Order: {order_id}, Status: {status}")
+        
+        # Buscar la orden en BD
+        orden = None
+        if order_id:
+            try:
+                orden = Orden.objects.get(conekta_order_id=order_id)
+            except Orden.DoesNotExist:
+                pass
+        
+        if not orden and carrito_id:
+            try:
+                orden = Orden.objects.get(carrito_id=carrito_id)
+            except Orden.DoesNotExist:
+                pass
+        
+        if not orden:
+            return JsonResponse({
+                'success': False,
+                'error': 'Orden no encontrada'
+            }, status=404)
+        
+        # Actualizar estado según resultado
+        if status in ['paid', 'completed', 'approved']:
+            orden.status = 'pagado'
+            orden.conekta_charge_id = charge_id
+            orden.save()
             
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Pago no completado. Estado: {charge_status}'
-                }, status=400)
+            # Vaciar carrito
+            if orden.carrito:
+                orden.carrito.items.all().delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Pago completado exitosamente',
+                'redirect': reverse('pago_exitoso') + f'?orden={orden.id}'
+            })
+        
+        elif status in ['pending', 'pending_payment']:
+            orden.status = 'pendiente_pago'
+            orden.save()
+            return JsonResponse({
+                'success': True,
+                'message': 'Pago pendiente de confirmación',
+                'redirect': reverse('pago_exitoso') + f'?orden={orden.id}&pending=1'
+            })
         
         else:
-            error_response = response.json()
-            error_msg = error_response.get('message', 'Error desconocido en Conekta')
+            orden.status = 'fallido'
+            orden.save()
             return JsonResponse({
                 'success': False,
-                'error': f'Error en Conekta: {error_msg}'
-            }, status=response.status_code)
-    
+                'error': f'Pago no completado: {status}',
+                'redirect': reverse('pago_cancelado')
+            })
+            
     except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'JSON inválido'
-        }, status=400)
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        print(f"❌ Error procesando pago: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-# ───────────────────────────────────────────────────────────────
-# 3. Webhook - Confirmar pagos desde Conekta
-# ───────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════
+# WEBHOOK: RECIBIR NOTIFICACIONES DE CONEKTA
+# ═══════════════════════════════════════════════════════════════
 @csrf_exempt
 @require_POST
 def webhook_conekta(request):
     """
-    Recibe eventos de Conekta (charge.paid, charge.under_review, etc.)
-    Valida la firma del webhook con CONEKTA_WEBHOOK_SECRET
+    PASO 6: Recibe eventos de Conekta (charge.paid, order.paid, etc.)
+    
+    Eventos principales:
+    - order.paid: Orden pagada exitosamente
+    - order.pending_payment: Pago pendiente (OXXO, SPEI)
+    - charge.paid: Cargo individual pagado
+    - charge.refunded: Cargo reembolsado
     """
     try:
-        # Obtener el body crudo
         body = request.body.decode('utf-8')
         
-        # Obtener headers
-        signature = request.headers.get('X-Conekta-Signature', '')
+        # Validar firma del webhook (si está configurado)
+        signature = request.headers.get('Digest', '')
         
-        # Validar firma del webhook (opcional pero recomendado)
-        if settings.CONEKTA_WEBHOOK_SECRET:
-            computed_signature = hmac.new(
+        if settings.CONEKTA_WEBHOOK_SECRET and signature:
+            # Calcular firma esperada
+            computed = hmac.new(
                 settings.CONEKTA_WEBHOOK_SECRET.encode(),
                 body.encode(),
                 hashlib.sha256
             ).hexdigest()
             
-            if signature != computed_signature:
-                print(f"⚠️ Firma de webhook inválida")
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Firma de webhook inválida'
-                }, status=401)
+            expected_signature = f"sha-256={computed}"
+            if signature != expected_signature:
+                print(f"⚠️ Firma webhook inválida: {signature} vs {expected_signature}")
+                # En desarrollo, continuar aunque falle la firma
+                if settings.CONEKTA_MODE == 'production':
+                    return JsonResponse({'error': 'Firma inválida'}, status=401)
         
-        # Parsear JSON
+        # Parsear evento
         data = json.loads(body)
-        event_type = data.get('type')
-        event_data = data.get('data', {})
+        event_type = data.get('type', '')
+        event_data = data.get('data', {}).get('object', {})
         
-        # Manejar eventos de pago
-        if event_type == 'charge.paid':
-            charge = event_data.get('object', {})
-            order_id = charge.get('order_id')
+        print(f"📩 Webhook Conekta: {event_type}")
+        print(f"   Data: {json.dumps(event_data, indent=2)[:500]}")
+        
+        # Manejar eventos
+        if event_type in ['order.paid', 'charge.paid']:
+            order_id = event_data.get('id') or event_data.get('order_id')
             
-            # Buscar la orden relacionada
-            try:
-                orden = Orden.objects.get(conekta_order_id=order_id)
-                orden.status = 'pagado'
-                orden.save()
-                print(f"✅ Pago confirmado para orden #{orden.id}")
-            except Orden.DoesNotExist:
-                print(f"⚠️ Orden no encontrada para order_id {order_id}")
+            if order_id:
+                try:
+                    orden = Orden.objects.get(conekta_order_id=order_id)
+                    orden.status = 'pagado'
+                    
+                    # Guardar ID del charge si viene
+                    charges = event_data.get('charges', {}).get('data', [])
+                    if charges:
+                        orden.conekta_charge_id = charges[0].get('id')
+                    
+                    orden.save()
+                    print(f"✅ Orden #{orden.id} marcada como pagada")
+                    
+                    # Vaciar carrito
+                    if orden.carrito:
+                        orden.carrito.items.all().delete()
+                        
+                except Orden.DoesNotExist:
+                    print(f"⚠️ Orden no encontrada: {order_id}")
         
-        elif event_type == 'charge.under_review':
-            charge = event_data.get('object', {})
-            order_id = charge.get('order_id')
-            try:
-                orden = Orden.objects.get(conekta_order_id=order_id)
-                orden.status = 'revisión'
-                orden.save()
-                print(f"🔍 Pago en revisión para orden #{orden.id}")
-            except Orden.DoesNotExist:
-                pass
+        elif event_type == 'order.pending_payment':
+            order_id = event_data.get('id')
+            if order_id:
+                try:
+                    orden = Orden.objects.get(conekta_order_id=order_id)
+                    orden.status = 'pendiente_pago'
+                    orden.save()
+                    print(f"⏳ Orden #{orden.id} pendiente de pago")
+                except Orden.DoesNotExist:
+                    pass
         
         elif event_type == 'charge.refunded':
-            charge = event_data.get('object', {})
-            order_id = charge.get('order_id')
-            try:
-                orden = Orden.objects.get(conekta_order_id=order_id)
-                orden.status = 'reembolsado'
-                orden.save()
-                print(f"💰 Pago reembolsado para orden #{orden.id}")
-            except Orden.DoesNotExist:
-                pass
+            order_id = event_data.get('order_id')
+            if order_id:
+                try:
+                    orden = Orden.objects.get(conekta_order_id=order_id)
+                    orden.status = 'reembolsado'
+                    orden.save()
+                    print(f"💰 Orden #{orden.id} reembolsada")
+                except Orden.DoesNotExist:
+                    pass
         
-        return JsonResponse({
-            'success': True,
-            'webhook_processed': True
-        })
+        elif event_type == 'order.expired':
+            order_id = event_data.get('id')
+            if order_id:
+                try:
+                    orden = Orden.objects.get(conekta_order_id=order_id)
+                    orden.status = 'expirado'
+                    orden.save()
+                    print(f"⏰ Orden #{orden.id} expirada")
+                except Orden.DoesNotExist:
+                    pass
+        
+        return JsonResponse({'received': True, 'event': event_type})
     
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        print(f"Error procesando webhook: {e}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
+        print(f"❌ Error en webhook: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
 
-# ───────────────────────────────────────────────────────────────
-# 4. Páginas de resultado
-# ───────────────────────────────────────────────────────────────
-@require_http_methods(["GET"])
+# ═══════════════════════════════════════════════════════════════
+# PÁGINAS DE RESULTADO
+# ═══════════════════════════════════════════════════════════════
+@require_GET
 def pago_exitoso(request):
-    """Página de pago completado exitosamente"""
-    return render(request, 'public/pago/pago_exitoso.html')
+    """Página mostrada cuando el pago fue exitoso"""
+    orden_id = request.GET.get('orden')
+    pending = request.GET.get('pending')
+    
+    context = {
+        'orden_id': orden_id,
+        'pending': pending == '1',
+    }
+    
+    if orden_id:
+        try:
+            orden = Orden.objects.get(id=orden_id)
+            context['orden'] = orden
+        except Orden.DoesNotExist:
+            pass
+    
+    return render(request, 'public/pago/pago_exitoso.html', context)
 
 
-@require_http_methods(["GET"])
+@require_GET
 def pago_cancelado(request):
-    """Página de pago cancelado"""
+    """Página mostrada cuando el pago fue cancelado o falló"""
     return render(request, 'public/pago/pago_cancelado.html')

@@ -1,0 +1,39 @@
+{% extends "public/base.html" %}
+
+{% block title %}Error en el Pago{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 80px auto; text-align: center; padding: 40px;">
+    <div style="font-size: 80px; margin-bottom: 20px;">⚠️</div>
+    <h1 style="color: #c62828; margin-bottom: 20px;">Error al procesar el pago</h1>
+    
+    <div style="background: #ffebee; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+        <p style="color: #b71c1c; font-size: 1.1rem;">
+            {{ error|default:"Ha ocurrido un error inesperado." }}
+        </p>
+    </div>
+    
+    <p style="color: #666; margin-bottom: 30px;">
+        Por favor intenta nuevamente o contacta a nuestro equipo de soporte si el problema persiste.
+    </p>
+    
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        {% if carrito %}
+        <a href="{% url 'formulario_pago_conekta' carrito.id %}" 
+           style="background: #2563eb; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none;">
+            🔄 Reintentar pago
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'ver_carrito' %}" 
+           style="background: #f5f5f5; color: #333; padding: 12px 30px; border-radius: 8px; text-decoration: none;">
+            🛒 Volver al carrito
+        </a>
+        
+        <a href="/" 
+           style="background: #f5f5f5; color: #333; padding: 12px 30px; border-radius: 8px; text-decoration: none;">
+            🏠 Ir al inicio
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -144,6 +144,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('[Carrito] data.carrito_id:', data.carrito_id, 'items.length:', data.items.length);
     
+    // ═══ GUARDAR EN VARIABLES GLOBALES PARA CHECKOUT ═══
+    window.CARRITO_ID = data.carrito_id;
+    window.CARRITO_TOTAL = total;
+    window.CARRITO_ITEMS = data.items.map(item => ({
+      variante_id: item.variante_id,
+      nombre: item.producto,
+      talla: item.talla || 'Única',
+      color: item.color || '',
+      cantidad: item.cantidad,
+      precio: data.mayoreo ? item.precio_mayorista : item.precio_menudeo,
+      subtotal: (data.mayoreo ? item.precio_mayorista : item.precio_menudeo) * item.cantidad,
+      imagen: item.imagenes_galeria?.[0] || item.imagen
+    }));
+    console.log('[Carrito] Guardado en window:', window.CARRITO_ID, window.CARRITO_ITEMS.length, 'items');
+    
     if (data.items.length > 0 && data.carrito_id) {
       ensureConfirmButtonVisible(data.carrito_id);
     } else {
@@ -354,33 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // ────────────────────────────────
   function ensureConfirmButtonVisible(carritoId) {
     console.log('[Carrito] ensureConfirmButtonVisible llamado con carritoId:', carritoId);
-    const btnCheckout = document.getElementById('btn-checkout');
-    if (!btnCheckout) {
-      console.warn('[Carrito] btn-checkout no encontrado');
-      return;
-    }
     
-    btnCheckout.disabled = false;
-    console.log('[Carrito] IS_LOGGED:', IS_LOGGED);
-
-    // Clonar el botón para eliminar todos los event listeners anteriores
-    const newBtn = btnCheckout.cloneNode(true);
-    btnCheckout.parentNode.replaceChild(newBtn, btnCheckout);
-
-    if (IS_LOGGED) {
-      const targetUrl = `/ordenar/${carritoId}/`;
-      console.log('[Carrito] Configurando click a:', targetUrl);
-      newBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('[Carrito] Botón clickeado! Redirigiendo a:', targetUrl);
-        window.location.href = targetUrl;
-      });
-    } else {
-      newBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        modalGuest();
-      });
-    }
+    // Guardar en variable global para el handler del HTML
+    window.CARRITO_ID = carritoId;
+    console.log('[Carrito] window.CARRITO_ID configurado a:', window.CARRITO_ID);
   }
 
   // ────────────────────────────────

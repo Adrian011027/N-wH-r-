@@ -1,100 +1,369 @@
 {% extends "public/base.html" %}
 {% load static %}
 
+{% block title %}Finalizar Compra - NöwHėrē{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}">
+<link rel="stylesheet" href="{% static 'public/carrito/css/checkout.css' %}">
 {% endblock %}
 
-{% block title %}
-  {% if pedido_exitoso %}
-    Pedido Confirmado - NöwHėrē
-  {% else %}
-    Confirmar Pedido - NöwHėrē
-  {% endif %}
-{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block content %}
-<div class="carrito-container" id="carrito-container">
-  <h1 class="carrito-titulo {% if pedido_exitoso %}centrado{% endif %}">
-    {% if pedido_exitoso %}
-      Pedido Confirmado
-    {% else %}
-      Confirmar Pedido
-    {% endif %}
-  </h1>
+<div class="checkout-page">
+  
+  <!-- Header -->
+  <div class="checkout-header">
+    <a href="{% url 'ver_carrito' %}" class="checkout-back-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Volver al carrito
+    </a>
+    <h1>Finalizar Compra</h1>
+  </div>
 
-  {% if pedido_exitoso %}
-    <div class="pedido-exitoso">
-      ✅ Gracias por tu compra.<br>
-      Tu pedido ha sido confirmado exitosamente.
+  <!-- Progress Steps -->
+  <div class="checkout-steps">
+    <div class="step active" data-step="1">
+      <div class="step-number">1</div>
+      <span class="step-label">Resumen</span>
     </div>
-
-    <div class="pedido-ticket-opciones" style="margin-top: 24px; text-align: center;">
-      <h3 style="margin-bottom: 16px;">¿Cómo deseas recibir tu ticket?</h3>
-      <div class="ticket-botones" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <button id="btn-ticket-whatsapp" class="btn-ticket-opcion" style="flex: 1; max-width: 250px; padding: 16px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
-          <i class="fab fa-whatsapp" style="margin-right: 8px;"></i>
-          WhatsApp
-        </button>
-        <button id="btn-ticket-email" class="btn-ticket-opcion" style="flex: 1; max-width: 250px; padding: 16px; background: #0078D4; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
-          <i class="fas fa-envelope" style="margin-right: 8px;"></i>
-          Email
-        </button>
-      </div>
-      <p id="mensaje-envio" style="margin-top: 16px; color: green; font-weight: bold;"></p>
+    <div class="step-line"></div>
+    <div class="step" data-step="2">
+      <div class="step-number">2</div>
+      <span class="step-label">Envío</span>
     </div>
-
-    <div class="carrito-botones centrada" style="margin-top: 32px;">
-      <a href="{% url 'index' %}" class="btn-finalizar">
-        Volver a la tienda
-      </a>
+    <div class="step-line"></div>
+    <div class="step" data-step="3">
+      <div class="step-number">3</div>
+      <span class="step-label">Pago</span>
     </div>
+  </div>
 
-  {% else %}
-    {% if cliente %}
-      <p><strong>Cliente:</strong> {{ cliente.nombre }} | {{ cliente.correo }}</p>
-    {% endif %}
-
-    <div class="carrito-items">
-      {% for item in items %}
-        <div class="carrito-item">
-          <div class="item-imagen">
-            <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
+  <!-- Main Layout -->
+  <div class="checkout-layout">
+    
+    <!-- Left Column: Steps Content -->
+    <div class="checkout-main-col">
+      
+      <!-- Step 1: Order Summary -->
+      <div class="checkout-step-content active" id="step-1">
+        <div class="checkout-card">
+          <div class="card-header">
+            <h2>Resumen del Pedido</h2>
+            <span class="item-count">{{ total_piezas }} artículo{% if total_piezas > 1 %}s{% endif %}</span>
           </div>
-          <div class="item-detalles">
-            <h4>{{ item.nombre }}</h4>
-            <span>{{ item.talla }}</span>
-            <div class="item-precio-cantidad">
-              <div class="item-precio">
-                <span class="precio-unitario-wrapper">
-                  <span class="precio-unitario">${{ item.precio_unitario|floatformat:2 }}</span>
-                </span>
+          
+          <div class="checkout-items">
+            {% for item in items %}
+            <div class="checkout-item">
+              <div class="item-image">
+                <img src="{{ item.imagen }}" alt="{{ item.nombre }}">
               </div>
-              <div class="item-cantidad">
-                <span>x{{ item.cantidad }}</span>
+              <div class="item-info">
+                <h4>{{ item.nombre }}</h4>
+                <p class="item-variant">Talla: {{ item.talla }}{% if item.color %} · {{ item.color }}{% endif %}</p>
+                <div class="item-qty-price">
+                  <span class="qty">Cant: {{ item.cantidad }}</span>
+                  <span class="price">${{ item.subtotal|floatformat:2 }}</span>
+                </div>
               </div>
             </div>
+            {% endfor %}
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn-next" onclick="goToStep(2)">
+              Continuar a Envío
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
           </div>
         </div>
-      {% endfor %}
+      </div>
+
+      <!-- Step 2: Shipping -->
+      <div class="checkout-step-content" id="step-2">
+        <div class="checkout-card">
+          <div class="card-header">
+            <h2>Dirección de Envío</h2>
+          </div>
+          
+          <form id="shipping-form" class="checkout-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre">Nombre completo</label>
+                <input type="text" id="nombre" name="nombre" value="{{ cliente.nombre }}" required>
+              </div>
+            </div>
+            
+            <div class="form-row two-cols">
+              <div class="form-group">
+                <label for="telefono">Teléfono</label>
+                <input type="tel" id="telefono" name="telefono" value="{{ cliente.telefono }}" required>
+              </div>
+              <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" name="email" value="{{ cliente.correo }}" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion" placeholder="Calle y número" required>
+              </div>
+            </div>
+
+            <div class="form-row two-cols">
+              <div class="form-group">
+                <label for="colonia">Colonia</label>
+                <input type="text" id="colonia" name="colonia" required>
+              </div>
+              <div class="form-group">
+                <label for="cp">Código Postal</label>
+                <input type="text" id="cp" name="cp" maxlength="5" required>
+              </div>
+            </div>
+
+            <div class="form-row two-cols">
+              <div class="form-group">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" required>
+              </div>
+              <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="AGS">Aguascalientes</option>
+                  <option value="BC">Baja California</option>
+                  <option value="BCS">Baja California Sur</option>
+                  <option value="CAM">Campeche</option>
+                  <option value="CHIS">Chiapas</option>
+                  <option value="CHIH">Chihuahua</option>
+                  <option value="CDMX">Ciudad de México</option>
+                  <option value="COAH">Coahuila</option>
+                  <option value="COL">Colima</option>
+                  <option value="DGO">Durango</option>
+                  <option value="GTO">Guanajuato</option>
+                  <option value="GRO">Guerrero</option>
+                  <option value="HGO">Hidalgo</option>
+                  <option value="JAL">Jalisco</option>
+                  <option value="MEX">Estado de México</option>
+                  <option value="MICH">Michoacán</option>
+                  <option value="MOR">Morelos</option>
+                  <option value="NAY">Nayarit</option>
+                  <option value="NL">Nuevo León</option>
+                  <option value="OAX">Oaxaca</option>
+                  <option value="PUE">Puebla</option>
+                  <option value="QRO">Querétaro</option>
+                  <option value="QROO">Quintana Roo</option>
+                  <option value="SLP">San Luis Potosí</option>
+                  <option value="SIN">Sinaloa</option>
+                  <option value="SON">Sonora</option>
+                  <option value="TAB">Tabasco</option>
+                  <option value="TAM">Tamaulipas</option>
+                  <option value="TLAX">Tlaxcala</option>
+                  <option value="VER">Veracruz</option>
+                  <option value="YUC">Yucatán</option>
+                  <option value="ZAC">Zacatecas</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="referencias">Referencias (opcional)</label>
+                <textarea id="referencias" name="referencias" rows="2" placeholder="Ej: Entre calles, color de casa, etc."></textarea>
+              </div>
+            </div>
+          </form>
+
+          <div class="step-actions">
+            <button type="button" class="btn-back" onclick="goToStep(1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+              </svg>
+              Volver
+            </button>
+            <button type="button" class="btn-next" onclick="validateAndGoToStep(3)">
+              Continuar a Pago
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Payment -->
+      <div class="checkout-step-content" id="step-3">
+        <div class="checkout-card">
+          <div class="card-header">
+            <h2>Método de Pago</h2>
+          </div>
+          
+          <div class="payment-methods">
+            <label class="payment-option selected">
+              <input type="radio" name="payment" value="card" checked>
+              <div class="payment-content">
+                <div class="payment-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                </div>
+                <div class="payment-info">
+                  <span class="payment-name">Tarjeta de Crédito/Débito</span>
+                  <span class="payment-desc">Pago seguro con Conekta</span>
+                </div>
+              </div>
+            </label>
+
+            <label class="payment-option">
+              <input type="radio" name="payment" value="oxxo">
+              <div class="payment-content">
+                <div class="payment-icon oxxo">
+                  <span>OXXO</span>
+                </div>
+                <div class="payment-info">
+                  <span class="payment-name">Pago en OXXO</span>
+                  <span class="payment-desc">Genera tu referencia y paga en efectivo</span>
+                </div>
+              </div>
+            </label>
+
+            <label class="payment-option">
+              <input type="radio" name="payment" value="spei">
+              <div class="payment-content">
+                <div class="payment-icon spei">
+                  <span>SPEI</span>
+                </div>
+                <div class="payment-info">
+                  <span class="payment-name">Transferencia SPEI</span>
+                  <span class="payment-desc">Transferencia bancaria inmediata</span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn-back" onclick="goToStep(2)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+              </svg>
+              Volver
+            </button>
+            <a href="{% url 'formulario_pago_conekta' carrito.id %}" class="btn-pay" id="btn-proceed-payment">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Proceder al Pago
+            </a>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="carrito-resumen">
-      <p>Total: <strong>{{ total_piezas }} piezas – ${{ total|floatformat:2 }}</strong></p>
+    <!-- Right Column: Order Summary Sidebar -->
+    <div class="checkout-sidebar-col">
+      <div class="checkout-card sticky">
+        <div class="card-header">
+          <h3>Tu Pedido</h3>
+        </div>
 
-      <div class="carrito-botones">
-        <a href="{% url 'ver_carrito' %}" class="btn-seguir">Regresar al carrito</a>
-        <!-- Redirigir al formulario de pago con Conekta -->
-        <a href="{% url 'formulario_pago_conekta' carrito.id %}" class="btn-finalizar">
-          Confirmar pedido
-        </a>
+        <div class="sidebar-items">
+          {% for item in items %}
+          <div class="sidebar-item">
+            <span class="item-name">{{ item.nombre }} <small>x{{ item.cantidad }}</small></span>
+            <span class="item-price">${{ item.subtotal|floatformat:2 }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="sidebar-totals">
+          <div class="total-row">
+            <span>Subtotal</span>
+            <span>${{ total|floatformat:2 }}</span>
+          </div>
+          <div class="total-row">
+            <span>Envío</span>
+            <span class="shipping-calc">Por calcular</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>Total</span>
+            <strong>${{ total|floatformat:2 }}</strong>
+          </div>
+        </div>
+
+        <div class="sidebar-security">
+          <div class="security-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Pago 100% seguro</span>
+          </div>
+          <div class="security-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Datos encriptados</span>
+          </div>
+        </div>
       </div>
     </div>
-  {% endif %}
-</div>
 
-<!-- Scripts -->
-<script src="{% static 'public/js/fetch-helper.js' %}"></script>
-<script src="{% static 'public/carrito/js/finalizar_compra.js' %}"></script>
-<script type="module" src="{% static 'public/inicio/js/main.js' %}" defer></script>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Step navigation
+  function goToStep(stepNum) {
+    // Update step indicators
+    document.querySelectorAll('.checkout-steps .step').forEach((step, idx) => {
+      const num = idx + 1;
+      step.classList.remove('active', 'completed');
+      if (num < stepNum) step.classList.add('completed');
+      if (num === stepNum) step.classList.add('active');
+    });
+
+    // Update content
+    document.querySelectorAll('.checkout-step-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.getElementById(`step-${stepNum}`).classList.add('active');
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validateAndGoToStep(stepNum) {
+    const form = document.getElementById('shipping-form');
+    if (form.checkValidity()) {
+      goToStep(stepNum);
+    } else {
+      form.reportValidity();
+    }
+  }
+
+  // Payment method selection
+  document.querySelectorAll('.payment-option input').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.payment-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      this.closest('.payment-option').classList.add('selected');
+    });
+  });
+</script>
 {% endblock %}
