@@ -1,0 +1,1548 @@
+[INFO] 2026-01-16 16:01:44 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:01:44 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:01:44 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:01:44 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:01:44 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[DEBUG] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:701 - Payload construido: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "type": "Integration",
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "redirection_time": 5,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:703 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:01:45 - conekta_payments - crear_checkout_conekta:704 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:720 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:721 - Response Body (primeros 800 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"357a2788-1180-4ceb-8e04-78b6f344a43d","checkout_request_type":"Integration","id":"channel_2zP2YMWUkYha3TXdw"},"checkout":{"id":"357a2788-1180-4ceb-8e04-78b6f344a43d","name":"ord-2zP2YMWUkYha3TXdv","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3
+[ERROR] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:748 - ERROR AL CREAR ORDEN EN CONEKTA:
+[ERROR] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:749 -   - HTTP Status: 200
+[ERROR] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:750 -   - Response: {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"357a2788-1180-4ceb-8e04-78b6f344a43d","checkout_request_type":"Integration","id":"channel_2zP2YMWUkYha3TXdw"},"checkout":{"id":"357a2788-1180-4ceb-8e04-78b6f344a43d","name":"ord-2zP2YMWUkYha3TXdv","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"order","id":"ord_2zP2YMWUkYha3TXdv","metadata":{"carrito_id":"15","cliente_id":"16","source":"django_ecommerce"},"is_refundable":false,"created_at":1768600907,"updated_at":1768600907,"line_items":{"object":"list","has_more":false,"total":3,"data":[{"name":"Jordan AirDior","description":"Talla: 40, Color: N/A","unit_price":300000,"quantity":2,"sku":"VAR-24","object":"line_item","id":"line_item_2zP2YMWUkYha3TXdt","parent_id":"ord_2zP2YMWUkYha3TXdv","metadata":{},"antifraud_info":{}},{"name":"Jordan AirDior","description":"Talla: 39, Color: N/A","unit_price":300000,"quantity":1,"sku":"VAR-25","object":"line_item","id":"line_item_2zP2YMWUkYha3TXds","parent_id":"ord_2zP2YMWUkYha3TXdv","metadata":{},"antifraud_info":{}},{"name":"Jordan cafes","description":"Talla: 39, Color: N/A","unit_price":300000,"quantity":3,"sku":"VAR-27","object":"line_item","id":"line_item_2zP2YMWUkYha3TXdr","parent_id":"ord_2zP2YMWUkYha3TXdv","metadata":{},"antifraud_info":{}}]}}
+[ERROR] 2026-01-16 16:01:46 - conekta_payments - crear_checkout_conekta:751 - ================================================================================
+
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:19:46 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[DEBUG] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:701 - Payload construido: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "type": "Integration",
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "redirection_time": 5,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:703 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:19:47 - conekta_payments - crear_checkout_conekta:704 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:720 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:721 - Response Body (primeros 800 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"2e220da1-0768-4682-9040-9aa2bcb8d9a5","checkout_request_type":"Integration","id":"channel_2zP2n7qpUnwAcFoiF"},"checkout":{"id":"2e220da1-0768-4682-9040-9aa2bcb8d9a5","name":"ord-2zP2n7qpUnwAcFoiE","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:731 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:732 -   - Order ID: ord_2zP2n7qpUnwAcFoiE
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:733 -   - Checkout ID: 2e220da1-0768-4682-9040-9aa2bcb8d9a5
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:734 -   - Status: None
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:735 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:736 -   - Respuesta completa: {
+  "livemode": false,
+  "amount": 1800000,
+  "currency": "MXN",
+  "amount_refunded": 0,
+  "customer_info": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000",
+    "name": "jona.emir",
+    "object": "customer_info"
+  },
+  "channel": {
+    "segment": "Checkout",
+    "checkout_request_id": "2e220da1-0768-4682-9040-9aa2bcb8d9a5",
+    "checkout_request_type": "Integration",
+    "id": "channel_2zP2n7qpUnwAcFoiF"
+  },
+  "checkout": {
+    "id": "2e220da1-0768-4682-9040-9aa2bcb8d9a5",
+    "name": "ord-2zP2n7qpUnwAcFoiE",
+    "livemode": false,
+    "emails_sent": 0,
+    "success_url": "",
+    "failure_url": "",
+    "paid_payments_count": 0,
+    "sms_sent": 0,
+    "status": "Issued",
+    "type": "Integration",
+    "recurrent": false,
+    "starts_at": 1768543200,
+    "expires_at": 1768802399,
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "exclude_card_networks": [],
+    "needs_shipping_contact": false,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "monthly_installments_enabled": true,
+    "force_3ds_flow": false,
+    "metadata": {},
+    "can_not_expire": false,
+    "object": "checkout",
+    "is_redirect_on_failure": false,
+    "on_demand_enabled": false
+  },
+  "object": "order",
+  "id": "ord_2zP2n7qpUnwAcFoiE",
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  },
+  "is_refundable": false,
+  "created_at": 1768601988,
+  "updated_at": 1768601988,
+  "line_items": {
+    "object": "list",
+    "has_more": false,
+    "total": 3,
+    "data": [
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 40, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 2,
+        "sku": "VAR-24",
+        "object": "line_item",
+        "id": "line_item_2zP2n7qpUnwAcFoiC",
+        "parent_id": "ord_2zP2n7qpUnwAcFoiE",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 1,
+        "sku": "VAR-25",
+        "object": "line_item",
+        "id": "line_item_2zP2n7qpUnwAcFoiB",
+        "parent_id": "ord_2zP2n7qpUnwAcFoiE",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan cafes",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 3,
+        "sku": "VAR-27",
+        "object": "line_item",
+        "id": "line_item_2zP2n7qpUnwAcFoiA",
+        "parent_id": "ord_2zP2n7qpUnwAcFoiE",
+        "metadata": {},
+        "antifraud_info": {}
+      }
+    ]
+  }
+}
+[INFO] 2026-01-16 16:19:48 - conekta_payments - crear_checkout_conekta:737 - ================================================================================
+
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:32:27 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:701 - Payload construido:
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:702 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:703 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "type": "Integration",
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "redirection_time": 5,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:705 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:706 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:722 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:723 - Response Body (primeros 800 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"657c0455-57f0-4a74-8b13-81215198f0f1","checkout_request_type":"Integration","id":"channel_2zP2woPfqmaVxvVvz"},"checkout":{"id":"657c0455-57f0-4a74-8b13-81215198f0f1","name":"ord-2zP2woPfqmaVxvVvy","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:733 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:734 -   - Order ID: ord_2zP2woPfqmaVxvVvy
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:735 -   - Checkout ID: 657c0455-57f0-4a74-8b13-81215198f0f1
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:736 -   - Status: None
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:737 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:738 -   - Respuesta completa: {
+  "livemode": false,
+  "amount": 1800000,
+  "currency": "MXN",
+  "amount_refunded": 0,
+  "customer_info": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000",
+    "name": "jona.emir",
+    "object": "customer_info"
+  },
+  "channel": {
+    "segment": "Checkout",
+    "checkout_request_id": "657c0455-57f0-4a74-8b13-81215198f0f1",
+    "checkout_request_type": "Integration",
+    "id": "channel_2zP2woPfqmaVxvVvz"
+  },
+  "checkout": {
+    "id": "657c0455-57f0-4a74-8b13-81215198f0f1",
+    "name": "ord-2zP2woPfqmaVxvVvy",
+    "livemode": false,
+    "emails_sent": 0,
+    "success_url": "",
+    "failure_url": "",
+    "paid_payments_count": 0,
+    "sms_sent": 0,
+    "status": "Issued",
+    "type": "Integration",
+    "recurrent": false,
+    "starts_at": 1768543200,
+    "expires_at": 1768802399,
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "exclude_card_networks": [],
+    "needs_shipping_contact": false,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "monthly_installments_enabled": true,
+    "force_3ds_flow": false,
+    "metadata": {},
+    "can_not_expire": false,
+    "object": "checkout",
+    "is_redirect_on_failure": false,
+    "on_demand_enabled": false
+  },
+  "object": "order",
+  "id": "ord_2zP2woPfqmaVxvVvy",
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  },
+  "is_refundable": false,
+  "created_at": 1768602749,
+  "updated_at": 1768602749,
+  "line_items": {
+    "object": "list",
+    "has_more": false,
+    "total": 3,
+    "data": [
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 40, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 2,
+        "sku": "VAR-24",
+        "object": "line_item",
+        "id": "line_item_2zP2woPfqmaVxvVvw",
+        "parent_id": "ord_2zP2woPfqmaVxvVvy",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 1,
+        "sku": "VAR-25",
+        "object": "line_item",
+        "id": "line_item_2zP2woPfqmaVxvVvv",
+        "parent_id": "ord_2zP2woPfqmaVxvVvy",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan cafes",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 3,
+        "sku": "VAR-27",
+        "object": "line_item",
+        "id": "line_item_2zP2woPfqmaVxvVvu",
+        "parent_id": "ord_2zP2woPfqmaVxvVvy",
+        "metadata": {},
+        "antifraud_info": {}
+      }
+    ]
+  }
+}
+[INFO] 2026-01-16 16:32:28 - conekta_payments - crear_checkout_conekta:739 - ================================================================================
+
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:37:08 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:699 - Payload construido:
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:700 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:701 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:703 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:37:09 - conekta_payments - crear_checkout_conekta:704 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:720 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:721 - Response Body (primeros 800 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"9bbb1b4d-5cd6-453f-bb8d-ee0068b3dc1b","checkout_request_type":"Integration","id":"channel_2zP31Nqu9nkneoSvf"},"checkout":{"id":"9bbb1b4d-5cd6-453f-bb8d-ee0068b3dc1b","name":"ord-2zP31Nqu9nkneoSvd","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:731 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:732 -   - Order ID: ord_2zP31Nqu9nkneoSvd
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:733 -   - Checkout ID: 9bbb1b4d-5cd6-453f-bb8d-ee0068b3dc1b
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:734 -   - Status: None
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:735 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:736 -   - Respuesta completa: {
+  "livemode": false,
+  "amount": 1800000,
+  "currency": "MXN",
+  "amount_refunded": 0,
+  "customer_info": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000",
+    "name": "jona.emir",
+    "object": "customer_info"
+  },
+  "channel": {
+    "segment": "Checkout",
+    "checkout_request_id": "9bbb1b4d-5cd6-453f-bb8d-ee0068b3dc1b",
+    "checkout_request_type": "Integration",
+    "id": "channel_2zP31Nqu9nkneoSvf"
+  },
+  "checkout": {
+    "id": "9bbb1b4d-5cd6-453f-bb8d-ee0068b3dc1b",
+    "name": "ord-2zP31Nqu9nkneoSvd",
+    "livemode": false,
+    "emails_sent": 0,
+    "success_url": "",
+    "failure_url": "",
+    "paid_payments_count": 0,
+    "sms_sent": 0,
+    "status": "Issued",
+    "type": "Integration",
+    "recurrent": false,
+    "starts_at": 1768543200,
+    "expires_at": 1768802399,
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "exclude_card_networks": [],
+    "needs_shipping_contact": false,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "monthly_installments_enabled": true,
+    "force_3ds_flow": false,
+    "metadata": {},
+    "can_not_expire": false,
+    "object": "checkout",
+    "is_redirect_on_failure": false,
+    "on_demand_enabled": false
+  },
+  "object": "order",
+  "id": "ord_2zP31Nqu9nkneoSvd",
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  },
+  "is_refundable": false,
+  "created_at": 1768603030,
+  "updated_at": 1768603030,
+  "line_items": {
+    "object": "list",
+    "has_more": false,
+    "total": 3,
+    "data": [
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 40, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 2,
+        "sku": "VAR-24",
+        "object": "line_item",
+        "id": "line_item_2zP31Nqu9nkneoSvb",
+        "parent_id": "ord_2zP31Nqu9nkneoSvd",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan AirDior",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 1,
+        "sku": "VAR-25",
+        "object": "line_item",
+        "id": "line_item_2zP31Nqu9nkneoSva",
+        "parent_id": "ord_2zP31Nqu9nkneoSvd",
+        "metadata": {},
+        "antifraud_info": {}
+      },
+      {
+        "name": "Jordan cafes",
+        "description": "Talla: 39, Color: N/A",
+        "unit_price": 300000,
+        "quantity": 3,
+        "sku": "VAR-27",
+        "object": "line_item",
+        "id": "line_item_2zP31Nqu9nkneoSvZ",
+        "parent_id": "ord_2zP31Nqu9nkneoSvd",
+        "metadata": {},
+        "antifraud_info": {}
+      }
+    ]
+  }
+}
+[INFO] 2026-01-16 16:37:10 - conekta_payments - crear_checkout_conekta:737 - ================================================================================
+
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:42:47 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:703 - Payload construido:
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:704 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:705 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "shipping_contact": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:707 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:708 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:724 - Respuesta Conekta - Status HTTP: 422
+[DEBUG] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:725 - Response Body (primeros 1000 chars): {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abee9b7d59600166569cf"}
+[ERROR] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:762 - ERROR AL CREAR ORDEN EN CONEKTA:
+[ERROR] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:763 -   - HTTP Status: 422
+[ERROR] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:764 -   - Response: {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abee9b7d59600166569cf"}
+[ERROR] 2026-01-16 16:42:48 - conekta_payments - crear_checkout_conekta:765 - ================================================================================
+
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:42:56 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:703 - Payload construido:
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:704 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:705 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "shipping_contact": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:707 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:708 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:703 - Payload construido:
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:704 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:705 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "shipping_contact": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:707 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:708 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:724 - Respuesta Conekta - Status HTTP: 422
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:725 - Response Body (primeros 1000 chars): {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"You need to add the param street1\"","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"You need to add the param postal_code\"","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"You need to add the param country\"","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abef2799b0e001c2199ff"}
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:762 - ERROR AL CREAR ORDEN EN CONEKTA:
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:763 -   - HTTP Status: 422
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:764 -   - Response: {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"You need to add the param street1\"","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"You need to add the param postal_code\"","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"You need to add the param country\"","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abef2799b0e001c2199ff"}
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:765 - ================================================================================
+
+[INFO] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:724 - Respuesta Conekta - Status HTTP: 422
+[DEBUG] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:725 - Response Body (primeros 1000 chars): {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abef2e18dde00175e694f"}
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:762 - ERROR AL CREAR ORDEN EN CONEKTA:
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:763 -   - HTTP Status: 422
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:764 -   - Response: {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abef2e18dde00175e694f"}
+[ERROR] 2026-01-16 16:42:57 - conekta_payments - crear_checkout_conekta:765 - ================================================================================
+
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:43:23 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:703 - Payload construido:
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:704 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:705 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "shipping_contact": {
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:707 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:43:24 - conekta_payments - crear_checkout_conekta:708 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:724 - Respuesta Conekta - Status HTTP: 422
+[DEBUG] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:725 - Response Body (primeros 1000 chars): {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abf0d5e3f460019c325ad"}
+[ERROR] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:762 - ERROR AL CREAR ORDEN EN CONEKTA:
+[ERROR] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:763 -   - HTTP Status: 422
+[ERROR] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:764 -   - Response: {"details":[{"debug_message":"The \"shipping_contact attribute address attribute street1\" is missing.","message":"El parametro street1\" es requerido.","param":"shipping_contact.address.street1","code":"conekta.errors.parameter_validation.shipping_contact.address.street1.missing"},{"debug_message":"The \"shipping_contact attribute address attribute postal_code\" is missing.","message":"El parametro postal_code\" es requerido.","param":"shipping_contact.address.postal_code","code":"conekta.errors.parameter_validation.shipping_contact.address.postal_code.missing"},{"debug_message":"The \"shipping_contact attribute address attribute country\" is missing.","message":"El parametro country\" es requerido.","param":"shipping_contact.address.country","code":"conekta.errors.parameter_validation.shipping_contact.address.country.missing"}],"object":"error","type":"parameter_validation_error","log_id":"696abf0d5e3f460019c325ad"}
+[ERROR] 2026-01-16 16:43:25 - conekta_payments - crear_checkout_conekta:765 - ================================================================================
+
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:45:18 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:699 - Payload construido:
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:700 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:701 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:703 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:45:19 - conekta_payments - crear_checkout_conekta:704 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:720 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:721 - Response Body (primeros 1000 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"0f87a0ee-018a-4e0b-a2c6-ab69a8ea8d15","checkout_request_type":"Integration","id":"channel_2zP37cT2v7fAuJ3aF"},"checkout":{"id":"0f87a0ee-018a-4e0b-a2c6-ab69a8ea8d15","name":"ord-2zP37cT2v7fAuJ3aE","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"order",
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:741 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:742 -   - Order ID: ord_2zP37cT2v7fAuJ3aE
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:743 -   - Checkout ID: 0f87a0ee-018a-4e0b-a2c6-ab69a8ea8d15
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:744 -   - Checkout Status: Issued
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:745 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:746 -   - Full Checkout Object: {
+  "id": "0f87a0ee-018a-4e0b-a2c6-ab69a8ea8d15",
+  "name": "ord-2zP37cT2v7fAuJ3aE",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1768543200,
+  "expires_at": 1768802399,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-16 16:45:20 - conekta_payments - crear_checkout_conekta:747 - ================================================================================
+
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 16:54:39 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:666 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:667 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:668 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:671 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:699 - Payload construido:
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:700 -   URLs: Success=http://127.0.0.1:8000/pago/exitoso/?carrito=15, Failure=http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:701 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false,
+    "success_url": "http://127.0.0.1:8000/pago/exitoso/?carrito=15",
+    "failure_url": "http://127.0.0.1:8000/pago/cancelado/?carrito=15"
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:703 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:704 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:720 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:721 - Response Body (primeros 1000 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"289c4d48-f2e5-4206-9dcb-cbe5fd473ae6","checkout_request_type":"Integration","id":"channel_2zP3Ekcg1xT6eZvKf"},"checkout":{"id":"289c4d48-f2e5-4206-9dcb-cbe5fd473ae6","name":"ord-2zP3Ekcg1xT6eZvKd","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"order",
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:741 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:742 -   - Order ID: ord_2zP3Ekcg1xT6eZvKd
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:743 -   - Checkout ID: 289c4d48-f2e5-4206-9dcb-cbe5fd473ae6
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:744 -   - Checkout Status: Issued
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:745 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:746 -   - Full Checkout Object: {
+  "id": "289c4d48-f2e5-4206-9dcb-cbe5fd473ae6",
+  "name": "ord-2zP3Ekcg1xT6eZvKd",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1768543200,
+  "expires_at": 1768802399,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-16 16:54:40 - conekta_payments - crear_checkout_conekta:747 - ================================================================================
+
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 15
+[INFO] 2026-01-16 17:04:51 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #15...
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: jona.emir (jona.emir@hotmail.com)
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 3 | Precio: 3000.00 MXN | Subtotal: 900000 centavos
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:648 -   Item #2: Jordan AirDior | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:648 -   Item #3: Jordan AirDior | Qty: 2 | Precio: 3000.00 MXN | Subtotal: 600000 centavos
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 3 items | Total: 18000.0 MXN
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:662 - URLs de redirección configuradas:
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:663 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=15
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:664 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=15
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:667 - Construyendo payload para Conekta...
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:693 - Payload construido:
+[DEBUG] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:694 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 3,
+      "sku": "VAR-27"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-25"
+    },
+    {
+      "name": "Jordan AirDior",
+      "description": "Talla: 40, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 2,
+      "sku": "VAR-24"
+    }
+  ],
+  "customer_info": {
+    "name": "jona.emir",
+    "email": "jona.emir@hotmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "15",
+    "cliente_id": "16",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:696 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-16 17:04:52 - conekta_payments - crear_checkout_conekta:697 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:713 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:714 - Response Body (primeros 1000 chars): {"livemode":false,"amount":1800000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"jona.emir@hotmail.com","phone":"+5200000000000","name":"jona.emir","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"b0b7111b-2bd2-4490-a9d1-8d5bef18f738","checkout_request_type":"Integration","id":"channel_2zP3NYfDaPsoRp4X7"},"checkout":{"id":"b0b7111b-2bd2-4490-a9d1-8d5bef18f738","name":"ord-2zP3NYfDaPsoRp4X6","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768543200,"expires_at":1768802399,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"order",
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:734 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:735 -   - Order ID: ord_2zP3NYfDaPsoRp4X6
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:736 -   - Checkout ID: b0b7111b-2bd2-4490-a9d1-8d5bef18f738
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:737 -   - Checkout Status: Issued
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:738 -   - Amount: 1800000 centavos (18000.0 MXN)
+[DEBUG] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:739 -   - Full Checkout Object: {
+  "id": "b0b7111b-2bd2-4490-a9d1-8d5bef18f738",
+  "name": "ord-2zP3NYfDaPsoRp4X6",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1768543200,
+  "expires_at": 1768802399,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-16 17:04:53 - conekta_payments - crear_checkout_conekta:740 - ================================================================================
+
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:599 - 
+================================================================================
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:600 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:601 - ================================================================================
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:604 - Parseando JSON del body...
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:607 - [OK] Body parseado | carrito_id: 16
+[INFO] 2026-01-17 14:34:08 - conekta_payments - crear_checkout_conekta:617 - Buscando carrito #16...
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:619 - [OK] Carrito encontrado
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:630 - [OK] Cliente: angel10000sv (angel10000sv@gmail.com)
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:633 - Procesando items del carrito...
+[DEBUG] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:648 -   Item #1: Jordan cafes | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:658 - [OK] Procesamiento completado: 1 items | Total: 3000.0 MXN
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:662 - URLs de redirección configuradas:
+[DEBUG] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:663 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=16
+[DEBUG] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:664 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=16
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:667 - Construyendo payload para Conekta...
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:693 - Payload construido:
+[DEBUG] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:694 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-27"
+    }
+  ],
+  "customer_info": {
+    "name": "Angel Adrian Sanchez Valencia",
+    "email": "angel10000sv@gmail.com",
+    "phone": "3322332046"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "16",
+    "cliente_id": "17",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:696 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-17 14:34:09 - conekta_payments - crear_checkout_conekta:697 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:713 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:714 - Response Body (primeros 1000 chars): {"livemode":false,"amount":300000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"angel10000sv@gmail.com","phone":"3322332046","name":"Angel Adrian Sanchez Valencia","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"76bbb11f-c149-485c-bd34-1b5e11395d24","checkout_request_type":"Integration","id":"channel_2zPLMDDXTdYSTmahS"},"checkout":{"id":"76bbb11f-c149-485c-bd34-1b5e11395d24","name":"ord-2zPLMDDXTdYSTmahR","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768629600,"expires_at":1768888799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:734 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:735 -   - Order ID: ord_2zPLMDDXTdYSTmahR
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:736 -   - Checkout ID: 76bbb11f-c149-485c-bd34-1b5e11395d24
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:737 -   - Checkout Status: Issued
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:738 -   - Amount: 300000 centavos (3000.0 MXN)
+[DEBUG] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:739 -   - Full Checkout Object: {
+  "id": "76bbb11f-c149-485c-bd34-1b5e11395d24",
+  "name": "ord-2zPLMDDXTdYSTmahR",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1768629600,
+  "expires_at": 1768888799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-17 14:34:10 - conekta_payments - crear_checkout_conekta:740 - ================================================================================
+
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:614 - 
+================================================================================
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:615 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:616 - ================================================================================
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:619 - Parseando JSON del body...
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:622 - [OK] Body parseado | carrito_id: 16
+[INFO] 2026-01-17 14:47:58 - conekta_payments - crear_checkout_conekta:632 - Buscando carrito #16...
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:634 - [OK] Carrito encontrado
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:645 - [OK] Cliente: angel10000sv (angel10000sv@gmail.com)
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:648 - Procesando items del carrito...
+[DEBUG] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:663 -   Item #1: Jordan cafes | Qty: 1 | Precio: 3000.00 MXN | Subtotal: 300000 centavos
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:673 - [OK] Procesamiento completado: 1 items | Total: 3000.0 MXN
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:677 - URLs de redirección configuradas:
+[DEBUG] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:678 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=16
+[DEBUG] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:679 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=16
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:682 - Construyendo payload para Conekta...
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:708 - Payload construido:
+[DEBUG] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:709 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Jordan cafes",
+      "description": "Talla: 39, Color: N/A",
+      "unit_price": 300000,
+      "quantity": 1,
+      "sku": "VAR-27"
+    }
+  ],
+  "customer_info": {
+    "name": "Angel Adrian Sanchez Valencia",
+    "email": "angel10000sv@gmail.com",
+    "phone": "3322332046"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "16",
+    "cliente_id": "17",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:711 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-17 14:47:59 - conekta_payments - crear_checkout_conekta:712 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:728 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:729 - Response Body (primeros 1000 chars): {"livemode":false,"amount":300000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"angel10000sv@gmail.com","phone":"3322332046","name":"Angel Adrian Sanchez Valencia","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"17205fc2-3080-43f1-8bd0-09a92fbe5894","checkout_request_type":"Integration","id":"channel_2zPLXn8wotKV8e4AJ"},"checkout":{"id":"17205fc2-3080-43f1-8bd0-09a92fbe5894","name":"ord-2zPLXn8wotKV8e4AH","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1768629600,"expires_at":1768888799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:749 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:750 -   - Order ID: ord_2zPLXn8wotKV8e4AH
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:751 -   - Checkout ID: 17205fc2-3080-43f1-8bd0-09a92fbe5894
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:752 -   - Checkout Status: Issued
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:753 -   - Amount: 300000 centavos (3000.0 MXN)
+[DEBUG] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:754 -   - Full Checkout Object: {
+  "id": "17205fc2-3080-43f1-8bd0-09a92fbe5894",
+  "name": "ord-2zPLXn8wotKV8e4AH",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1768629600,
+  "expires_at": 1768888799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-17 14:48:00 - conekta_payments - crear_checkout_conekta:755 - ================================================================================
+

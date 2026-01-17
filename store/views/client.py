@@ -398,6 +398,14 @@ def update_client(request, id):
         nombre    = data.get('nombre', '').strip()
         telefono  = data.get('telefono', '').strip()
         direccion = data.get('direccion', '').strip()
+        
+        # Campos de dirección desglosados
+        calle = data.get('calle', '').strip()
+        colonia = data.get('colonia', '').strip()
+        codigo_postal = data.get('codigo_postal', '').strip()
+        ciudad = data.get('ciudad', '').strip()
+        estado = data.get('estado', '').strip()
+        referencias = data.get('referencias', '').strip()
 
         if username and username != cliente.username:
             if Cliente.objects.filter(username=username).exists():
@@ -420,11 +428,41 @@ def update_client(request, id):
             cliente.nombre = nombre
 
         if telefono:
-            if not telefono.isdigit():
+            # Permitir teléfono con espacios, guiones, paréntesis (común en formato internacional)
+            telefono_limpio = ''.join(filter(str.isdigit, telefono))
+            if telefono_limpio:
+                cliente.telefono = telefono_limpio
+            elif telefono:  # Si proporciona algo pero no es válido
                 return JsonResponse({'error': 'El teléfono debe contener solo dígitos'}, status=400)
-            cliente.telefono = telefono
 
-        if direccion:
+        # Actualizar campos de dirección desglosados
+        if calle:
+            cliente.calle = calle
+        if colonia:
+            cliente.colonia = colonia
+        if codigo_postal:
+            cliente.codigo_postal = codigo_postal
+        if ciudad:
+            cliente.ciudad = ciudad
+        if estado:
+            cliente.estado = estado
+        if referencias:
+            cliente.referencias = referencias
+        
+        # Si hay datos de dirección desglosados, construir dirección completa
+        if calle and (colonia or ciudad):
+            partes = []
+            if calle:
+                partes.append(calle)
+            if colonia:
+                partes.append(colonia)
+            if ciudad:
+                partes.append(ciudad)
+            if estado:
+                partes.append(estado)
+            cliente.direccion = ', '.join(partes)
+        elif direccion:
+            # Fallback a dirección de texto libre si se proporciona
             cliente.direccion = direccion
 
         cliente.save()

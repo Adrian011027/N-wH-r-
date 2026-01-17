@@ -783,9 +783,9 @@ export function setupHeaderPanels() {
         document.getElementById('perfil-correo').value = cliente.correo || '';
         
         document.getElementById('perfil-telefono').value = cliente.telefono || '';
-        document.getElementById('perfil-telefono').placeholder = cliente.telefono ? '' : 'Agrega tu telÃ©fono';
+        document.getElementById('perfil-telefono').placeholder = cliente.telefono ? '' : 'Agrega tu teléfono';
         
-        // Badge de verificaciÃ³n
+        // Badge de verificación
         const badge = document.getElementById('email-verified-badge');
         if (cliente.email_verified) {
           badge.textContent = 'Verificado';
@@ -795,7 +795,7 @@ export function setupHeaderPanels() {
           badge.className = 'perfil-badge unverified';
         }
 
-        // DirecciÃ³n
+        // Dirección
         document.getElementById('perfil-calle').value = cliente.calle || '';
         document.getElementById('perfil-colonia').value = cliente.colonia || '';
         document.getElementById('perfil-cp').value = cliente.codigo_postal || '';
@@ -803,11 +803,11 @@ export function setupHeaderPanels() {
         document.getElementById('perfil-estado').value = cliente.estado || '';
         document.getElementById('perfil-referencias').value = cliente.referencias || '';
 
-        // Actualizar texto de botones segÃºn si hay datos o no
+        // Actualizar texto de botones según si hay datos o no
         actualizarBotonEditar('info', cliente);
         actualizarBotonEditar('direccion', cliente);
         
-        // Mostrar mensaje si el perfil estÃ¡ incompleto
+        // Mostrar mensaje si el perfil está incompleto
         const perfilIncompleto = !cliente.nombre || !cliente.telefono || !cliente.calle;
         const msgEl = document.getElementById('perfil-completar-msg');
         if (msgEl) {
@@ -820,7 +820,7 @@ export function setupHeaderPanels() {
       }
     }
 
-    // Actualizar botÃ³n "Editar" o "Agregar" segÃºn si hay datos
+    // Actualizar botón "Editar" o "Agregar" según si hay datos
     function actualizarBotonEditar(section, cliente) {
       const btn = document.getElementById(`btn-edit-${section}`);
       if (!btn) return;
@@ -828,10 +828,10 @@ export function setupHeaderPanels() {
       let isEmpty = false;
       
       if (section === 'info') {
-        // Si no tiene nombre o telÃ©fono, mostrar "Completar"
+        // Si no tiene nombre o teléfono, mostrar "Completar"
         isEmpty = !cliente.nombre || !cliente.telefono;
       } else if (section === 'direccion') {
-        // Si no tiene ningÃºn dato de direcciÃ³n
+        // Si no tiene ningún dato de dirección
         isEmpty = !cliente.calle && !cliente.colonia && !cliente.ciudad;
       }
 

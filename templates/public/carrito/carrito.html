@@ -636,9 +636,18 @@
       });
       if (res.ok) {
         const cliente = await res.json();
+        // Información personal
         if (cliente.nombre) document.getElementById('nombre').value = cliente.nombre;
         if (cliente.telefono) document.getElementById('telefono').value = cliente.telefono;
         if (cliente.correo) document.getElementById('email').value = cliente.correo;
+        
+        // Dirección de envío
+        if (cliente.calle) document.getElementById('direccion').value = cliente.calle;
+        if (cliente.colonia) document.getElementById('colonia').value = cliente.colonia;
+        if (cliente.codigo_postal) document.getElementById('cp').value = cliente.codigo_postal;
+        if (cliente.ciudad) document.getElementById('ciudad').value = cliente.ciudad;
+        if (cliente.estado) document.getElementById('estado').value = cliente.estado;
+        if (cliente.referencias) document.getElementById('referencias').value = cliente.referencias;
       }
     } catch (e) {
       console.log('[Checkout] No se pudieron cargar datos del cliente');
@@ -766,6 +775,8 @@
     if (loading) loading.style.display = 'flex';
     
     try {
+      console.log('[Conekta] Iniciando creación de checkout para carrito:', window.CARRITO_ID);
+      
       // Crear checkout en el servidor
       const response = await fetch('/pago/crear-checkout/', {
         method: 'POST',
@@ -777,14 +788,26 @@
         })
       });
       
+      console.log('[Conekta] Respuesta del servidor:', response.status);
       const data = await response.json();
+      console.log('[Conekta] Datos recibidos:', data);
       
-      if (!data.success) {
-        throw new Error(data.error || 'Error al crear checkout');
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Error al crear checkout: ' + response.status);
       }
       
+      const checkoutId = data.checkout_id;
+      const publicKey = data.public_key;
+      
+      if (!checkoutId || !publicKey) {
+        throw new Error('Respuesta del servidor incompleta: falta checkout_id o public_key');
+      }
+      
+      console.log('[Conekta] Checkout ID recibido:', checkoutId);
+      console.log('[Conekta] Public Key:', publicKey);
+      
       if (!window.ConektaCheckoutComponents) {
-        throw new Error('Conekta SDK no está cargado. Recarga la página.');
+        throw new Error('Conekta SDK no está cargado. Recarga la página e intenta nuevamente.');
       }
       
       // Preparar contenedor
@@ -793,32 +816,47 @@
       container.style.minHeight = '700px';
       container.style.height = '700px';
       
+      console.log('[Conekta] Inicializando ConektaCheckoutComponents...');
+      
       // Inicializar iframe de Conekta
       window.ConektaCheckoutComponents.Integration({
         targetIFrame: "#conektaIframeContainer",
-        checkoutRequestId: data.checkout_id,
-        publicKey: "{{ conekta_public_key|default:'key_NvR95ELYhNf2kskAnMJVZWb' }}",
+        checkoutRequestId: checkoutId,
+        publicKey: publicKey,
         options: {},
         styles: {},
         onFinalizePayment: function(event) {
-          console.log('💳 Pago completado');
+          console.log('[Conekta] Pago completado:', event);
           conektaLoading = false;
           window.location.href = '/pago/exitoso/?orden=' + window.CARRITO_ID;
         },
         onErrorPayment: function(event) {
-          console.error('❌ Error en pago:', event);
+          console.error('[Conekta] Error en pago:', event);
+          console.error('[Conekta] Type:', typeof event);
+          console.error('[Conekta] Keys:', event ? Object.keys(event) : 'null');
+          console.error('[Conekta] Full Error Object:', JSON.stringify(event, null, 2));
           conektaLoading = false;
-          alert('Error en el pago. Por favor intenta nuevamente.');
+          
+          // Intentar extraer mensaje de error
+          let errorMsg = 'Error en el pago. Por favor intenta nuevamente.';
+          if (event) {
+            if (event.message) errorMsg = event.message;
+            if (event.error_message) errorMsg = event.error_message;
+            if (event.details) errorMsg = JSON.stringify(event.details);
+          }
+          alert(errorMsg);
         }
       });
       
+      console.log('[Conekta] Checkout cargado correctamente');
+      
     } catch (error) {
-      console.error('Error cargando Conekta:', error);
+      console.error('❌ Error cargando Conekta:', error);
       conektaLoading = false;
       if (loading) loading.style.display = 'none';
       container.innerHTML = `
         <div class="conekta-error">
-          <h3>⚠️ Error al cargar el checkout</h3>
+          <h3>⚠️ Error al cargar el checkout de pago</h3>
           <p>${error.message}</p>
           <button class="btn-retry" onclick="conektaLoading=false; cargarConektaCheckout()">Reintentar</button>
         </div>

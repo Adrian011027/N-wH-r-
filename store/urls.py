@@ -7,6 +7,11 @@ from .views.reset_password import (
     solicitar_reset, reset_password_confirm, reset_password_submit,
 )
 
+# ─────────── Email Verification ───────────
+from .views.email_verification import (
+    verificar_email, reenviar_verificacion, estado_verificacion
+)
+
 # ─────────── Auth con JWT ───────────
 from .views import auth
 from .views.views import (
@@ -29,7 +34,7 @@ from .views.carrito import (
 from .views.client import (
     detalle_client, get_all_clients,
     create_client, update_client, delete_client, send_contact,
-    editar_perfil, mis_pedidos, get_ordenes_cliente, api_contacto,
+    editar_perfil, mis_pedidos,
 )
 
 # ─────────── Usuarios (admin) ───────────
@@ -57,7 +62,7 @@ from .views.orden import (
 # ─────────── Pago (Conekta) ───────────
 from .views.payment import (
     mostrar_formulario_pago_conekta, procesar_pago_conekta, webhook_conekta,
-    pago_exitoso, pago_cancelado, crear_checkout_conekta
+    pago_exitoso, pago_cancelado, crear_checkout_conekta, verificar_orden_creada
 )
 
 # ─────────── Subcategorías ───────────
@@ -77,7 +82,6 @@ from .views.views import (
 from .views.search import (
     search_products, get_filter_options, search_page
 )
-from .views.api_filtros import get_filtros_disponibles
 
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
@@ -85,6 +89,11 @@ urlpatterns = [
     path("recuperar/",                         solicitar_reset,        name="cliente_solicitar_reset"),
     path("recuperar/<uidb64>/<token>/",        reset_password_confirm, name="cliente_reset_password_confirm"),
     path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,  name="cliente_reset_password_submit"),
+
+    # ---------- Email Verification ----------
+    path("verificar-email/<str:token>/",       verificar_email,       name="verificar_email"),
+    path("api/auth/reenviar-verificacion/",    reenviar_verificacion, name="reenviar_verificacion"),
+    path("api/auth/estado-verificacion/",      estado_verificacion,   name="estado_verificacion"),
 
     # ---------- Front-end público ----------
     path("",                           index,          name="index"),
@@ -107,7 +116,6 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
-    path("api/filtros-disponibles/",   get_filtros_disponibles, name="filtros_disponibles"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
@@ -153,10 +161,8 @@ urlpatterns = [
     path("clientes/delete/<int:id>/", delete_client,   name="delete_client"),
     path("perfil/<int:id>/",          editar_perfil,   name="editar_perfil"),
     path("mis-pedidos/",              mis_pedidos,     name="mis_pedidos"),
-    path("api/cliente/ordenes/",       get_ordenes_cliente, name="api_ordenes_cliente"),
     path("api/cliente_id/<str:username>/", get_cliente_id, name="get_cliente_id"),
     path("contact/send/<int:id>/",         send_contact,   name="send_contact"),
-    path("api/contacto/",                  api_contacto,   name="api_contacto"),
 
     # ---------- Usuarios (solo admin JWT) ----------
     path("api/users/",                  get_user,    name="get_user"),
@@ -196,11 +202,11 @@ urlpatterns = [
     path("api/admin/ordenes/<int:id>/estado/",         cambiar_estado_orden, name="api_cambiar_estado_orden"),
     
     # ---------- Pago con Conekta ----------
+    path("pago/crear-checkout/",                     crear_checkout_conekta,          name="crear_checkout_conekta"),
     path("pago/formulario/<int:carrito_id>/",          mostrar_formulario_pago_conekta, name="formulario_pago_conekta"),
-    path("pago/conekta/<int:carrito_id>/",             mostrar_formulario_pago_conekta, name="pago_conekta"),  # Alias
-    path("pago/crear-checkout/",                       crear_checkout_conekta,          name="crear_checkout_conekta"),
     path("pago/procesar/",                             procesar_pago_conekta,           name="procesar_pago_conekta"),
     path("pago/webhook/conekta/",                      webhook_conekta,                 name="webhook_conekta"),
+    path("pago/verificar-orden/",                      verificar_orden_creada,          name="verificar_orden_creada"),
     path("pago/exitoso/",                              pago_exitoso,                    name="pago_exitoso"),
     path("pago/cancelado/",                            pago_cancelado,                  name="pago_cancelado"),
     
