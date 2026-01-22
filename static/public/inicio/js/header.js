@@ -390,7 +390,7 @@ export function setupHeaderPanels() {
           body: JSON.stringify({ username, password }),
         });
 
-        if (!res.ok) throw new Error("Credenciales invÃ¡lidas");
+        if (!res.ok) throw new Error("Credenciales invalidas");
         const data = await res.json();
 
         // Guardamos tokens
@@ -702,7 +702,7 @@ export function setupHeaderPanels() {
         <div class="pedido-card-footer">
           <div class="pedido-total">
             $${orden.total_amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-            <small>(${orden.total_items} ${orden.total_items === 1 ? 'artÃ­culo' : 'artÃ­culos'})</small>
+            <small>(${orden.total_items} ${orden.total_items === 1 ? 'artículo' : 'artículos'})</small>
           </div>
         </div>
       `;

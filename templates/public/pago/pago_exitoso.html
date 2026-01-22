@@ -5,18 +5,37 @@
 {% block content %}
 <div class="pago-resultado pago-exitoso">
     <div class="resultado-icon">
-        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
+        {% if orden and orden.status == 'pendiente_pago' %}
+            <!-- Ícono de reloj/pendiente -->
+            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #fb8c00;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        {% else %}
+            <!-- Ícono de check/éxito -->
+            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        {% endif %}
     </div>
     
-    <h1>¡Pago Exitoso!</h1>
-    <p class="mensaje">Tu pago ha sido procesado correctamente.</p>
-    
-    <div class="detalles">
-        <p>Pronto recibirás un correo de confirmación con los detalles de tu compra.</p>
-        <p>Puedes revisar el estado de tu orden en tu cuenta.</p>
-    </div>
+    {% if orden and orden.status == 'pendiente_pago' %}
+        <h1 style="color: #e65100;">¡Orden Generada!</h1>
+        <p class="mensaje">Tu pedido ha sido registrado correctamente.</p>
+        
+        <div class="detalles">
+            <p><strong>IMPORTANTE:</strong> Hemos enviado las instrucciones de pago a tu correo.</p>
+            <p>Tu orden será procesada una vez que realices el pago (Transferencia / Efectivo).</p>
+        </div>
+    {% else %}
+        <h1>¡Pago Exitoso!</h1>
+        <p class="mensaje">Tu pago ha sido procesado correctamente.</p>
+        
+        <div class="detalles">
+            <p>Pronto recibirás un correo de confirmación con los detalles de tu compra.</p>
+            <p>Puedes revisar el estado de tu orden en tu cuenta.</p>
+        </div>
+    {% endif %}
     
     <div class="acciones">
         <a href="{% url 'index' %}" class="btn btn-primary">Volver al inicio</a>

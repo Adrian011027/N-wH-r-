@@ -81,7 +81,7 @@
         onFinalizePayment: function(event){
             console.log('Pago finalizado:', event);
             // Redirigir a página de éxito
-            window.location.href = '/pago/exitoso/?orden={{ carrito.id }}';
+            window.location.href = '/pago/exitoso/?carrito={{ carrito.id }}';
         }
     })
     </script>

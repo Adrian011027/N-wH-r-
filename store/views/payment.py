@@ -416,7 +416,7 @@ def procesar_pago_conekta(request):
                         'success': True,
                         'mensaje': 'Pago procesado exitosamente',
                         'orden_id': orden.id,
-                        'redirect': reverse('pago_exitoso')
+                        'redirect': f"{reverse('pago_exitoso')}?orden_id={orden.id}"
                     })
                 
                 except Exception as db_error:
@@ -532,12 +532,27 @@ def webhook_conekta(request):
         logger.debug(f"  - Datos del evento: {json.dumps(event_data, indent=2, default=str)}")
         
         # Manejar eventos de pago
-        if event_type == 'charge.paid':
+        if event_type == 'order.paid':
+            order = event_data.get('object', {})
+            order_id = order.get('id')
+            
+            logger.info(f"📍 EVENTO: ORDEN PAGADA (order.paid)")
+            logger.info(f"  - Order ID: {order_id}")
+            
+            try:
+                orden = Orden.objects.get(conekta_order_id=order_id)
+                orden.status = 'pagado'
+                orden.save()
+                logger.info(f"✓ Orden actualizada: #{orden.id} → Status: pagado")
+            except Orden.DoesNotExist:
+                logger.warning(f"⚠️ Orden no encontrada para order_id: {order_id}")
+
+        elif event_type == 'charge.paid':
             charge = event_data.get('object', {})
             order_id = charge.get('order_id')
             charge_id = charge.get('id')
             
-            logger.info(f"📍 EVENTO: PAGO REALIZADO")
+            logger.info(f"📍 EVENTO: CARGO PAGADO (charge.paid)")
             logger.info(f"  - Order ID: {order_id}")
             logger.info(f"  - Charge ID: {charge_id}")
             
@@ -752,6 +767,48 @@ def crear_checkout_conekta(request):
             logger.info(f"  - Checkout Status: {checkout_status}")
             logger.info(f"  - Amount: {response_data.get('amount')} centavos ({response_data.get('amount')/100} MXN)")
             logger.debug(f"  - Full Checkout Object: {json.dumps(checkout_data, indent=2, default=str)}")
+            
+            # ──────────────────────────────────────────────────────────
+            # CREAR ORDEN LOCAL (PENDIENTE DE PAGO)
+            # ──────────────────────────────────────────────────────────
+            try:
+                # SIEMPRE crear una nueva orden (no actualizamos órdenes existentes)
+                logger.info(f"Creando nueva orden local para carrito {carrito.id}...")
+                
+                orden = Orden.objects.create(
+                    cliente=cliente,
+                    carrito=None,  # Sin vincular - permite múltiples órdenes
+                    total_amount=Decimal(str(total_centavos / 100)),
+                    status='pendiente_pago',
+                    payment_method='conekta',
+                    conekta_order_id=order_id
+                )
+                logger.info(f"[OK] Orden #{orden.id} creada exitosamente")
+                
+                # Crear detalles de la orden
+                for cp in carrito.items.select_related('variante__producto').all():
+                    variante = cp.variante
+                    producto = variante.producto
+                    precio = variante.precio if variante.precio else producto.precio
+                    
+                    OrdenDetalle.objects.create(
+                        order=orden,
+                        variante=variante,
+                        cantidad=cp.cantidad,
+                        precio_unitario=precio
+                    )
+                logger.info(f"[OK] Detalles de orden guardados exitosamente")
+                
+                # VACIAR EL CARRITO (eliminar items y marcar como vacío)
+                carrito.items.all().delete()
+                carrito.status = 'vacio'
+                carrito.save()
+                logger.info(f"[OK] Carrito #{carrito.id} vaciado correctamente")
+                
+            except Exception as e:
+                logger.error(f"Error al gestionar orden local: {e}")
+                # Continuamos para no bloquear el checkout, el webhook podría corregirlo después
+
             logger.info("="*80 + "\n")
             
             return JsonResponse({
@@ -808,17 +865,37 @@ def crear_checkout_conekta(request):
 @require_http_methods(["GET"])
 def pago_exitoso(request):
     """Página de pago completado exitosamente"""
-    # Obtener orden_id de los query params si existe
+    # Obtener orden_id o carrito de los query params
     orden_id = request.GET.get('orden_id')
+    carrito_id = request.GET.get('carrito')
     
     context = {}
-    if orden_id:
-        try:
+    orden = None
+    
+    try:
+        if orden_id:
             orden = Orden.objects.get(id=orden_id)
             context['orden'] = orden
             logger.info(f"[PAGO_EXITOSO] Mostrando página de éxito con orden #{orden.id}")
-        except Orden.DoesNotExist:
-            logger.warning(f"[PAGO_EXITOSO] Orden #{orden_id} no encontrada")
+                
+        elif carrito_id:
+            # Buscar la orden más reciente para este cliente (ya no está vinculada al carrito)
+            # El carrito_id aquí es solo para referencia, buscamos por conekta_order_id o la más reciente
+            try:
+                # Intentar buscar por el carrito original (aunque ya esté desvinculado)
+                carrito = Carrito.objects.get(id=carrito_id)
+                # Buscar la orden más reciente del cliente
+                orden = Orden.objects.filter(cliente=carrito.cliente).order_by('-created_at').first()
+                if orden:
+                    context['orden'] = orden
+                    logger.info(f"[PAGO_EXITOSO] Mostrando página de éxito para cliente -> Orden #{orden.id}")
+            except Carrito.DoesNotExist:
+                logger.warning(f"[PAGO_EXITOSO] Carrito #{carrito_id} no encontrado")
+            
+    except Orden.DoesNotExist:
+        logger.warning(f"[PAGO_EXITOSO] Orden no encontrada para orden_id={orden_id}")
+    except Exception as e:
+        logger.error(f"[PAGO_EXITOSO] Error buscando orden: {e}")
     
     return render(request, 'public/pago/pago_exitoso.html', context)
 
@@ -877,3 +954,97 @@ def verificar_orden_creada(request):
             'error': str(e)
         }, status=500)
 
+
+# ───────────────────────────────────────────────────────────────
+# Sincronizar estado de orden con Conekta (para desarrollo local)
+# ───────────────────────────────────────────────────────────────
+@csrf_exempt
+@require_http_methods(["POST", "GET"])
+def sincronizar_orden_conekta(request):
+    """
+    Consulta el estado de una orden directamente en Conekta y actualiza la BD local.
+    Útil para desarrollo local donde los webhooks no funcionan.
+    """
+    orden_id = request.GET.get('orden_id') or request.POST.get('orden_id')
+    
+    if not orden_id:
+        return JsonResponse({
+            'success': False,
+            'error': 'orden_id requerido (ID local de la orden)'
+        }, status=400)
+    
+    try:
+        # Buscar la orden local
+        orden = Orden.objects.get(id=orden_id)
+        conekta_order_id = orden.conekta_order_id
+        
+        if not conekta_order_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Esta orden no tiene un ID de Conekta asociado'
+            }, status=400)
+        
+        logger.info(f"[SYNC] Consultando estado de orden {conekta_order_id} en Conekta...")
+        
+        # Consultar Conekta API
+        headers = {
+            "Authorization": f"Bearer {settings.CONEKTA_API_KEY}",
+            "Accept": "application/vnd.conekta-v2.0.0+json",
+            "Content-Type": "application/json",
+        }
+        
+        response = requests.get(
+            f"{CONEKTA_BASE_URL}/orders/{conekta_order_id}",
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            conekta_data = response.json()
+            payment_status = conekta_data.get('payment_status', '')
+            
+            logger.info(f"[SYNC] Estado en Conekta: {payment_status}")
+            
+            # Mapear estados de Conekta a estados locales
+            status_anterior = orden.status
+            if payment_status == 'paid':
+                orden.status = 'pagado'
+            elif payment_status == 'pending_payment':
+                orden.status = 'pendiente_pago'
+            elif payment_status == 'declined':
+                orden.status = 'rechazado'
+            elif payment_status == 'expired':
+                orden.status = 'expirado'
+            elif payment_status == 'refunded':
+                orden.status = 'reembolsado'
+            
+            orden.save()
+            
+            logger.info(f"[SYNC] Orden #{orden.id} actualizada: {status_anterior} -> {orden.status}")
+            
+            return JsonResponse({
+                'success': True,
+                'orden_id': orden.id,
+                'conekta_order_id': conekta_order_id,
+                'status_anterior': status_anterior,
+                'status_nuevo': orden.status,
+                'conekta_payment_status': payment_status
+            })
+        else:
+            logger.error(f"[SYNC] Error consultando Conekta: {response.status_code} - {response.text}")
+            return JsonResponse({
+                'success': False,
+                'error': f'Error de Conekta: {response.status_code}'
+            }, status=response.status_code)
+            
+    except Orden.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': f'Orden #{orden_id} no encontrada'
+        }, status=404)
+    except Exception as e:
+        logger.exception(f"[SYNC] Error: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

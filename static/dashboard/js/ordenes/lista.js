@@ -193,11 +193,18 @@ function normalizeStatus(status) {
 function getStatusText(status) {
   const map = {
     'pendiente': 'Pendiente',
+    'pendiente_pago': 'Pago Pendiente',
+    'pagado': 'Pagado',
     'procesando': 'Procesando',
     'proces': 'Procesando',
     'enviado': 'Enviado',
     'entregado': 'Entregado',
-    'cancelado': 'Cancelado'
+    'cancelado': 'Cancelado',
+    'rechazado': 'Rechazado',
+    'reembolsado': 'Reembolsado',
+    'expirado': 'Expirado',
+    'revision': 'En Revisión',
+    'revisión': 'En Revisión'
   };
   return map[status.toLowerCase()] || status;
 }
