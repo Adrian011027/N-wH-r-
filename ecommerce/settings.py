@@ -22,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'SECRET_KEY'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Google Maps API Key (obtener en https://console.cloud.google.com/)
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
@@ -239,19 +239,18 @@ SECURE_HSTS_PRELOAD            = False  # ⚠️ True en producción
 # ───────── Tiempo de sesión ──────────
 SESSION_COOKIE_AGE = 60 * 60 * 2   # 2 h de inactividad
 
-# ───────── Producción: desactivar DEBUG y definir hosts ──────────
-DEBUG = True                      # ⚠️ Cambia a False en producción
-ALLOWED_HOSTS = ['*']
+# ───────── Producción: configuración de seguridad ──────────
+# DEBUG y ALLOWED_HOSTS se configuran desde .env (ver líneas 28-30)
 
-# ⚠️ Cuando tengas HTTPS y dominio personalizado, reemplaza por:
+# ⚠️ Cuando tengas HTTPS y dominio personalizado, agrega en .env:
+# ALLOWED_HOSTS=nowhere.mx,www.nowhere.mx
+# Y descomenta las siguientes líneas:
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
 # SECURE_SSL_REDIRECT = True
 # SECURE_HSTS_SECONDS = 31536000
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 # SECURE_HSTS_PRELOAD = True
-# DEBUG = False
-# ALLOWED_HOSTS = ["nowhere.mx", "www.nowhere.mx"]
 # CSRF_TRUSTED_ORIGINS = ["https://nowhere.mx"]  # Si usas frontend externo
 
 
