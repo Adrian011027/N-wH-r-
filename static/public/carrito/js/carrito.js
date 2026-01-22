@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const countEl = document.getElementById('carrito-count');
     if (countEl) countEl.textContent = `${totalItems} artículo${totalItems !== 1 ? 's' : ''}`;
     
-    document.getElementById('carrito-subtotal').textContent = `$${total.toFixed(2)}`;
+    // Update main subtotal
+    const subEl = document.getElementById('carrito-main-subtotal');
+    if (subEl) subEl.textContent = `$${total.toFixed(2)}`;
     
     const resumenTotal = document.getElementById('resumen-total');
     if (resumenTotal) resumenTotal.textContent = `$${total.toFixed(2)}`;
@@ -207,7 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const alertaMay  = document.getElementById('alerta-mayoreo');
 
     if (!hay) {
-      document.getElementById('carrito-subtotal').textContent = '$0.00';
+      const subEl = document.getElementById('carrito-main-subtotal');
+      if (subEl) subEl.textContent = '$0.00';
       const resumenTotal = document.getElementById('resumen-total');
       if (resumenTotal) resumenTotal.textContent = '$0.00';
       if (alertaMay)  alertaMay.style.display  = 'none';
@@ -222,6 +225,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (alertaMay)  alertaMay.style.display  = data.mayoreo ? 'flex' : 'none';
     if (alertaMeta) alertaMeta.style.display = (!data.mayoreo && faltan > 0) ? 'flex' : 'none';
+
+    // Calcular totales
+    const total = data.items.reduce((acc, item) => {
+      const precio = data.mayoreo ? item.precio_mayorista : item.precio_menudeo;
+      return acc + precio * item.cantidad;
+    }, 0);
+
+    console.log('[updateTotals] Total calculado:', total);
+
+    // Actualizar subtotal y total en el resumen
+    const subtotalEl = document.getElementById('carrito-main-subtotal');
+    console.log('[updateTotals] Elemento subtotal:', subtotalEl);
+    console.log('[updateTotals] Valor ANTES:', subtotalEl ? subtotalEl.textContent : 'ELEMENTO NO EXISTE');
+    if (subtotalEl) {
+      subtotalEl.textContent = `$${total.toFixed(2)}`;
+      console.log('[updateTotals] Valor DESPUES:', subtotalEl.textContent);
+      // Forzar actualización visual
+      subtotalEl.style.color = 'red';
+      setTimeout(() => { subtotalEl.style.color = ''; }, 100);
+    }
+    
+    const resumenTotal = document.getElementById('resumen-total');
+    console.log('[updateTotals] Elemento total:', resumenTotal);
+    console.log('[updateTotals] Total ANTES:', resumenTotal ? resumenTotal.textContent : 'ELEMENTO NO EXISTE');
+    if (resumenTotal) {
+      resumenTotal.textContent = `$${total.toFixed(2)}`;
+      console.log('[updateTotals] Total DESPUES:', resumenTotal.textContent);
+    }
+
+    // Actualizar variables globales
+    window.CARRITO_TOTAL = total;
 
     // Actualizar precios y subtotales si cambia a mayoreo
     if (Array.isArray(data.items)) {

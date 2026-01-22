@@ -110,12 +110,35 @@
 .step.completed .step-number {
   background: #000;
   border-color: #000;
-  color: #fff;
+  color: transparent; /* Ocultar el número */
+  font-size: 0;
+  position: relative;
 }
 
 .step.completed .step-number::after {
-  content: '✓';
-  font-size: 13px;
+  content: '';
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  /* Animación tipo iOS */
+  transform-origin: center;
+  animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes checkPop {
+  0% {
+    transform: translate(-50%, -60%) rotate(45deg) scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -60%) rotate(45deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .step-line {

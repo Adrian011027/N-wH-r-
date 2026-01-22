@@ -698,7 +698,7 @@ class Wishlist(models.Model):
         return f"{self.cliente.username} quiere {nombres}"
 
 class Orden(models.Model):
-    carrito             = models.OneToOneField(Carrito, on_delete=models.CASCADE)
+    carrito             = models.OneToOneField(Carrito, on_delete=models.SET_NULL, null=True, blank=True)
     cliente             = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     total_amount        = models.DecimalField(max_digits=10, decimal_places=2)
     status              = models.CharField(max_length=50)

@@ -515,7 +515,7 @@ textarea:disabled {
       <div class="alert-title">Verifica tu correo electrónico</div>
       <div class="alert-text">Te enviamos un enlace de verificación a <strong>{{ cliente.correo }}</strong>. Revisa tu bandeja de entrada o spam.</div>
     </div>
-    <button type="button" class="btn-resend" id="btn-resend-email" onclick="resendVerification()">
+    <button type="button" class="btn-resend" id="btn-resend-email" onclick="resendVerification(this)">
       Reenviar correo
     </button>
   </div>
@@ -585,6 +585,7 @@ textarea:disabled {
               <span class="email-badge verified">Verificado</span>
               {% else %}
               <span class="email-badge unverified">Pendiente</span>
+              <button type="button" onclick="resendVerification(this)" style="background:none; border:none; color:#1a1a1a; text-decoration:underline; cursor:pointer; font-size:10px; margin-left:8px; padding:0; letter-spacing:0.5px;">Reenviar verificación</button>
               {% endif %}
             </label>
             <input type="email" id="correo" name="correo" value="{{ cliente.correo }}" required disabled>
@@ -831,9 +832,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ========== RESEND VERIFICATION EMAIL ==========
-async function resendVerification() {
-  const btn = document.getElementById('btn-resend-email');
+async function resendVerification(btnClicked) {
+  const btn = btnClicked || document.getElementById('btn-resend-email');
   const originalText = btn.textContent;
+  const originalHtml = btn.innerHTML; // For iconic buttons if any
   
   btn.disabled = true;
   btn.textContent = 'Enviando...';
@@ -854,12 +856,22 @@ async function resendVerification() {
     
     if (response.ok) {
       btn.textContent = '✓ Enviado';
-      btn.style.background = '#27ae60';
+      // Only change background if it's the main button (class btn-resend)
+      if (btn.classList.contains('btn-resend')) {
+          btn.style.background = '#27ae60';
+      } else {
+          btn.style.color = '#27ae60';
+      }
+      
       showNotification('Correo de verificación enviado. Revisa tu bandeja de entrada.', 'success');
       
       setTimeout(() => {
         btn.textContent = originalText;
-        btn.style.background = '';
+        if (btn.classList.contains('btn-resend')) {
+             btn.style.background = '';
+        } else {
+             btn.style.color = '';
+        }
         btn.disabled = false;
       }, 5000);
     } else {
@@ -867,12 +879,14 @@ async function resendVerification() {
     }
   } catch (error) {
     btn.textContent = 'Error';
-    btn.style.background = '#e74c3c';
+    if (btn.classList.contains('btn-resend')) {
+        btn.style.background = '#e74c3c';
+    }
     showNotification(error.message, 'error');
     
     setTimeout(() => {
       btn.textContent = originalText;
-      btn.style.background = '';
+      btn.style.background = ''; // Logic handled simply here
       btn.disabled = false;
     }, 3000);
   }

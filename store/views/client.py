@@ -89,11 +89,18 @@ def get_status_display(status):
     """Convierte el código de estado a texto legible"""
     status_map = {
         'pendiente': {'text': 'Pendiente', 'color': '#f59e0b', 'icon': 'clock'},
+        'pendiente_pago': {'text': 'Pago Pendiente', 'color': '#f97316', 'icon': 'clock'},
+        'pagado': {'text': 'Pagado', 'color': '#10b981', 'icon': 'check'},
         'procesando': {'text': 'Procesando', 'color': '#3b82f6', 'icon': 'settings'},
         'proces': {'text': 'Procesando', 'color': '#3b82f6', 'icon': 'settings'},
         'enviado': {'text': 'Enviado', 'color': '#8b5cf6', 'icon': 'truck'},
         'entregado': {'text': 'Entregado', 'color': '#10b981', 'icon': 'check'},
         'cancelado': {'text': 'Cancelado', 'color': '#ef4444', 'icon': 'x'},
+        'rechazado': {'text': 'Rechazado', 'color': '#ef4444', 'icon': 'x'},
+        'reembolsado': {'text': 'Reembolsado', 'color': '#6366f1', 'icon': 'info'},
+        'expirado': {'text': 'Expirado', 'color': '#6b7280', 'icon': 'clock'},
+        'revision': {'text': 'En Revisión', 'color': '#eab308', 'icon': 'info'},
+        'revisión': {'text': 'En Revisión', 'color': '#eab308', 'icon': 'info'},
     }
     return status_map.get(status.lower(), {'text': status.capitalize(), 'color': '#6b7280', 'icon': 'info'})
 

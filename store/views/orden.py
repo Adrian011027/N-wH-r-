@@ -262,6 +262,75 @@ def procesar_por_link(request, token):
     return HttpResponse("✅ ¡Tu orden ha sido actualizada a 'procesando'!")
 
 
+# ───────────────────────────────────────────────
+# API CLIENTE - Obtener sus propias órdenes  
+# ───────────────────────────────────────────────
+
+@csrf_exempt
+@jwt_role_required()
+@require_GET
+def get_ordenes_cliente(request):
+    """API: Obtener órdenes del cliente autenticado (JWT)"""
+    try:
+        # El decorador jwt_role_required ya validó el token y agregó request.user_id
+        cliente_id = request.user_id
+        
+        if not cliente_id:
+            return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+        
+        # Obtener órdenes del cliente
+        ordenes = Orden.objects.filter(
+            cliente_id=cliente_id
+        ).select_related('cliente').prefetch_related(
+            'detalles__variante__producto__imagenes'
+        ).order_by('-created_at')
+        
+        data = []
+        for orden in ordenes:
+            items = []
+            for detalle in orden.detalles.all():
+                variante = detalle.variante
+                producto = variante.producto
+                galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
+                
+                items.append({
+                    'producto_id': producto.id,
+                    'producto_nombre': producto.nombre,
+                    'producto_imagen': galeria[0] if galeria else None,
+                    'variante_id': variante.id,
+                    'talla': variante.talla,
+                    'color': variante.color,
+                    'cantidad': detalle.cantidad,
+                    'precio_unitario': float(detalle.precio_unitario),
+                    'subtotal': float(detalle.precio_unitario * detalle.cantidad)
+                })
+            
+            data.append({
+                'id': orden.id,
+                'status': orden.status,
+                'total_amount': float(orden.total_amount),
+                'payment_method': orden.payment_method,
+                'created_at': orden.created_at.strftime('%d/%m/%Y %H:%M'),
+                'created_at_iso': orden.created_at.isoformat(),
+                'items': items,
+                'total_items': sum(item['cantidad'] for item in items)
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'ordenes': data
+        }, status=200)
+        
+    except Exception as e:
+        print(f"[ERROR] get_ordenes_cliente: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener órdenes'
+        }, status=500)
+
+
 @csrf_exempt
 @admin_required()
 @require_http_methods(["DELETE", "POST"])

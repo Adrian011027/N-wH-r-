@@ -9,8 +9,8 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}">
-<link rel="stylesheet" href="{% static 'public/carrito/css/checkout.css' %}">
+<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}?v=1.5">
+<link rel="stylesheet" href="{% static 'public/carrito/css/checkout.css' %}?v=2.0">
 <style>
   /* Estilos para el iframe de Conekta */
   #conektaIframeContainer {
@@ -40,6 +40,20 @@
   
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+  
+  @keyframes successPulse {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
   
   .secure-badge {
@@ -206,7 +220,7 @@
           <div class="carrito-resumen-content">
             <div class="resumen-row">
               <span>Subtotal</span>
-              <span id="carrito-subtotal">$0</span>
+              <span id="carrito-main-subtotal">$0.00</span>
             </div>
             <div class="resumen-row">
               <span>Envío</span>
@@ -214,7 +228,7 @@
             </div>
             <div class="resumen-row resumen-total">
               <span>Total</span>
-              <strong id="resumen-total">$0</strong>
+              <strong id="resumen-total">$0.00</strong>
             </div>
             
             <a href="#" class="btn-checkout" id="btn-checkout" onclick="iniciarCheckout(event)">
@@ -310,6 +324,11 @@
       <div class="step" data-step="4">
         <div class="step-number">4</div>
         <span class="step-label">Pago</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="5">
+        <div class="step-number">5</div>
+        <span class="step-label">Confirmación</span>
       </div>
     </div>
 
@@ -435,13 +454,6 @@
             </form>
 
             <div class="step-actions">
-              <button type="button" class="btn-back" onclick="goToStep(2)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="19" y1="12" x2="5" y2="12"/>
-                  <polyline points="12 19 5 12 12 5"/>
-                </svg>
-                Volver
-              </button>
               <button type="button" class="btn-next" onclick="validarYProcederAlPago()">
                 Continuar a Pago
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -462,6 +474,55 @@
                 <div class="spinner"></div>
                 <p>Cargando opciones de pago...</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Pago Exitoso -->
+        <div class="checkout-step-content" id="step-5">
+          <div class="checkout-card" style="text-align: center; padding: 60px 40px;">
+            <!-- Ícono de éxito -->
+            <div style="display: inline-block; width: 100px; height: 100px; background: linear-gradient(135deg, #4caf50, #45a049); border-radius: 50%; margin-bottom: 30px; position: relative; animation: successPulse 1.5s ease-in-out;">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"></polyline>
+              </svg>
+            </div>
+
+            <!-- Título y mensaje -->
+            <h2 style="font-size: 2rem; color: #1a1a2e; margin-bottom: 15px; font-weight: 600;">¡Pago Exitoso!</h2>
+            <p style="color: #666; font-size: 1.1rem; margin-bottom: 10px;">Tu pago ha sido procesado correctamente.</p>
+            
+            <!-- Info adicional -->
+            <div style="background: #f5f5f5; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+              <p style="color: #444; margin-bottom: 15px; line-height: 1.6;">
+                Pronto recibirás un correo de confirmación con los detalles de tu compra.
+              </p>
+              <p style="color: #444; line-height: 1.6;">
+                Puedes revisar el estado de tu orden en tu cuenta.
+              </p>
+            </div>
+
+            <!-- Contador de redirección -->
+            <p style="color: #999; font-size: 0.9rem; margin-top: 25px;">
+              Redirigiendo al inicio en <strong id="countdown-seconds">5</strong> segundos...
+            </p>
+
+            <!-- Botones de acción -->
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+              <a href="{% url 'index' %}" class="btn-next" style="background: #1a1a2e; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                Volver al inicio
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+              </a>
+              <a href="#" class="btn-back" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                Ver mis pedidos
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </a>
             </div>
           </div>
         </div>
@@ -828,7 +889,9 @@
         onFinalizePayment: function(event) {
           console.log('[Conekta] Pago completado:', event);
           conektaLoading = false;
-          window.location.href = '/pago/exitoso/?orden=' + window.CARRITO_ID;
+          // Ir al step 5 (pago exitoso) en lugar de redirigir inmediatamente
+          goToStep(5);
+          iniciarContadorRedireccion();
         },
         onErrorPayment: function(event) {
           console.error('[Conekta] Error en pago:', event);
@@ -868,6 +931,24 @@
   // EVENTOS DOM
   // ═══════════════════════════════════════════════════════════
   
+  // Función para iniciar contador de redirección después de pago exitoso
+  function iniciarContadorRedireccion() {
+    let segundos = 5;
+    const countdownElement = document.getElementById('countdown-seconds');
+    
+    const interval = setInterval(() => {
+      segundos--;
+      if (countdownElement) {
+        countdownElement.textContent = segundos;
+      }
+      
+      if (segundos <= 0) {
+        clearInterval(interval);
+        window.location.href = '{% url "index" %}';
+      }
+    }, 1000);
+  }
+  
   document.addEventListener('DOMContentLoaded', () => {
     // Carrito vacío para no logueados
     const msg = document.getElementById("carrito-msg");
@@ -884,5 +965,5 @@
     }
   });
 </script>
-<script src="{% static 'public/carrito/js/carrito.js' %}"></script>
+<script src="{% static 'public/carrito/js/carrito.js' %}?v=1.4"></script>
 {% endblock %}

@@ -363,6 +363,7 @@
   min-width: 70px;
   text-align: right;
   letter-spacing: -0.02em;
+  display: none; /* Ocultar subtotal individual */
 }
 
 /* Botón eliminar */
