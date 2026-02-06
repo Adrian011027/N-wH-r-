@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'store.middleware.session_separator.SessionTypeValidator',
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -208,6 +209,16 @@ else:
             'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         }
     }
+    
+    # STATIC_ROOT para collectstatic en desarrollo
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# ───────── Configuración de Sesiones Separadas ──────────
+CLIENT_SESSION_COOKIE_NAME = 'sessionid_cliente'
+ADMIN_SESSION_COOKIE_NAME = 'sessionid_admin'
+CLIENT_SESSION_COOKIE_AGE = 60 * 60 * 24 * 7        # 7 días
+ADMIN_SESSION_COOKIE_AGE = 60 * 60 * 4               # 4 horas
+SESSION_COOKIE_PATH = '/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

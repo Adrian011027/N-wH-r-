@@ -1,12 +1,10 @@
-@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTc1NjUwLCJpYXQiOjE3NjQxNjg0NTAsInVzZXJuYW1lIjoiYW5nZWwifQ.2xlZ15EhWp_6cUS6luj1qxIWmGwpiDvDUTkTwFyadbU
-@token_user=
-### LOGIN ADMIN
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMzM2OTgzLCJpYXQiOjE3NzAzMzUxODMsInVzZXJuYW1lIjoiYWRtaW4ifQ.3cTRS9TnvQROZ_g3lWQbB_wSdjHtr3FFJN11rTQjAtY
 POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
 {
-  "username": "angel",
-  "password": "123456"
+  "username": "admin",
+  "password": "admin123"
 }
 
 
@@ -42,7 +40,7 @@ Content-Type: application/json
 
 
 ### obtener productos
-GET http://127.0.0.1:8000/api/users 
+GET http://127.0.0.1:8000/api/productos/ 
 
 ###
 DELETE http://127.0.0.1:8000/api/productos/delete/all/
@@ -76,6 +74,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb
 
 ### GET clientes
 GET http://127.0.0.1:8000/clientes/
+Authorization: Bearer {{token_admin}}
 
 ### Crear cliente
 
@@ -139,7 +138,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://127.0.0.1:8000/user/get
+GET http://127.0.0.1:8000/user/
 
 ###
 POST http://127.0.0.1:8000/user/create
@@ -155,7 +154,7 @@ Content-Type: application/json
 
 
 ### Crear un carrito para el cliente #5
-POST http://127.0.0.1:8000/api/carrito/create/5/ HTTP/1.1
+POST http://127.0.0.1:8000/api/carrito/create/16/ HTTP/1.1
 Content-Type: application/json
 
 {
@@ -215,7 +214,7 @@ GET http://127.0.0.1:8000/api/carrito/1/ HTTP/1.1
 Accept: application/json
 
 ### Agregar producto al carrito del cliente 1
-POST http://127.0.0.1:8000/api/carrito/create/1/ HTTP/1.1
+POST http://127.0.0.1:8000/api/carrito/create/16/ HTTP/1.1
 Content-Type: application/json
 
 {

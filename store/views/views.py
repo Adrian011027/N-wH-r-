@@ -14,7 +14,7 @@ from store.models import BlacklistedToken
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, decode_jwt
-from .decorators import jwt_role_required, login_required_user, admin_required
+from .decorators import jwt_role_required, login_required_user, admin_required, admin_required_hybrid
 
 
 # ───────────────────────────────────────────────
@@ -409,9 +409,11 @@ def login_user(request):
     refresh = generate_refresh_token(user.id)
     
     # Establecer sesión Django para vistas HTML
+    request.session.set_expiry(60 * 60 * 4)  # 4 horas timeout
     request.session["user_id"] = user.id
     request.session["username"] = user.username
     request.session["role"] = user.role
+    request.session.save()  # ← CRÍTICO: Guardar en RDS
     
     return JsonResponse({
         "access": access,
@@ -621,7 +623,7 @@ def producto_aleatorio_subcategoria(request):
 # ───────────────────────────────────────────────
 # CRUD Categorías (solo admin)
 # ───────────────────────────────────────────────
-@admin_required()
+@admin_required_hybrid()
 @require_GET
 def get_categorias(request):
     categorias = Categoria.objects.all()

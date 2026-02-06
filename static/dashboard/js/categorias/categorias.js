@@ -2,40 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("categorias-grid");
   const form = document.getElementById("form-categoria");
   const inputNombre = document.getElementById("nombre-categoria");
-  const inputImagen = document.getElementById("imagen-categoria");
   const editForm = document.getElementById("edit-form");
-  const editImagen = document.getElementById("edit-imagen");
-
-  /* ─────────── Preview de imágenes ─────────── */
-  if (inputImagen) {
-    inputImagen.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      const previewContainer = document.getElementById("preview-categoria");
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          document.getElementById("preview-img-categoria").src = event.target.result;
-          previewContainer.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-
-  if (editImagen) {
-    editImagen.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      const previewContainer = document.getElementById("preview-edit");
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          document.getElementById("preview-img-edit").src = event.target.result;
-          previewContainer.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
 
   /* ─────────── Estados de vista ─────────── */
   function mostrarEstado(estado) {
@@ -93,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <h3 class="categoria-nombre">${cat.nombre}</h3>
             </div>
             <div class="categoria-actions">
-              <button class="btn-icon edit" onclick="abrirModalEditar(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${cat.imagen || ''}')">
+              <button class="btn-icon edit" onclick="abrirModalEditar(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -128,18 +95,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = '<div class="spinner-small"></div>';
     btn.disabled = true;
 
-    // Usar FormData para enviar archivo
-    const formData = new FormData();
-    formData.append('nombre', nombre);
-    
-    const imagenInput = document.getElementById('imagen-categoria');
-    if (imagenInput && imagenInput.files.length > 0) {
-      formData.append('imagen', imagenInput.files[0]);
-    }
-
     authFetch("/api/categorias/crear/", {
       method: "POST",
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre }),
     })
       .then((res) => {
         if (!res.ok) throw new Error('Error al crear');
@@ -147,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(() => {
         inputNombre.value = "";
-        document.getElementById('imagen-categoria').value = "";
         showToast("✅ Categoría creada correctamente", "success");
         cargarCategorias();
       })
@@ -162,22 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ─────────── Modal de edición ─────────── */
-  window.abrirModalEditar = (id, nombre, imagenUrl) => {
+  window.abrirModalEditar = (id, nombre) => {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-nombre').value = nombre;
-    
-    // Mostrar imagen actual si existe
-    const previewContainer = document.getElementById("preview-edit");
-    if (imagenUrl) {
-      document.getElementById("preview-img-edit").src = imagenUrl;
-      previewContainer.style.display = "flex";
-    } else {
-      previewContainer.style.display = "none";
-    }
-    
-    // Limpiar el input de archivo
-    document.getElementById('edit-imagen').value = '';
-    
     document.getElementById('edit-modal').classList.add('open');
     document.body.style.overflow = 'hidden';
     
@@ -214,18 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = '<div class="spinner-small"></div> Guardando...';
     btn.disabled = true;
 
-    // Usar FormData para enviar archivo
-    const formData = new FormData();
-    formData.append('nombre', nombre);
-    
-    const imagenInput = document.getElementById('edit-imagen');
-    if (imagenInput && imagenInput.files.length > 0) {
-      formData.append('imagen', imagenInput.files[0]);
-    }
-
     authFetch(`/api/categorias/actualizar/${id}/`, {
       method: "POST",
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre }),
     })
       .then((res) => {
         if (!res.ok) throw new Error('Error al actualizar');
