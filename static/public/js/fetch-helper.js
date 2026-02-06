@@ -30,12 +30,11 @@ async function refreshAccessToken() {
     const refreshToken = getRefreshToken();
     
     if (!refreshToken) {
-        console.error('❌ No hay refresh token disponible');
+        console.error('No hay refresh token disponible');
         return null;
     }
 
     try {
-        console.log('🔄 Intentando renovar token...');
         const response = await fetch('/api/auth/refresh/', {
             method: 'POST',
             headers: {
@@ -45,26 +44,19 @@ async function refreshAccessToken() {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Error al renovar token. Status:', response.status);
-            console.error('   Respuesta:', errorText);
-            throw new Error(`Error ${response.status}: ${errorText}`);
+            throw new Error('Error al renovar token');
         }
 
         const data = await response.json();
-        console.log('✅ Token renovado exitosamente');
         localStorage.setItem('access', data.access);
         return data.access;
     } catch (error) {
-        console.error('❌ Error crítico al renovar token:', error);
+        console.error('Error al renovar token:', error);
         // Si falla, limpiar tokens y redirigir
         localStorage.removeItem('access');
         localStorage.removeItem('refresh');
         localStorage.removeItem('user_id');
         localStorage.removeItem('username');
-        console.log('🔓 Sesión terminada. Por favor, inicia sesión nuevamente.');
-        // Opcional: redirigir al login
-        // window.location.href = '/login/';
         return null;
     }
 }
@@ -92,17 +84,14 @@ async function fetchWithAuth(url, options = {}) {
 
     // Si el token expiró (401), intentar renovarlo
     if (response.status === 401 && token) {
-        console.log('⏰ Token expirado (401), intentando renovar...');
+        console.log('Token expirado, renovando...');
         
         token = await refreshAccessToken();
         
         if (token) {
-            console.log('✅ Reintentando petición con nuevo token...');
             // Reintentar con el nuevo token
             options.headers['Authorization'] = `Bearer ${token}`;
             response = await fetch(url, options);
-        } else {
-            console.error('❌ No se pudo obtener un nuevo token. Acceso denegado.');
         }
     }
 

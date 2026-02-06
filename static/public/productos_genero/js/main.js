@@ -1,14 +1,6 @@
 // static/shared/js/productos_genero.js
 
 window.addEventListener('load', () => {
-  // 1. Fade-in dinámico de sección (PRIMERO - antes de cualquier validación)
-  const sections = document.querySelectorAll('.dama-section, .caballero-section, .hombre-section, .mujer-section');
-
-  sections.forEach(sec => {
-    console.log('Agregando fade-in a:', sec.className);
-    sec.classList.add('fade-in');
-  });
-
   const dropdown     = document.getElementById('dropdown');
   const selectedDiv  = dropdown?.querySelector('.selected');
   const optionsList  = dropdown?.querySelector('.options');
@@ -17,7 +9,7 @@ window.addEventListener('load', () => {
 
   if (!dropdown || !selectedDiv || !optionsList || !grid) return;
 
-  // 2. Toggle menú desplegable
+  // 1. Toggle menú desplegable
   selectedDiv.addEventListener('click', () => dropdown.classList.toggle('open'));
 
   document.addEventListener('click', e => {
@@ -48,7 +40,11 @@ window.addEventListener('load', () => {
     dropdown.classList.remove('open');
   });
 
-  // 3. Guardar en localStorage
+  // 3. Fade-in dinámico de sección (dama/caballero)
+  document.querySelectorAll('.dama-section, .caballero-section')
+          .forEach(sec => sec.classList.add('fade-in'));
+
+  // 4. Guardar en localStorage
   allCards.forEach(card => {
     const link = card.querySelector('a');
     if (!link) return;

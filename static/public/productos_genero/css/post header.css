@@ -1,34 +1,23 @@
 /* ——— Sección Dama y Caballero ——— */
 .caballero-section,
-.dama-section,
-.hombre-section,
-.mujer-section {
-  padding: 120px 0 60px 0;
+.dama-section {
+  padding: 60px 0;
   background: #fff;
   font-family: 'Helvetica Neue', sans-serif;
   opacity: 0;
   transform: translateY(50px);
+  transition: opacity 3s ease 1.5s, transform 3s ease 1.5s;
 }
 
 .caballero-section.fade-in,
-.dama-section.fade-in,
-.hombre-section.fade-in,
-.mujer-section.fade-in {
-  animation: fadeInUp 3s ease 1.5s forwards;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dama-section.fade-in {
+  opacity: 1;
+  transform: none;
 }
 
 /* ——— Cabecera ——— */
 .caballero-header,
-.dama-header,
-.hombre-header,
-.mujer-header {
+.dama-header {
   display: flex;
   flex-direction: row-reverse;
   justify-content: space-between;
@@ -41,9 +30,7 @@
 }
 
 .caballero-header h2,
-.dama-header h2,
-.hombre-header h2,
-.mujer-header h2 {
+.dama-header h2 {
   font-size: 14px;
   font-weight: 500;
   line-height: 1;

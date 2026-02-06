@@ -7,7 +7,7 @@
    ──────────────────────────────────────────────────────────── */
 export function setupCategoriaCards() {
   const cards = document.querySelectorAll('.categoria-card');
-  
+  console.log('🟢 Encontradas:', cards.length, 'tarjetas');
 
   if (!cards.length) return;
 
@@ -26,7 +26,7 @@ export function setupCategoriaCards() {
 
         card.classList.add('visible');
         obs.unobserve(card);
-        
+        console.log('🔵 Animación tarjeta:', card);
       }
     });
   }, { threshold: 0.1 });
@@ -41,7 +41,7 @@ export function setupIntroAnimation() {
   const introItems = document.querySelectorAll(
     '.promo-intro__title, .promo-intro__subtitle'
   );
-
+  console.log('🟢 Encontrados:', introItems.length, 'elementos de intro');
 
   if (!introItems.length) return;
 
@@ -50,7 +50,7 @@ export function setupIntroAnimation() {
       if (entry.isIntersecting) {
         entry.target.classList.add('in-view');
         obs.unobserve(entry.target);
-      
+        console.log('🔵 Animación intro:', entry.target);
       }
     });
   }, {

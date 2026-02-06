@@ -61,14 +61,10 @@ export function initWishlist({
   /* ========== DOM Refs ========== */
   const dom = {
     wishlistPanel   : document.getElementById('wishlist-panel'),
-    // Contenedor principal: primero buscar en panel separado, luego en cascada
-    wishlistContent : document.querySelector('#wishlist-panel .wishlist-header-content') 
-                     || document.querySelector('#view-cliente-wishlist .wishlist-content'),
-    // También referencia al contenedor de cascada para renderizar en ambos
-    wishlistCascade : document.querySelector('#view-cliente-wishlist .wishlist-content'),
+    wishlistContent : document.querySelector('#wishlist-panel .wishlist-content'),
     overlay         : document.querySelector('.page-overlay'),
     wishlistBtn     : document.getElementById('btn-wishlist-panel'),
-    closeBtn        : document.getElementById('close-wishlist-header'), // Botón X del panel separado
+    closeBtn        : document.getElementById('close-wishlist-panel'),
     wishlistIcon    : document.querySelector('#btn-wishlist-panel i'),
     wishlistCount   : document.querySelector('#btn-wishlist-panel .wishlist-count'),
     headerTitle     : document.getElementById('wishlist-header-title')
@@ -117,37 +113,15 @@ export function initWishlist({
   const hydrateDone = new Promise(res => (hydrateDoneResolve = res));
 
   (async () => {
-    let validIds = [];
-    
     if (isAuthenticated && clienteId) {
       try {
         // 🔐 JWT: fetchGet agrega token automáticamente
         const r = await fetchGet(`${backendURL}${clienteId}/`);
         if (r.ok) {
           const { productos = [] } = await r.json();
-          validIds = productos.map(String);
-          setList([...new Set([...getList(), ...validIds])]);
+          setList([...new Set([...getList(), ...productos.map(String)])]);
         }
       } catch (err) { console.error('[Wishlist] pull', err); }
-    } else {
-      // ✅ Validar IDs de invitado contra la BD
-      const guestIds = getList();
-      if (guestIds.length) {
-        try {
-          const r = await fetchGet(`${fetchProductoURL}${guestIds.join(',')}`);
-          if (r.ok) {
-            const { productos = [] } = await r.json();
-            validIds = productos.map(p => String(p.id));
-            // Si hay IDs inválidos, limpiar localStorage
-            if (validIds.length !== guestIds.length) {
-              setList(validIds);
-            }
-          }
-        } catch (err) { 
-          console.error('[Wishlist] validate guest', err); 
-          validIds = guestIds; // Fallback: usar los IDs locales
-        }
-      }
     }
 
     const idsSet = new Set(getList());
@@ -208,34 +182,6 @@ export function initWishlist({
 
   /* ========== Eventos dentro del panel ========== */
   dom.wishlistPanel?.addEventListener('click', async e => {
-    // Mini-carrusel de imágenes
-    const miniPrev = e.target.closest('.carrusel-mini-prev');
-    const miniNext = e.target.closest('.carrusel-mini-next');
-    
-    if (miniPrev || miniNext) {
-      const viewport = (miniPrev || miniNext).closest('.carrusel-mini-viewport');
-      const track = viewport?.querySelector('.carrusel-mini-track');
-      const slides = track?.querySelectorAll('.carrusel-mini-slide');
-      
-      if (track && slides && slides.length > 1) {
-        let currentIndex = 0;
-        const transform = track.style.transform;
-        const match = transform.match(/translateX\((-?\d+)%\)/);
-        if (match) {
-          currentIndex = Math.abs(parseInt(match[1]) / 100);
-        }
-        
-        if (miniNext) {
-          currentIndex = (currentIndex + 1) % slides.length;
-        } else {
-          currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        }
-        
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      }
-      return;
-    }
-
     const pickerOpen = dom.wishlistPanel.querySelector('.size-picker');
     if (pickerOpen && !e.target.closest('.size-picker') &&
                       !e.target.matches('.btn-carrito-mini')) {
@@ -403,23 +349,7 @@ export function initWishlist({
   const buildCards = (prods, inCart = new Set()) => prods.map(p => `
     <div class="wishlist-item" data-id="${p.id}">
       <div class="wishlist-img-col">
-        ${(() => {
-          const imagenes = p.imagenes_galeria || [];
-          const allImages = [p.imagen, ...imagenes].filter(Boolean);
-          if (allImages.length > 1) {
-            return `
-              <div class="carrusel-mini-viewport">
-                <div class="carrusel-mini-track" style="transform: translateX(0%);">
-                  ${allImages.map(img => `<img src="${img}" alt="${p.nombre}" class="carrusel-mini-slide">`).join('')}
-                </div>
-                <button class="carrusel-mini-prev" data-product-id="${p.id}">‹</button>
-                <button class="carrusel-mini-next" data-product-id="${p.id}">›</button>
-              </div>
-            `;
-          } else {
-            return `<img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='/static/images/placeholder.png'">`;
-          }
-        })()}
+        <img src="${p.imagen}" alt="${p.nombre}" onerror="this.src='/static/images/placeholder.png'">
       </div>
       <div class="wishlist-info-col">
         <h4 class="nombre">${p.nombre}</h4>
@@ -439,24 +369,18 @@ export function initWishlist({
     </div>
   `).join('');
 
-  // Helper para renderizar en un contenedor específico
-  function renderToContainer(container, html) {
-    if (container) container.innerHTML = html;
-  }
-
   async function renderWishlistPanel() {
     const ids = getList();
-    const containers = [dom.wishlistContent, dom.wishlistCascade].filter(Boolean);
-    
     if (!ids.length) {
-      const emptyHTML = isAuthenticated ? EMPTY_USER : EMPTY_GUEST;
-      containers.forEach(c => renderToContainer(c, emptyHTML));
+      dom.headerTitle && (dom.headerTitle.style.visibility = 'hidden');
+      dom.wishlistContent.innerHTML = isAuthenticated ? EMPTY_USER : EMPTY_GUEST;
       updateHeaderUI([]);
       return;
     }
+    dom.headerTitle && (dom.headerTitle.style.visibility = 'visible');
 
     try {
-      containers.forEach(c => c.textContent = 'Cargando…');
+      dom.wishlistContent.textContent = 'Cargando…';
       const url = isAuthenticated
         ? `${backendURL}${safeClienteId}/?full=true`
         : `${fetchProductoURL}${ids.join(',')}`;
@@ -465,20 +389,13 @@ export function initWishlist({
       const { productos = [] } = await (await fetchGet(url)).json();
       const inCart = await getCartIds();
 
-      // ✅ Sincronizar localStorage con productos que realmente existen
-      const validIds = productos.map(p => String(p.id));
-      if (validIds.length !== ids.length) {
-        setList(validIds); // Actualiza localStorage con solo IDs válidos
-      }
-
-      const resultHTML = productos.length
+      dom.wishlistContent.innerHTML = productos.length
         ? buildCards(productos, inCart)
         : 'No tienes productos en tu wishlist.';
-      
-      containers.forEach(c => renderToContainer(c, resultHTML));
-      updateHeaderUI(validIds);
+
+      updateHeaderUI(ids);
     } catch (err) {
-      containers.forEach(c => c.textContent = 'Error al cargar tu wishlist.');
+      dom.wishlistContent.textContent = 'Error al cargar tu wishlist.';
     }
 
     if (!isAuthenticated) injectHint();
@@ -507,17 +424,12 @@ export function initWishlist({
     </div>`;
 
   function injectHint() {
-    const hint = `
+    dom.wishlistContent.insertAdjacentHTML('beforeend', `
       <div class="wishlist-hint">
         ¿Quieres conservar tus favoritos?
         <a href="#" id="open-login-hint" class="wishlist-link">Inicia sesión</a> o
         <a href="/registrarse/" class="wishlist-link">crea una cuenta</a>.
-      </div>`;
-    [dom.wishlistContent, dom.wishlistCascade].filter(Boolean).forEach(c => {
-      if (!c.querySelector('.wishlist-hint')) {
-        c.insertAdjacentHTML('beforeend', hint);
-      }
-    });
+      </div>`);
   }
 
   // 👇 corregido: cerrar wishlist al abrir login

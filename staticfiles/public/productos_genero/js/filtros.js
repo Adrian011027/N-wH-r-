@@ -109,6 +109,14 @@
       dom.btnLimpiar.addEventListener('click', limpiarFiltros);
     }
 
+    // Botón VER RESULTADOS
+    const btnVerResultados = document.getElementById('btn-ver-resultados');
+    if (btnVerResultados) {
+      btnVerResultados.addEventListener('click', () => {
+        cerrarSidebar();
+      });
+    }
+
     // Búsqueda con debounce
     if (dom.filtrosBusqueda) {
       let timeoutId;
@@ -121,13 +129,14 @@
       });
     }
 
-    // Ordenamiento
-    if (dom.filtrosOrden) {
-      dom.filtrosOrden.addEventListener('change', (e) => {
+    // Ordenamiento con radio buttons
+    const radiosOrden = document.querySelectorAll('input[name="orden"]');
+    radiosOrden.forEach(radio => {
+      radio.addEventListener('change', (e) => {
         state.filtros.orden = e.target.value;
         aplicarFiltros();
       });
-    }
+    });
 
     // Precio
     if (dom.precioMin) {
@@ -222,12 +231,12 @@
     const tallas = state.filtrosDisponibles.tallas || [];
     
     if (tallas.length === 0) {
-      dom.filtroTallas.innerHTML = '<p class="no-opciones">No hay tallas disponibles</p>';
+      dom.filtroTallas.innerHTML = '<span class="loading-text">No disponible</span>';
       return;
     }
 
     dom.filtroTallas.innerHTML = tallas.map(talla => `
-      <label class="filtro-opcion-btn">
+      <label class="filtro-check-zara">
         <input type="checkbox" 
                value="${talla}" 
                ${state.filtros.tallas.includes(talla) ? 'checked' : ''}
@@ -243,39 +252,21 @@
     const colores = state.filtrosDisponibles.colores || [];
     
     if (colores.length === 0) {
-      dom.filtroColores.innerHTML = '<p class="no-opciones">No hay colores disponibles</p>';
+      dom.filtroColores.innerHTML = '<span class="loading-text">No disponible</span>';
       return;
     }
 
-    // Mapa de colores a códigos hex (puedes expandir esto)
-    const coloresHex = {
-      'Negro': '#000000',
-      'Blanco': '#FFFFFF',
-      'Rojo': '#FF0000',
-      'Azul': '#0000FF',
-      'Verde': '#00FF00',
-      'Amarillo': '#FFFF00',
-      'Rosa': '#FFC0CB',
-      'Gris': '#808080',
-      'Café': '#8B4513',
-      'Beige': '#F5F5DC',
-      'Naranja': '#FFA500',
-      'Morado': '#800080',
-      'Marino': '#000080',
-      'Vino': '#722F37'
-    };
-
     dom.filtroColores.innerHTML = colores.map(color => {
-      const hexColor = coloresHex[color] || '#CCCCCC';
       const isSelected = state.filtros.colores.includes(color);
       
       return `
-        <button class="filtro-color-btn ${isSelected ? 'selected' : ''}"
-                style="background-color: ${hexColor}; ${hexColor === '#FFFFFF' ? 'border: 2px solid #ddd;' : ''}"
-                title="${color}"
-                onclick="window.filtrosHandler.toggleColor('${color}')">
-          ${isSelected ? '✓' : ''}
-        </button>
+        <label class="filtro-check-zara">
+          <input type="checkbox" 
+                 value="${color}"
+                 ${isSelected ? 'checked' : ''}
+                 onchange="window.filtrosHandler.toggleColor('${color}')">
+          <span>${color.toUpperCase()}</span>
+        </label>
       `;
     }).join('');
   }
@@ -286,17 +277,17 @@
     const marcas = state.filtrosDisponibles.marcas || [];
     
     if (marcas.length === 0) {
-      dom.filtroMarcas.innerHTML = '<p class="no-opciones">No hay marcas disponibles</p>';
+      dom.filtroMarcas.innerHTML = '<span class="loading-text">No disponible</span>';
       return;
     }
 
     dom.filtroMarcas.innerHTML = marcas.map(marca => `
-      <label class="filtro-checkbox-item">
+      <label class="filtro-check-zara">
         <input type="checkbox" 
                value="${marca}"
                ${state.filtros.marcas.includes(marca) ? 'checked' : ''}
                onchange="window.filtrosHandler.toggleMarca('${marca}')">
-        <span>${marca}</span>
+        <span>${marca.toUpperCase()}</span>
       </label>
     `).join('');
   }
@@ -326,7 +317,7 @@
     if (state.filtros.q) {
       pills.push(`
         <span class="filtro-pill">
-          🔍 "${state.filtros.q}"
+          "${state.filtros.q}"
           <button onclick="window.filtrosHandler.removerFiltro('q')">×</button>
         </span>
       `);
@@ -336,7 +327,7 @@
     state.filtros.tallas.forEach(talla => {
       pills.push(`
         <span class="filtro-pill">
-          📏 ${talla}
+          TALLA ${talla}
           <button onclick="window.filtrosHandler.toggleTalla('${talla}')">×</button>
         </span>
       `);
@@ -346,7 +337,7 @@
     state.filtros.colores.forEach(color => {
       pills.push(`
         <span class="filtro-pill">
-          🎨 ${color}
+          ${color.toUpperCase()}
           <button onclick="window.filtrosHandler.toggleColor('${color}')">×</button>
         </span>
       `);
@@ -356,7 +347,7 @@
     state.filtros.marcas.forEach(marca => {
       pills.push(`
         <span class="filtro-pill">
-          ✨ ${marca}
+          ${marca.toUpperCase()}
           <button onclick="window.filtrosHandler.toggleMarca('${marca}')">×</button>
         </span>
       `);
@@ -368,7 +359,7 @@
       const max = state.filtros.precio_max || '∞';
       pills.push(`
         <span class="filtro-pill">
-          💰 $${min} - $${max}
+          $${min} - $${max}
           <button onclick="window.filtrosHandler.removerFiltro('precio')">×</button>
         </span>
       `);
@@ -378,14 +369,20 @@
     if (state.filtros.en_oferta) {
       pills.push(`
         <span class="filtro-pill">
-          🔥 En oferta
+          EN OFERTA
           <button onclick="window.filtrosHandler.removerFiltro('oferta')">×</button>
         </span>
       `);
     }
 
     dom.filtrosPills.innerHTML = pills.join('');
-    dom.filtrosPills.style.display = pills.length > 0 ? 'flex' : 'none';
+    
+    // Usar clase para mostrar/ocultar
+    if (pills.length > 0) {
+      dom.filtrosPills.classList.add('has-pills');
+    } else {
+      dom.filtrosPills.classList.remove('has-pills');
+    }
   }
 
   function toggleTalla(talla) {
@@ -455,10 +452,19 @@
 
     // Resetear inputs
     if (dom.filtrosBusqueda) dom.filtrosBusqueda.value = '';
-    if (dom.filtrosOrden) dom.filtrosOrden.value = 'nuevo';
     if (dom.precioMin) dom.precioMin.value = '';
     if (dom.precioMax) dom.precioMax.value = '';
     if (dom.filtroOferta) dom.filtroOferta.checked = false;
+    
+    // Resetear radios de orden
+    const radiosOrden = document.querySelectorAll('input[name="orden"]');
+    radiosOrden.forEach(radio => {
+      radio.checked = false;
+    });
+
+    // Resetear checkboxes de tallas, colores, marcas
+    const checkboxes = document.querySelectorAll('.filtro-check-zara input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
 
     // Recargar página sin parámetros
     window.location.href = window.location.pathname;
@@ -565,15 +571,9 @@
           ${p.en_oferta ? '<span class="badge-oferta">Oferta</span>' : ''}
         </div>
         <div class="info">
-          <h3>${p.nombre}</h3>
-          <p class="precio">
-            ${p.precio_descuento ? `
-              <span class="precio-original">$${Number(p.precio).toLocaleString()}</span>
-              <span class="precio-oferta">$${Number(p.precio_descuento).toLocaleString()}</span>
-            ` : `
-              $${Number(p.precio).toLocaleString()}
-            `}
-          </p>
+          <h4>${p.nombre}</h4>
+          ${p.marca ? `<p class="producto-marca">${p.marca}</p>` : ''}
+          <p class="precio">$${Number(p.precio).toLocaleString()}</p>
         </div>
       </div>
     `).join('');
