@@ -199,6 +199,12 @@ class Subcategoria(models.Model):
 
 
 class Producto(models.Model):
+    GENERO_CHOICES = [
+        ('Hombre', 'Hombre'),
+        ('Mujer', 'Mujer'),
+        ('Unisex', 'Unisex'),
+    ]
+    
     nombre      = models.CharField(max_length=255)
     descripcion = models.TextField()
     precio      = models.DecimalField(max_digits=10, decimal_places=2)
@@ -209,7 +215,7 @@ class Producto(models.Model):
         related_name='productos',
         help_text="Múltiples subcategorías (marca, oferta, línea, etc.)"
     )
-    genero      = models.CharField(max_length=50, blank=True, null=True, db_index=True, help_text="Hombre, Mujer, Ambos, etc.")
+    genero      = models.CharField(max_length=50, choices=GENERO_CHOICES, blank=True, null=True, db_index=True, help_text="Género del producto")
     precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     en_oferta   = models.BooleanField(default=False)
     marca       = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="Marca del producto para filtros")
@@ -296,8 +302,9 @@ class ProductoImagen(models.Model):
         self._sync_to_first_variant()
     
     def delete(self, *args, **kwargs):
-        # Sincronizar antes de eliminar
-        self._sync_delete_to_first_variant()
+        # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
+        if not kwargs.pop('_skip_sync', False):
+            self._sync_delete_to_first_variant()
         super().delete(*args, **kwargs)
     
     def _sync_to_first_variant(self):
@@ -354,7 +361,8 @@ class ProductoImagen(models.Model):
             if variante_img:
                 if variante_img.imagen:
                     variante_img.imagen.delete(save=False)
-                variante_img.delete()
+                # Eliminar SIN activar la sincronización inversa para evitar recursión
+                variante_img.delete(_skip_sync=True)
         except Exception as e:
             print(f"Error eliminando imagen sincronizada en primera variante: {e}")
 
@@ -588,8 +596,9 @@ class VarianteImagen(models.Model):
         self._sync_to_producto()
     
     def delete(self, *args, **kwargs):
-        # Sincronizar antes de eliminar
-        self._sync_delete_to_producto()
+        # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
+        if not kwargs.pop('_skip_sync', False):
+            self._sync_delete_to_producto()
         super().delete(*args, **kwargs)
     
     def _sync_to_producto(self):
@@ -651,7 +660,8 @@ class VarianteImagen(models.Model):
             if producto_img:
                 if producto_img.imagen:
                     producto_img.imagen.delete(save=False)
-                producto_img.delete()
+                # Eliminar SIN activar la sincronización inversa para evitar recursión
+                producto_img.delete(_skip_sync=True)
         except Exception as e:
             print(f"Error eliminando imagen sincronizada en producto desde primera variante: {e}")
 

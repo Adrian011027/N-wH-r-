@@ -114,7 +114,7 @@ def get_all_products(request):
 @require_http_methods(["POST"])
 def create_product(request):
 
-    # Detecta si el request viene en JSON o multipart/form-data
+    # Detecta si el request viene en JSON o multipart/form-data ( si trae una imagen o no)
     if request.content_type.startswith("application/json"):
         try:
             data = json.loads(request.body)
@@ -134,7 +134,7 @@ def create_product(request):
         stocks = data.get("stocks", [])
         subcategorias_ids = data.get("subcategorias", [])
 
-    else:  # multipart/form-data
+    else:  # multipart/form-data (con imagen)
         nombre      = request.POST.get("nombre")
         descripcion = request.POST.get("descripcion")
         precio      = request.POST.get("precio")
@@ -222,6 +222,40 @@ def create_product(request):
             # Capturar precio de la primera variante
             if idx == 0:
                 primera_variante_precio = variante.precio
+            
+            # 🖼️ PROCESAR IMÁGENES DE ESTA VARIANTE
+            try:
+                from store.models import VarianteImagen
+                import os
+                
+                # Obtener imágenes para esta variante específica (formato: variante_imagen_temp_{idx})
+                imagenes_variante = request.FILES.getlist(f'variante_imagen_temp_{idx}')
+                
+                if imagenes_variante:
+                    print(f"[VARIANTE {idx}] Procesando {len(imagenes_variante)} imagen(es)")
+                    
+                    for img_idx, imagen_file in enumerate(imagenes_variante, start=1):
+                        if img_idx > 5:  # Máximo 5 imágenes por variante
+                            break
+                        
+                        try:
+                            # Generar nombre canonico
+                            ext = os.path.splitext(imagen_file.name)[1]
+                            nombre_canonico = f'imagen-{img_idx}{ext}'
+                            imagen_file.name = nombre_canonico
+                            
+                            # Crear VarianteImagen
+                            variante_imagen = VarianteImagen(
+                                variante=variante,
+                                imagen=imagen_file,
+                                orden=img_idx
+                            )
+                            variante_imagen.save()
+                            print(f"[VARIANTE {idx}] Imagen guardada en orden {img_idx}")
+                        except Exception as e:
+                            print(f"[VARIANTE {idx}] Error guardando imagen {img_idx}: {e}")
+            except Exception as e:
+                print(f"[VARIANTE {idx}] Error general procesando imágenes: {e}")
 
     # Variante simple (stock único)
     else:
@@ -261,35 +295,59 @@ def create_product(request):
         except Exception as e:
             print(f"Error al guardar subcategorías: {e}")
 
-    # Procesar imágenes adicionales de la galería (máximo 5)
+    # 🖼️ PROCESAR IMÁGENES DE GALERÍA (máximo 5)
+    # El frontend envía múltiples imágenes con el campo 'imagen_galeria_upload'
     imagen_contador = 0
-    for key in request.FILES:
-        if key.startswith('imagen_galeria_'):
-            if imagen_contador >= 5:
-                break
-            try:
-                imagen_file = request.FILES[key]
-                from store.models import ProductoImagen
-                import os
+    
+    try:
+        from store.models import ProductoImagen
+        import os
+        
+        # Obtener TODAS las imágenes (usar getlist para campos múltiples)
+        imagenes_galeria = request.FILES.getlist('imagen_galeria_upload')
+        
+        if imagenes_galeria:
+            print(f"[IMAGES] Total de imágenes recibidas: {len(imagenes_galeria)}")
+            
+            for idx, imagen_file in enumerate(imagenes_galeria, start=1):
+                if imagen_contador >= 5:  # Máximo 5 imágenes por producto
+                    print(f"[SKIP] Se alcanzó máximo de 5 imágenes")
+                    break
                 
-                # Generar nombre del archivo: imagen-{numero}.{ext}
-                ext = os.path.splitext(imagen_file.name)[1]
-                numero_imagen = imagen_contador + 1
-                nombre_canonico = f'imagen-{numero_imagen}{ext}'
-                imagen_file.name = nombre_canonico
-                
-                # Crear instancia - el upload_to callback se encargará del directorio
-                producto_imagen = ProductoImagen(
-                    producto=producto,
-                    imagen=imagen_file,
-                    orden=numero_imagen
-                )
-                
-                # Guardar
-                producto_imagen.save()
-                imagen_contador += 1
-            except Exception as e:
-                print(f"Error al guardar imagen de galería: {e}")
+                try:
+                    print(f"[PROCESSING] Procesando imagen {idx}: {imagen_file.name}, tamaño: {imagen_file.size} bytes")
+                    
+                    # Generar nombre del archivo: imagen-{numero}.{ext}
+                    ext = os.path.splitext(imagen_file.name)[1]
+                    numero_imagen = idx  # Usar el índice (1, 2, 3, 4, 5)
+                    nombre_canonico = f'imagen-{numero_imagen}{ext}'
+                    imagen_file.name = nombre_canonico
+                    
+                    print(f"[NAMING] Nombre canónico: {nombre_canonico}, orden: {numero_imagen}")
+                    
+                    # Crear instancia
+                    producto_imagen = ProductoImagen(
+                        producto=producto,
+                        imagen=imagen_file,
+                        orden=numero_imagen
+                    )
+                    
+                    # Guardar
+                    producto_imagen.save()
+                    print(f"[SUCCESS] Imagen guardada en orden {numero_imagen} en: {producto_imagen.imagen.url}")
+                    imagen_contador += 1
+                    
+                except Exception as e:
+                    print(f"[ERROR] Error al procesar imagen {idx}: {e}")
+                    import traceback
+                    traceback.print_exc()
+        else:
+            print(f"[INFO] No hay imágenes en request.FILES.getlist('imagen_galeria_upload')")
+            
+    except Exception as e:
+        print(f"[ERROR] Error general al procesar imágenes: {e}")
+        import traceback
+        traceback.print_exc()
 
     return JsonResponse(
         {"id": producto.id, "message": "Producto y variantes creados"},
@@ -331,6 +389,79 @@ def update_productos(request, id):
     
     producto.save()
 
+    # PROCESAR IMAGEN PRINCIPAL (imagen campo - tanto del API como del dashboard)
+    # Puede venir como 'imagen' (API test) o 'imagen_galeria_upload' (dashboard edición)
+    # En dashboard puede haber múltiples, se toma la primera
+    imagen_files = []
+    
+    if 'imagen' in request.FILES:
+        img = request.FILES['imagen']
+        imagen_files.append(img)
+        print("[UPLOAD] Imagen principal detectada (nombre de campo: 'imagen'): {}".format(img.name))
+    
+    if 'imagen_galeria_upload' in request.FILES:
+        # Puede haber múltiples archivos con el mismo nombre
+        imgs = request.FILES.getlist('imagen_galeria_upload')
+        if imgs:
+            print("[UPLOAD] {} imagen(es) de galería detectada(s) (nombre de campo: 'imagen_galeria_upload')".format(len(imgs)))
+            imagen_files.extend(imgs)
+    
+    if imagen_files:
+        print("[UPLOAD] Procesando imagen principal del producto {}".format(producto.id))
+        # Usar solo la PRIMERA imagen como imagen principal (orden=1)
+        imagen = imagen_files[0]
+        print("[SIZE] Tamaño de imagen: {} bytes".format(imagen.size))
+        
+        try:
+            from store.models import ProductoImagen
+            
+            # Eliminar la imagen anterior (orden=1) si existe
+            ProductoImagen.objects.filter(producto=producto, orden=1).delete()
+            print("[DELETE] Imagen anterior (orden=1) eliminada si existía")
+            
+            # Crear nueva ProductoImagen con orden=1 (imagen principal)
+            producto_imagen = ProductoImagen(
+                producto=producto,
+                imagen=imagen,
+                orden=1
+            )
+            print("[SAVE] Guardando nueva ProductoImagen para producto {}".format(producto.id))
+            producto_imagen.save()
+            print("[SUCCESS] Imagen guardada en: {}".format(producto_imagen.imagen.url))
+            
+            # Si hay más imágenes, procesarlas en orden (orden=2, 3, 4, 5)
+            if len(imagen_files) > 1:
+                print("[UPLOAD] Procesando {} imagen(es) adicionale(s) de galería".format(len(imagen_files) - 1))
+                for idx, img_adicional in enumerate(imagen_files[1:], start=2):
+                    try:
+                        # Verificar que no excedamos el máximo (5 imágenes por producto)
+                        existentes = ProductoImagen.objects.filter(producto=producto).count()
+                        if existentes >= 5:
+                            print("[SKIP] Se alcanzó máximo de 5 imágenes. Imagen {} no procesada".format(img_adicional.name))
+                            break
+                        
+                        # Eliminar la anterior en esa posición si existe
+                        ProductoImagen.objects.filter(producto=producto, orden=idx).delete()
+                        
+                        # Crear ProductoImagen con orden incrementado
+                        producto_imagen_adicional = ProductoImagen(
+                            producto=producto,
+                            imagen=img_adicional,
+                            orden=idx
+                        )
+                        producto_imagen_adicional.save()
+                        print("[SUCCESS] Imagen adicional guardada en orden {} en: {}".format(idx, producto_imagen_adicional.imagen.url))
+                    except Exception as e:
+                        print("[ERROR] Error al procesar imagen adicional {}: {}".format(img_adicional.name, str(e)))
+                        import traceback
+                        traceback.print_exc()
+        except Exception as e:
+            import traceback
+            print("[ERROR] Error al guardar imagen principal: {}".format(str(e)))
+            traceback.print_exc()
+    else:
+        print("[INFO] No hay imágenes en request.FILES")
+
     # Procesar subcategorías si se enviaron
     subcategorias_ids = request.POST.getlist('subcategorias')
     if subcategorias_ids:
@@ -354,48 +485,81 @@ def update_productos(request, id):
     # Eliminar imágenes marcadas para eliminación
     imagenes_a_eliminar = request.POST.get('imagenes_a_eliminar', '')
     if imagenes_a_eliminar:
-        ids_a_eliminar = [int(id_str) for id_str in imagenes_a_eliminar.split(',') if id_str.strip()]
-        from store.models import ProductoImagen
+        try:
+            import json
+            # imagenes_a_eliminar viene como JSON serializado desde el frontend
+            ids_a_eliminar = json.loads(imagenes_a_eliminar)
+            if not isinstance(ids_a_eliminar, list):
+                ids_a_eliminar = []
+        except (json.JSONDecodeError, ValueError):
+            # Si no es JSON válido, intentar parsear como lista separada por comas
+            ids_a_eliminar = [int(id_str) for id_str in imagenes_a_eliminar.split(',') if id_str.strip().isdigit()]
         
-        # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
-        # Esto es necesario para que funcione el sincronismo con VarianteImagen
-        imagenes_a_borrar = ProductoImagen.objects.filter(id__in=ids_a_eliminar, producto=producto)
-        for img in imagenes_a_borrar:
-            # El método delete() del modelo se encarga del sincronismo con variantes
-            img.delete()
+        if ids_a_eliminar:
+            from store.models import ProductoImagen
+            
+            # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
+            # Esto es necesario para que funcione el sincronismo con VarianteImagen
+            imagenes_a_borrar = ProductoImagen.objects.filter(id__in=ids_a_eliminar, producto=producto)
+            for img in imagenes_a_borrar:
+                # El método delete() del modelo se encarga del sincronismo con variantes
+                img.delete()
 
-    # Procesar imágenes adicionales de la galería (máximo 5)
-    # Obtener el número máximo actual de órdenes
-    from store.models import ProductoImagen
-    max_orden = ProductoImagen.objects.filter(producto=producto).aggregate(max=models.Max('orden'))['max'] or 0
-    
-    imagen_contador = 0
-    for key in request.FILES:
-        if key.startswith('imagen_galeria_'):
-            if imagen_contador >= 5:
-                break
-            try:
-                imagen_file = request.FILES[key]
-                import os
+    # 🖼️ PROCESAR IMÁGENES DE GALERÍA (máximo 5)
+    # El frontend envía múltiples imágenes con el campo 'imagen_galeria_upload'
+    try:
+        from store.models import ProductoImagen
+        import os
+        
+        # Obtener TODAS las imágenes (usar getlist para campos múltiples)
+        imagenes_galeria = request.FILES.getlist('imagen_galeria_upload')
+        
+        if imagenes_galeria:
+            print(f"[IMAGES] Total de imágenes recibidas para update: {len(imagenes_galeria)}")
+            
+            # Obtener el máximo orden actual
+            max_orden = ProductoImagen.objects.filter(producto=producto).aggregate(
+                max=models.Max('orden')
+            )['max'] or 0
+            
+            for idx, imagen_file in enumerate(imagenes_galeria, start=1):
+                if (max_orden + idx) > 5:  # Máximo 5 imágenes por producto
+                    print(f"[SKIP] Se alcanzó máximo de 5 imágenes")
+                    break
                 
-                # Generar nombre del archivo: imagen-{numero}.{ext}
-                ext = os.path.splitext(imagen_file.name)[1]
-                numero_imagen = max_orden + imagen_contador + 1
-                nombre_canonico = f'imagen-{numero_imagen}{ext}'
-                imagen_file.name = nombre_canonico
-                
-                # Crear instancia - el upload_to callback se encargará del directorio
-                producto_imagen = ProductoImagen(
-                    producto=producto,
-                    imagen=imagen_file,
-                    orden=numero_imagen
-                )
-                
-                # Guardar
-                producto_imagen.save()
-                imagen_contador += 1
-            except Exception as e:
-                print(f"Error al guardar imagen de galería: {e}")
+                try:
+                    print(f"[PROCESSING] Procesando imagen {idx}: {imagen_file.name}, tamaño: {imagen_file.size} bytes")
+                    
+                    # Generar nombre del archivo: imagen-{numero}.{ext}
+                    ext = os.path.splitext(imagen_file.name)[1]
+                    numero_imagen = max_orden + idx  # Continuar desde el último orden
+                    nombre_canonico = f'imagen-{numero_imagen}{ext}'
+                    imagen_file.name = nombre_canonico
+                    
+                    print(f"[NAMING] Nombre canónico: {nombre_canonico}, orden: {numero_imagen}")
+                    
+                    # Crear instancia
+                    producto_imagen = ProductoImagen(
+                        producto=producto,
+                        imagen=imagen_file,
+                        orden=numero_imagen
+                    )
+                    
+                    # Guardar
+                    producto_imagen.save()
+                    print(f"[SUCCESS] Imagen guardada en orden {numero_imagen} en: {producto_imagen.imagen.url}")
+                    
+                except Exception as e:
+                    print(f"[ERROR] Error al procesar imagen {idx}: {e}")
+                    import traceback
+                    traceback.print_exc()
+        else:
+            print(f"[INFO] No hay imágenes en request.FILES.getlist('imagen_galeria_upload')")
+            
+    except Exception as e:
+        print(f"[ERROR] Error general al procesar imágenes: {e}")
+        import traceback
+        traceback.print_exc()
 
     # ─────── PROCESAR IMÁGENES DE VARIANTES ───────
     from store.models import VarianteImagen
@@ -403,13 +567,23 @@ def update_productos(request, id):
     # Eliminar imágenes de variantes marcadas para eliminación
     variante_imagenes_a_eliminar = request.POST.get('variante_imagenes_a_eliminar', '')
     if variante_imagenes_a_eliminar:
-        ids_a_eliminar = [int(id_str) for id_str in variante_imagenes_a_eliminar.split(',') if id_str.strip()]
-        # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
-        # Esto es necesario para que funcione el sincronismo con ProductoImagen
-        imagenes_a_borrar = VarianteImagen.objects.filter(id__in=ids_a_eliminar)
-        for img in imagenes_a_borrar:
-            # El método delete() del modelo se encarga del sincronismo con producto
-            img.delete()
+        try:
+            import json
+            # variante_imagenes_a_eliminar viene como JSON serializado desde el frontend
+            ids_a_eliminar = json.loads(variante_imagenes_a_eliminar)
+            if not isinstance(ids_a_eliminar, list):
+                ids_a_eliminar = []
+        except (json.JSONDecodeError, ValueError):
+            # Si no es JSON válido, intentar parsear como lista separada por comas
+            ids_a_eliminar = [int(id_str) for id_str in variante_imagenes_a_eliminar.split(',') if id_str.strip().isdigit()]
+        
+        if ids_a_eliminar:
+            # IMPORTANTE: Eliminar una por una para que se dispare el método delete() del modelo
+            # Esto es necesario para que funcione el sincronismo con ProductoImagen
+            imagenes_a_borrar = VarianteImagen.objects.filter(id__in=ids_a_eliminar)
+            for img in imagenes_a_borrar:
+                # El método delete() del modelo se encarga del sincronismo con producto
+                img.delete()
     
     # Procesar nuevas imágenes de variantes
     for key in request.FILES:

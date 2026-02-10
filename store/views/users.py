@@ -4,6 +4,7 @@ from ..models import Usuario
 from .decorators import jwt_role_required, admin_required
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 import json
 
 
@@ -16,13 +17,22 @@ def get_user(request):
     """Obtener lista de todos los usuarios - Solo administradores"""
     try:
         usuarios = Usuario.objects.all()
+        
+        # Implementar búsqueda segura (usando ORM parametrizado)
+        search = request.GET.get('search', '').strip()
+        if search:
+            # Django ORM parametriza automáticamente - SEGURO contra SQL injection
+            usuarios = usuarios.filter(
+                Q(username__icontains=search) | 
+                Q(role__icontains=search)
+            )
+        
         # SEGURIDAD: NUNCA exponer hash de contraseña, ni siquiera a admins
         data = [{
             "id": u.id,
             "username": u.username,
             "role": u.role,
-            "created_at": u.date_joined.isoformat() if hasattr(u, 'date_joined') and u.date_joined else None,
-            "last_login": u.last_login.isoformat() if u.last_login else None
+            "created_at": u.date_joined.isoformat() if hasattr(u, 'date_joined') and u.date_joined else None
         } for u in usuarios]
         
         return JsonResponse({

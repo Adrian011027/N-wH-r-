@@ -265,10 +265,20 @@ def subcategorias_por_categoria_query(request):
     Obtener subcategorías filtradas por categoría y género.
     Endpoint público para el navbar dinámico (usa query params).
     
-    GET /api/subcategorias-por-categoria/?categoria_id=X&genero=hombre|mujer
+    GET /api/subcategorias-por-categoria/?categoria_id=X&genero=hombre|mujer|unisex
     """
     categoria_id = request.GET.get('categoria_id', '').strip()
     genero_param = request.GET.get('genero', '').lower()
+    
+    # Mapeo de género
+    genero_map = {
+        'hombre': ['Hombre', 'Unisex'],
+        'mujer': ['Mujer', 'Unisex'],
+        'unisex': ['Unisex'],
+        'h': ['Hombre', 'Unisex'],
+        'm': ['Mujer', 'Unisex'],
+        'u': ['Unisex'],
+    }
     
     if not categoria_id:
         return JsonResponse({'error': 'categoria_id es requerido'}, status=400)

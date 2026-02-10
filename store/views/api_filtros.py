@@ -9,21 +9,33 @@ from ..models import Producto, Variante, Categoria, Subcategoria
 def get_filtros_disponibles(request):
     """
     Retorna todas las opciones de filtros disponibles para una página de colección.
-    GET /api/filtros-disponibles/?genero=H&categoria=1
+    GET /api/filtros-disponibles/?genero=Hombre&categoria=1
     """
-    genero = request.GET.get('genero', '').upper()
+    genero = request.GET.get('genero', '').strip()
     categoria_id = request.GET.get('categoria')
     subcategoria_id = request.GET.get('subcategoria')
     
-    # Mapeo de género
-    genero_map = {'HOMBRE': 'H', 'MUJER': 'M', 'DAMA': 'M', 'CABALLERO': 'H', 'H': 'H', 'M': 'M'}
-    genero_cod = genero_map.get(genero, None)
+    # Mapeo de género (acepta versiones antiguas y nuevas)
+    genero_map = {
+        'HOMBRE': 'Hombre',
+        'MUJER': 'Mujer',
+        'UNISEX': 'Unisex',
+        'DAMA': 'Mujer',
+        'CABALLERO': 'Hombre',
+        'H': 'Hombre',
+        'M': 'Mujer',
+        'U': 'Unisex',
+        'Hombre': 'Hombre',
+        'Mujer': 'Mujer',
+        'Unisex': 'Unisex'
+    }
+    genero_filtro = genero_map.get(genero.upper() if genero else '', None)
     
     # Query base de productos
     productos_qs = Producto.objects.all()
     
-    if genero_cod:
-        productos_qs = productos_qs.filter(genero__in=[genero_cod, 'U'])
+    if genero_filtro:
+        productos_qs = productos_qs.filter(genero__in=[genero_filtro, 'Unisex'])
     
     if categoria_id:
         try:
@@ -161,9 +173,21 @@ def get_productos_filtrados(request):
     pagina = int(request.GET.get('pagina', 1))
     por_pagina = int(request.GET.get('por_pagina', 24))
     
-    # Mapeo de género
-    genero_map = {'HOMBRE': 'H', 'MUJER': 'M', 'DAMA': 'M', 'CABALLERO': 'H', 'H': 'H', 'M': 'M'}
-    genero_cod = genero_map.get(genero, None)
+    # Mapeo de género (acepta versiones antiguas y nuevas)
+    genero_map = {
+        'HOMBRE': 'Hombre',
+        'MUJER': 'Mujer',
+        'UNISEX': 'Unisex',
+        'DAMA': 'Mujer',
+        'CABALLERO': 'Hombre',
+        'H': 'Hombre',
+        'M': 'Mujer',
+        'U': 'Unisex',
+        'HOMBRE': 'Hombre',
+        'MUJER': 'Mujer',
+        'UNISEX': 'Unisex'
+    }
+    genero_normalizado = genero_map.get(genero, None)
     
     # Query base
     qs = Producto.objects.select_related('categoria').prefetch_related(
@@ -171,8 +195,8 @@ def get_productos_filtrados(request):
     )
     
     # Filtro: Género
-    if genero_cod:
-        qs = qs.filter(genero__in=[genero_cod, 'U'])
+    if genero_normalizado:
+        qs = qs.filter(genero__in=[genero_normalizado, 'Unisex'])
     
     # Filtro: Categoría
     if categoria_id:

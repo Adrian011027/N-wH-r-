@@ -78,11 +78,28 @@ async function authFetch(url, options = {}) {
     throw new Error('No autenticado');
   }
   
-  // Preparar headers con Authorization
+  // Obtener token CSRF de la cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  
+  // Preparar headers con Authorization JWT y CSRF
   const { access } = getTokens();
   const headers = {
     ...options.headers,
-    'Authorization': `Bearer ${access}`
+    'Authorization': `Bearer ${access}`,
+    'X-CSRFToken': getCookie('csrftoken') || ''  // Agregar CSRF token
   };
   
   // Si no es FormData, agregar Content-Type
