@@ -75,13 +75,23 @@ def search_products(request):
     if marca:
         productos = productos.filter(marca__iexact=marca)
     
-    # ============ FILTRO: Género (heredado - mantener compatibilidad) ============
-    genero = request.GET.get('genero', '').strip().upper()
-    if genero and genero in ['M', 'H', 'UNISEX', 'U']:
-        # Convertir 'U' a 'UNISEX' si es necesario
-        if genero == 'U':
-            genero = 'UNISEX'
-        productos = productos.filter(genero__iexact=genero)
+    # ============ FILTRO: Género ============
+    genero = request.GET.get('genero', '').strip()
+    if genero:
+        # Mapeo de género (acepta versiones antiguas y nuevas)
+        genero_map = {
+            'HOMBRE': 'Hombre',
+            'MUJER': 'Mujer',
+            'UNISEX': 'Unisex',
+            'DAMA': 'Mujer',
+            'CABALLERO': 'Hombre',
+            'H': 'Hombre',
+            'M': 'Mujer',
+            'U': 'Unisex'
+        }
+        genero_normalizado = genero_map.get(genero.upper(), None)
+        if genero_normalizado:
+            productos = productos.filter(Q(genero=genero_normalizado) | Q(genero='Unisex'))
     
     # ============ FILTRO: Precio ============
     precio_min = request.GET.get('precio_min', '').strip()

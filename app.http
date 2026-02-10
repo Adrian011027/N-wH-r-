@@ -1,4 +1,4 @@
-@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMzM2OTgzLCJpYXQiOjE3NzAzMzUxODMsInVzZXJuYW1lIjoiYWRtaW4ifQ.3cTRS9TnvQROZ_g3lWQbB_wSdjHtr3FFJN11rTQjAtY
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNjAxMjEzLCJpYXQiOjE3NzA1OTk0MTMsInVzZXJuYW1lIjoiYWRtaW4ifQ.28-B39C-6l-eQN_8RqV8PJqRvFJFKEw_FdF5NoCudPw
 POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
@@ -74,6 +74,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb
 
 ### GET clientes
 GET http://127.0.0.1:8000/clientes/
+Authorization: Bearer {{token_admin}}
+
+
+### GET clientes
+GET http://127.0.0.1:8000/api/users/
 Authorization: Bearer {{token_admin}}
 
 ### Crear cliente

