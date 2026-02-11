@@ -331,7 +331,7 @@ function createProductCard(producto) {
   card.className = 'producto-card';
   
   // Determinar género para el link
-  const genero = producto.genero.toLowerCase() === 'm' ? 'dama' : 'caballero';
+  const genero = producto.genero.toLowerCase() === 'mujer' ? 'dama' : 'caballero';
   
   card.innerHTML = `
     <div class="imagen-zoom">
