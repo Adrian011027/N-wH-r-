@@ -38,6 +38,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData(form);
     const productoId = formData.get('id');
 
+    // AGREGAR IMÁGENES NUEVAS AL FORMDATA
+    // Las imágenes nuevas están en window.galleryManager.newImages
+    if (window.galleryManager && window.galleryManager.newImages && window.galleryManager.newImages.length > 0) {
+      console.log('[FORM] Agregando ' + window.galleryManager.newImages.length + ' imágenes nuevas al FormData');
+      // Agregar cada imagen como un archivo separado al FormData
+      // Usando el nombre 'imagen_galeria_upload' para ser compatible con el backend
+      window.galleryManager.newImages.forEach((imgData, index) => {
+        formData.append('imagen_galeria_upload', imgData.file);
+        console.log('[FORM] Imagen ' + (index + 1) + ' agregada: ' + imgData.file.name);
+      });
+    }
+
+    // AGREGAR IMÁGENES A ELIMINAR AL FORMDATA JSON
+    if (window.galleryManager && window.galleryManager.imagesToDelete && window.galleryManager.imagesToDelete.size > 0) {
+      console.log('[FORM] Imágenes a eliminar: ' + Array.from(window.galleryManager.imagesToDelete).join(','));
+      formData.append('imagenes_a_eliminar', JSON.stringify(Array.from(window.galleryManager.imagesToDelete)));
+    }
+
+    // AGREGAR IMÁGENES DE VARIANTES AL FORMDATA
+    if (window.variantGalleries) {
+      console.log('[FORM] Procesando imágenes de variantes...');
+      console.log('[FORM] window.variantGalleries:', window.variantGalleries);
+      
+      for (const varianteId in window.variantGalleries) {
+        const gallery = window.variantGalleries[varianteId];
+        console.log(`[FORM] Variante ${varianteId}:`, gallery);
+        
+        // Agregar imágenes nuevas de esta variante
+        if (gallery.newImages && gallery.newImages.length > 0) {
+          console.log(`[FORM] Variante ${varianteId}: agregando ${gallery.newImages.length} imagen(es)`);
+          gallery.newImages.forEach((imgData, idx) => {
+            const fieldName = `variante_imagen_${varianteId}_${idx}`;
+            formData.append(fieldName, imgData.file);
+            console.log(`[FORM] Campo agregado: ${fieldName}`);
+          });
+        }
+        
+        // Agregar IDs de imágenes a eliminar de esta variante
+        if (gallery.imagesToDelete && gallery.imagesToDelete.size > 0) {
+          const deleteIds = Array.from(gallery.imagesToDelete);
+          console.log(`[FORM] Variante ${varianteId}: marcando ${deleteIds.length} imagen(es) para eliminar`);
+          console.log(`[FORM] IDs a eliminar:`, deleteIds);
+          formData.append(`variante_imagenes_a_eliminar_${varianteId}`, JSON.stringify(deleteIds));
+        } else {
+          console.log(`[FORM] Variante ${varianteId}: sin imágenes para eliminar`);
+        }
+      }
+    } else {
+      console.log('[FORM] window.variantGalleries no existe');
+    }
+
     try {
       /* 1. Actualiza el producto principal ----------------------- */
       const resProd = await authFetch(`/api/productos/update/${productoId}/`, {
@@ -46,7 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const dataProd = await resProd.json();
-      if (!resProd.ok) throw new Error(dataProd.error || 'Error al actualizar producto');
+      if (!resProd.ok) {
+        console.error('[ERROR] Respuesta del servidor:', dataProd);
+        throw new Error(dataProd.error || 'Error al actualizar producto');
+      }
 
       /* 2. Actualiza cada variante ------------------------------- */
       const variantes = form.querySelectorAll('input[name="variante_id"]');
@@ -59,13 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const talla = form.querySelector(`[name="variante_talla_${vId}"]`)?.value;
         const color = form.querySelector(`[name="variante_color_${vId}"]`)?.value;
 
-        await authFetch(`/api/variantes/update/${vId}/`, {
+        const varRes = await authFetch(`/api/variantes/update/${vId}/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: new URLSearchParams({ stock, precio, precio_mayorista, talla, color })
         });
+        
+        if (!varRes.ok) {
+          console.error(`[ERROR] Error actualizando variante ${vId}:`, await varRes.json());
+        }
       }
 
       /* 3. Mensaje de éxito */
@@ -74,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
       toast('Producto actualizado correctamente', 'success');
 
     } catch (err) {
+      console.error('[ERROR COMPLETO]', err);
       mensaje.className = 'form-message error';
       mensaje.textContent = '❌ ' + err.message;
       toast(err.message, 'error');

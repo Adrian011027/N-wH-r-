@@ -5,21 +5,22 @@
 .cliente-panel {
   position: fixed;
   top: 0;
-  right: -100%;
+  right: 0;
   width: 100%;
   max-width: 450px;
   height: 100%;
   background: #fff;
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 500;
-  transition: right 0.4s ease;
+  z-index: 999;
+  transition: transform 0.4s ease;
+  transform: translateX(100%);
   padding: 60px;
   overflow-y: auto;
   font-family: 'Arial', sans-serif;
 }
 
-.cliente-panel.active {
-  right: 0;
+.cliente-panel.open {
+  transform: none;
 }
 
 /* Header del panel - mismo estilo que wishlist */

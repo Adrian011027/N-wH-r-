@@ -1,4 +1,5 @@
 from django.urls import path
+from django.shortcuts import redirect as _redirect
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -84,6 +85,9 @@ from .views.search import (
     search_products, get_filter_options, search_page
 )
 
+# ─────────── Filtros Dinámicos ───────────
+from .views.api_filtros import get_filtros_disponibles
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -117,6 +121,7 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
+    path("api/filtros-disponibles/",   get_filtros_disponibles, name="filtros_disponibles"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
@@ -125,7 +130,7 @@ urlpatterns = [
     path("api/auth/verify/",  auth.verify_token,   name="api_verify_token"),
     
     # Auth antiguo (compatibilidad)
-    path("auth/login_user/",   login_user,    name="login_user"),
+    path("auth/login_user/",   login_user,    name="auth_login_user"),
     path("auth/login_client/", login_client,  name="login_client"),
     path("auth/refresh/",      refresh_token, name="refresh_token"),
     path("auth/logout_client/", logout_client, name="logout_client"),   
@@ -220,6 +225,7 @@ urlpatterns = [
     path("api/orden/<int:carrito_id>/ticket/email/",    enviar_ticket_email,    name="enviar_ticket_email"),
 
        # ---------- Dashboard ----------
+    path("dashboard/", lambda r: _redirect("login_user"), name="dashboard_home"),
     path("dashboard/login/",                     login_user_page,           name="login_user"),
     path("dashboard/productos/",                 lista_productos,      name="dashboard_productos"),
     path("dashboard/productos/crear/",           alta,                 name="dashboard_alta"),
@@ -233,3 +239,11 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Catch-all para mostrar 404 personalizado incluso en modo DEBUG
+# Esta ruta debe estar al final para capturar cualquier URL no encontrada
+from .views.error_handlers import custom_404
+
+urlpatterns += [
+    path('<path:undefined_path>', custom_404, name='catch_all_404'),
+]
