@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupVariantGallery(galleryEl, varianteId) {
     const fileInput = galleryEl.querySelector('.var-image-input');
-    const uploadArea = galleryEl.querySelector('.var-upload-placeholder');
+    const uploadArea = galleryEl.querySelector('.var-upload-area');
     const thumbsContainer = galleryEl.querySelector('.var-thumbnails');
     const countSpan = galleryEl.querySelector('.var-img-count');
     const MAX_IMAGES = 5;
@@ -48,7 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Drag and drop
     if (uploadArea) {
       uploadArea.addEventListener('click', () => {
-        if (fileInput) fileInput.click();
+        console.log(`[Variante ${varianteId}] Click en área de upload, intentando abrir file input`);
+        if (fileInput) {
+          fileInput.click();
+        } else {
+          console.error(`[Variante ${varianteId}] fileInput no encontrado`);
+        }
       });
       
       uploadArea.addEventListener('dragover', (e) => {
@@ -69,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`[Variante ${varianteId}] Archivos por drag-drop:`, e.dataTransfer.files.length);
         handleFileSelection(e.dataTransfer.files, varianteId, galleryEl);
       });
+    } else {
+      console.error(`[Variante ${varianteId}] uploadArea no encontrada`);
     }
 
     // Event delegado para botones de eliminar
@@ -76,20 +83,32 @@ document.addEventListener('DOMContentLoaded', () => {
       thumbsContainer.addEventListener('click', (e) => {
         if (e.target.closest('.btn-delete-var-img')) {
           e.preventDefault();
+          e.stopPropagation();
           const btn = e.target.closest('.btn-delete-var-img');
           const imageId = btn.dataset.imageId;
           const thumbItem = btn.closest('.var-thumb-item');
 
+          console.log(`[Variante ${varianteId}] Click en eliminar imagen, ID:`, imageId);
+
           if (imageId) {
             // Imagen existente - marcar para eliminar
-            window.variantGalleries[varianteId].imagesToDelete.add(imageId);
+            const imageIdNum = parseInt(imageId);
+            console.log(`[Variante ${varianteId}] Marcando imagen ${imageIdNum} para eliminar`);
+            window.variantGalleries[varianteId].imagesToDelete.add(imageIdNum);
+            console.log(`[Variante ${varianteId}] IDs a eliminar:`, Array.from(window.variantGalleries[varianteId].imagesToDelete));
+            
+            // Marcar visualmente
             thumbItem.style.opacity = '0.5';
+            thumbItem.style.filter = 'grayscale(100%)';
             btn.disabled = true;
+            btn.style.cursor = 'not-allowed';
             toast(`Imagen marcada para eliminar`, 'warning');
           } else {
             // Imagen nueva - simplemente quitar del array
-            const idx = Array.from(thumbsContainer.querySelectorAll('.var-thumb-item')).indexOf(thumbItem);
-            if (idx >= 0) {
+            const allNewThumbs = thumbsContainer.querySelectorAll('.var-thumb-item:not([data-image-id])');
+            const idx = Array.from(allNewThumbs).indexOf(thumbItem);
+            console.log(`[Variante ${varianteId}] Eliminando imagen nueva en índice ${idx}`);
+            if (idx >= 0 && idx < window.variantGalleries[varianteId].newImages.length) {
               window.variantGalleries[varianteId].newImages.splice(idx, 1);
               updateVariantGalleryUI(galleryEl, varianteId);
             }
@@ -181,11 +200,25 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateImageCount(galleryEl, varianteId) {
     const gallery = window.variantGalleries[varianteId];
     const countSpan = galleryEl.querySelector('.var-img-count');
-    const existingCount = galleryEl.querySelectorAll('.var-thumb-item[data-image-id]').length;
+    
+    // Contar imágenes existentes que NO están marcadas para eliminar
+    const allExisting = galleryEl.querySelectorAll('.var-thumb-item[data-image-id]');
+    let existingCount = 0;
+    allExisting.forEach(item => {
+      const imgId = parseInt(item.dataset.imageId);
+      if (!gallery.imagesToDelete.has(imgId)) {
+        existingCount++;
+      }
+    });
+    
     const newCount = gallery.newImages.length;
     const totalCount = existingCount + newCount;
     
-    countSpan.textContent = `${totalCount}/5`;
+    console.log(`[Variante ${varianteId}] Conteo: ${existingCount} existentes + ${newCount} nuevas = ${totalCount} total`);
+    
+    if (countSpan) {
+      countSpan.textContent = `${totalCount}/5`;
+    }
   }
 
   // Interceptar el submit del formulario para incluir datos de variantes

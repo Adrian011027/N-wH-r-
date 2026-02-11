@@ -372,3 +372,4 @@ Traceback (most recent call last):
   File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\sql\query.py", line 1805, in names_to_path
     raise FieldError(
 django.core.exceptions.FieldError: Cannot resolve keyword 'email' into field. Choices are: id, password, role, username
+ERROR 2026-02-11 00:55:09 log 24732 12848 Internal Server Error: /api/productos/update/41/
