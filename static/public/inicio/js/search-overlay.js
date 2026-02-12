@@ -238,7 +238,7 @@ class SearchOverlay {
   }
   
   createProductCard(producto, index) {
-    const genero = producto.genero?.toLowerCase() === 'm' ? 'dama' : 'caballero';
+    const genero = producto.genero?.toLowerCase() === 'mujer' ? 'dama' : 'caballero';
     const link = `/producto/${producto.id}/?from=${genero}`;
     
     const card = document.createElement('a');

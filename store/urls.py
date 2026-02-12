@@ -84,6 +84,11 @@ from .views.search import (
     search_products, get_filter_options, search_page
 )
 
+# ─────────── API Filtros Disponibles ───────────
+from .views.api_filtros import (
+    get_filtros_disponibles, get_productos_filtrados
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -117,6 +122,8 @@ urlpatterns = [
     path("api/subcategorias-por-categoria/<int:categoria_id>/", get_subcategorias_por_categoria, name="get_subcategorias_por_categoria"),
     path("api/search/",                search_products,     name="search_products"),
     path("api/search/filters/",        get_filter_options,  name="filter_options"),
+    path("api/filtros-disponibles/",   get_filtros_disponibles, name="filtros_disponibles"),
+    path("api/productos-filtrados/",   get_productos_filtrados, name="productos_filtrados"),
 
     # ---------- Auth (JWT) ----------
     path("api/auth/login/",   auth.login,          name="api_login"),
