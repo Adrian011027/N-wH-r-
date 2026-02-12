@@ -912,9 +912,18 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const isLogged  = !!localStorage.getItem("access");
   const userId    = localStorage.getItem("user_id");
+  const role      = localStorage.getItem("role");
   const btnLogin  = document.getElementById("btn-login");
   const btnUser   = document.getElementById("btn-user-menu");
   const clientePanel = document.getElementById("cliente-panel");
+
+  // Si es un token de admin, no mostrar panel cliente en la pÃ¡gina pÃºblica
+  if (role === "admin" || role === "user") {
+    if (btnLogin) btnLogin.style.display = "inline-flex";
+    if (btnUser)  btnUser.style.display = "none";
+    btnLogin?.addEventListener("click", () => { mostrarLoginPanel(); });
+    return;
+  }
 
   if (isLogged && userId) {
     // mostrar botón de usuario, ocultar login

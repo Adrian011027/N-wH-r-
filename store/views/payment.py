@@ -661,21 +661,36 @@ def crear_checkout_conekta(request):
         
         # Calcular items y total
         logger.info("Procesando items del carrito...")
+        
+        # AQUÍ: Calcular si aplica mayoreo (surtido a partir de 6 piezas)
+        carrito_items = list(carrito.items.select_related('variante__producto').all())
+        total_piezas = sum(cp.cantidad for cp in carrito_items)
+        aplicar_mayoreo = total_piezas >= 6
+        logger.info(f"[MAYOREO] Total piezas: {total_piezas} | ¿Aplicar mayoreo?: {aplicar_mayoreo}")
+        
         line_items = []
         total_centavos = 0
         items_count = 0
         
-        for cp in carrito.items.select_related('variante__producto').all():
+        for cp in carrito_items:
             items_count += 1
             variante = cp.variante
             producto = variante.producto
-            precio = variante.precio if variante.precio else producto.precio
             
-            precio_en_centavos = int(float(precio) * 100)
+            # Aplicar la misma lógica de mayoreo que en carrito.py
+            if aplicar_mayoreo:
+                precio = float(
+                    variante.precio_mayorista if variante.precio_mayorista > 0 
+                    else producto.precio_mayorista
+                )
+            else:
+                precio = float(variante.precio if variante.precio else producto.precio)
+            
+            precio_en_centavos = int(precio * 100)
             subtotal = precio_en_centavos * cp.cantidad
             total_centavos += subtotal
             
-            logger.debug(f"  Item #{items_count}: {producto.nombre} | Qty: {cp.cantidad} | Precio: {precio} MXN | Subtotal: {subtotal} centavos")
+            logger.debug(f"  Item #{items_count}: {producto.nombre} | Qty: {cp.cantidad} | Precio: ${precio} MXN | Subtotal: {subtotal} centavos | Mayoreo: {aplicar_mayoreo}")
             
             line_items.append({
                 "name": f"{producto.nombre}",

@@ -2999,3 +2999,428 @@ DETAIL:  Failing row contains (6, 3000.00, pendiente_pago, conekta, 2026-01-13 0
 [INFO] 2026-01-17 18:05:20 - conekta_payments - crear_checkout_conekta:806 - [OK] Carrito #17 vaciado correctamente
 [INFO] 2026-01-17 18:05:20 - conekta_payments - crear_checkout_conekta:812 - ================================================================================
 
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:629 - 
+================================================================================
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:630 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:631 - ================================================================================
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:634 - Parseando JSON del body...
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:637 - [OK] Body parseado | carrito_id: 19
+[INFO] 2026-01-22 14:43:59 - conekta_payments - crear_checkout_conekta:647 - Buscando carrito #19...
+[INFO] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:649 - [OK] Carrito encontrado
+[INFO] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:660 - [OK] Cliente: reyesjonathan945 (reyesjonathan945@gmail.com)
+[INFO] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:663 - Procesando items del carrito...
+[DEBUG] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:678 -   Item #1: Nike Air | Qty: 3 | Precio: 600.00 MXN | Subtotal: 180000 centavos
+[DEBUG] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:678 -   Item #2: Jimmy Choo | Qty: 3 | Precio: 14000.00 MXN | Subtotal: 4200000 centavos
+[INFO] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:688 - [OK] Procesamiento completado: 2 items | Total: 43800.0 MXN
+[INFO] 2026-01-22 14:44:00 - conekta_payments - crear_checkout_conekta:692 - URLs de redirección configuradas:
+[DEBUG] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:693 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=19
+[DEBUG] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:694 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=19
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:697 - Construyendo payload para Conekta...
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:723 - Payload construido:
+[DEBUG] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:724 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Nike Air",
+      "description": "Talla: 26, Color: Azul",
+      "unit_price": 60000,
+      "quantity": 3,
+      "sku": "VAR-30"
+    },
+    {
+      "name": "Jimmy Choo",
+      "description": "Talla: 23, Color: Negro",
+      "unit_price": 1400000,
+      "quantity": 3,
+      "sku": "VAR-35"
+    }
+  ],
+  "customer_info": {
+    "name": "Juan Perez",
+    "email": "reyesjonathan945@gmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "19",
+    "cliente_id": "19",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:726 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:727 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:743 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:744 - Response Body (primeros 1000 chars): {"livemode":false,"amount":4380000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"reyesjonathan945@gmail.com","phone":"+5200000000000","name":"Juan Perez","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"0c74c323-c739-4625-b119-183d38b0d29d","checkout_request_type":"Integration","id":"channel_2zQyHWDjZ4yBo9kf7"},"checkout":{"id":"0c74c323-c739-4625-b119-183d38b0d29d","name":"ord-2zQyHWDjZ4yBo9kf5","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1769061600,"expires_at":1769320799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"o
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:764 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:765 -   - Order ID: ord_2zQyHWDjZ4yBo9kf5
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:766 -   - Checkout ID: 0c74c323-c739-4625-b119-183d38b0d29d
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:767 -   - Checkout Status: Issued
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:768 -   - Amount: 4380000 centavos (43800.0 MXN)
+[DEBUG] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:769 -   - Full Checkout Object: {
+  "id": "0c74c323-c739-4625-b119-183d38b0d29d",
+  "name": "ord-2zQyHWDjZ4yBo9kf5",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1769061600,
+  "expires_at": 1769320799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:776 - Creando nueva orden local para carrito 19...
+[INFO] 2026-01-22 14:44:01 - conekta_payments - crear_checkout_conekta:786 - [OK] Orden #10 creada exitosamente
+[INFO] 2026-01-22 14:44:02 - conekta_payments - crear_checkout_conekta:800 - [OK] Detalles de orden guardados exitosamente
+[INFO] 2026-01-22 14:44:02 - conekta_payments - crear_checkout_conekta:806 - [OK] Carrito #19 vaciado correctamente
+[INFO] 2026-01-22 14:44:02 - conekta_payments - crear_checkout_conekta:812 - ================================================================================
+
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:629 - 
+================================================================================
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:630 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:631 - ================================================================================
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:634 - Parseando JSON del body...
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:637 - [OK] Body parseado | carrito_id: 20
+[INFO] 2026-01-22 14:47:51 - conekta_payments - crear_checkout_conekta:647 - Buscando carrito #20...
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:649 - [OK] Carrito encontrado
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:660 - [OK] Cliente: reyesjonathan945 (reyesjonathan945@gmail.com)
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:663 - Procesando items del carrito...
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:678 -   Item #1: Alexander McQueen | Qty: 6 | Precio: 1500.00 MXN | Subtotal: 900000 centavos
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:688 - [OK] Procesamiento completado: 1 items | Total: 9000.0 MXN
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:692 - URLs de redirección configuradas:
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:693 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=20
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:694 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=20
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:697 - Construyendo payload para Conekta...
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:723 - Payload construido:
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:724 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Alexander McQueen",
+      "description": "Talla: 24, Color: negro",
+      "unit_price": 150000,
+      "quantity": 6,
+      "sku": "VAR-34"
+    }
+  ],
+  "customer_info": {
+    "name": "Juan Perez",
+    "email": "reyesjonathan945@gmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "20",
+    "cliente_id": "19",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:726 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:727 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:743 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:744 - Response Body (primeros 1000 chars): {"livemode":false,"amount":900000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"reyesjonathan945@gmail.com","phone":"+5200000000000","name":"Juan Perez","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"1853edce-b94d-4770-bfca-7c534dd87c3c","checkout_request_type":"Integration","id":"channel_2zQyLSkzq813AxShj"},"checkout":{"id":"1853edce-b94d-4770-bfca-7c534dd87c3c","name":"ord-2zQyLSkzq813AxShi","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1769061600,"expires_at":1769320799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"or
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:764 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:765 -   - Order ID: ord_2zQyLSkzq813AxShi
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:766 -   - Checkout ID: 1853edce-b94d-4770-bfca-7c534dd87c3c
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:767 -   - Checkout Status: Issued
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:768 -   - Amount: 900000 centavos (9000.0 MXN)
+[DEBUG] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:769 -   - Full Checkout Object: {
+  "id": "1853edce-b94d-4770-bfca-7c534dd87c3c",
+  "name": "ord-2zQyLSkzq813AxShi",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1769061600,
+  "expires_at": 1769320799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:776 - Creando nueva orden local para carrito 20...
+[INFO] 2026-01-22 14:47:52 - conekta_payments - crear_checkout_conekta:786 - [OK] Orden #11 creada exitosamente
+[INFO] 2026-01-22 14:47:53 - conekta_payments - crear_checkout_conekta:800 - [OK] Detalles de orden guardados exitosamente
+[INFO] 2026-01-22 14:47:53 - conekta_payments - crear_checkout_conekta:806 - [OK] Carrito #20 vaciado correctamente
+[INFO] 2026-01-22 14:47:53 - conekta_payments - crear_checkout_conekta:812 - ================================================================================
+
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:629 - 
+================================================================================
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:630 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:631 - ================================================================================
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:634 - Parseando JSON del body...
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:637 - [OK] Body parseado | carrito_id: 21
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:647 - Buscando carrito #21...
+[INFO] 2026-01-22 14:48:42 - conekta_payments - crear_checkout_conekta:649 - [OK] Carrito encontrado
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:660 - [OK] Cliente: reyesjonathan945 (reyesjonathan945@gmail.com)
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:663 - Procesando items del carrito...
+[DEBUG] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:678 -   Item #1: Alexander McQueen | Qty: 6 | Precio: 1500.00 MXN | Subtotal: 900000 centavos
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:688 - [OK] Procesamiento completado: 1 items | Total: 9000.0 MXN
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:692 - URLs de redirección configuradas:
+[DEBUG] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:693 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=21
+[DEBUG] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:694 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=21
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:697 - Construyendo payload para Conekta...
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:723 - Payload construido:
+[DEBUG] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:724 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Alexander McQueen",
+      "description": "Talla: 24, Color: negro",
+      "unit_price": 150000,
+      "quantity": 6,
+      "sku": "VAR-34"
+    }
+  ],
+  "customer_info": {
+    "name": "Juan Perez",
+    "email": "reyesjonathan945@gmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "21",
+    "cliente_id": "19",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:726 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-22 14:48:43 - conekta_payments - crear_checkout_conekta:727 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:743 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:744 - Response Body (primeros 1000 chars): {"livemode":false,"amount":900000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"reyesjonathan945@gmail.com","phone":"+5200000000000","name":"Juan Perez","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"430cc054-fba1-4c73-876f-f40f7bed726e","checkout_request_type":"Integration","id":"channel_2zQyM7ej18u1CRDpP"},"checkout":{"id":"430cc054-fba1-4c73-876f-f40f7bed726e","name":"ord-2zQyM7ej18u1CRDpN","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1769061600,"expires_at":1769320799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"or
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:764 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:765 -   - Order ID: ord_2zQyM7ej18u1CRDpN
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:766 -   - Checkout ID: 430cc054-fba1-4c73-876f-f40f7bed726e
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:767 -   - Checkout Status: Issued
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:768 -   - Amount: 900000 centavos (9000.0 MXN)
+[DEBUG] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:769 -   - Full Checkout Object: {
+  "id": "430cc054-fba1-4c73-876f-f40f7bed726e",
+  "name": "ord-2zQyM7ej18u1CRDpN",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1769061600,
+  "expires_at": 1769320799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:776 - Creando nueva orden local para carrito 21...
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:786 - [OK] Orden #12 creada exitosamente
+[INFO] 2026-01-22 14:48:44 - conekta_payments - crear_checkout_conekta:800 - [OK] Detalles de orden guardados exitosamente
+[INFO] 2026-01-22 14:48:45 - conekta_payments - crear_checkout_conekta:806 - [OK] Carrito #21 vaciado correctamente
+[INFO] 2026-01-22 14:48:45 - conekta_payments - crear_checkout_conekta:812 - ================================================================================
+
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:629 - 
+================================================================================
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:630 - [CREAR_CHECKOUT_CONEKTA] INICIANDO
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:631 - ================================================================================
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:634 - Parseando JSON del body...
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:637 - [OK] Body parseado | carrito_id: 22
+[INFO] 2026-01-22 14:53:57 - conekta_payments - crear_checkout_conekta:647 - Buscando carrito #22...
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:649 - [OK] Carrito encontrado
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:660 - [OK] Cliente: reyesjonathan945 (reyesjonathan945@gmail.com)
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:663 - Procesando items del carrito...
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:669 - [MAYOREO] Total piezas: 6 | ¿Aplicar mayoreo?: True
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:693 -   Item #1: Alexander McQueen | Qty: 6 | Precio: $750.0 MXN | Subtotal: 450000 centavos | Mayoreo: True
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:703 - [OK] Procesamiento completado: 1 items | Total: 4500.0 MXN
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:707 - URLs de redirección configuradas:
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:708 -   - Éxito: http://127.0.0.1:8000/pago/exitoso/?carrito=22
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:709 -   - Fallo: http://127.0.0.1:8000/pago/cancelado/?carrito=22
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:712 - Construyendo payload para Conekta...
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:738 - Payload construido:
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:739 -   Payload completo: {
+  "currency": "MXN",
+  "line_items": [
+    {
+      "name": "Alexander McQueen",
+      "description": "Talla: 24, Color: negro",
+      "unit_price": 75000,
+      "quantity": 6,
+      "sku": "VAR-34"
+    }
+  ],
+  "customer_info": {
+    "name": "Juan Perez",
+    "email": "reyesjonathan945@gmail.com",
+    "phone": "+5200000000000"
+  },
+  "checkout": {
+    "allowed_payment_methods": [
+      "card",
+      "cash",
+      "bank_transfer"
+    ],
+    "monthly_installments_enabled": true,
+    "monthly_installments_options": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "needs_shipping_contact": false
+  },
+  "metadata": {
+    "carrito_id": "22",
+    "cliente_id": "19",
+    "source": "django_ecommerce"
+  }
+}
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:741 - Enviando petición POST a Conekta API...
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:742 -   Endpoint: https://api.conekta.io/orders
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:758 - Respuesta Conekta - Status HTTP: 200
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:759 - Response Body (primeros 1000 chars): {"livemode":false,"amount":450000,"currency":"MXN","amount_refunded":0,"customer_info":{"email":"reyesjonathan945@gmail.com","phone":"+5200000000000","name":"Juan Perez","object":"customer_info"},"channel":{"segment":"Checkout","checkout_request_id":"cf8b2b20-2eac-4050-bad4-54fab6be55f6","checkout_request_type":"Integration","id":"channel_2zQyR7LnzyEyjBmaK"},"checkout":{"id":"cf8b2b20-2eac-4050-bad4-54fab6be55f6","name":"ord-2zQyR7LnzyEyjBmaJ","livemode":false,"emails_sent":0,"success_url":"","failure_url":"","paid_payments_count":0,"sms_sent":0,"status":"Issued","type":"Integration","recurrent":false,"starts_at":1769061600,"expires_at":1769320799,"allowed_payment_methods":["card","cash","bank_transfer"],"exclude_card_networks":[],"needs_shipping_contact":false,"monthly_installments_options":[3,6,9,12],"monthly_installments_enabled":true,"force_3ds_flow":false,"metadata":{},"can_not_expire":false,"object":"checkout","is_redirect_on_failure":false,"on_demand_enabled":false},"object":"or
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:779 - [SUCCESS] ORDEN CREADA EXITOSAMENTE EN CONEKTA:
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:780 -   - Order ID: ord_2zQyR7LnzyEyjBmaJ
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:781 -   - Checkout ID: cf8b2b20-2eac-4050-bad4-54fab6be55f6
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:782 -   - Checkout Status: Issued
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:783 -   - Amount: 450000 centavos (4500.0 MXN)
+[DEBUG] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:784 -   - Full Checkout Object: {
+  "id": "cf8b2b20-2eac-4050-bad4-54fab6be55f6",
+  "name": "ord-2zQyR7LnzyEyjBmaJ",
+  "livemode": false,
+  "emails_sent": 0,
+  "success_url": "",
+  "failure_url": "",
+  "paid_payments_count": 0,
+  "sms_sent": 0,
+  "status": "Issued",
+  "type": "Integration",
+  "recurrent": false,
+  "starts_at": 1769061600,
+  "expires_at": 1769320799,
+  "allowed_payment_methods": [
+    "card",
+    "cash",
+    "bank_transfer"
+  ],
+  "exclude_card_networks": [],
+  "needs_shipping_contact": false,
+  "monthly_installments_options": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "monthly_installments_enabled": true,
+  "force_3ds_flow": false,
+  "metadata": {},
+  "can_not_expire": false,
+  "object": "checkout",
+  "is_redirect_on_failure": false,
+  "on_demand_enabled": false
+}
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:791 - Creando nueva orden local para carrito 22...
+[INFO] 2026-01-22 14:53:58 - conekta_payments - crear_checkout_conekta:801 - [OK] Orden #13 creada exitosamente
+[INFO] 2026-01-22 14:53:59 - conekta_payments - crear_checkout_conekta:815 - [OK] Detalles de orden guardados exitosamente
+[INFO] 2026-01-22 14:53:59 - conekta_payments - crear_checkout_conekta:821 - [OK] Carrito #22 vaciado correctamente
+[INFO] 2026-01-22 14:53:59 - conekta_payments - crear_checkout_conekta:827 - ================================================================================
+

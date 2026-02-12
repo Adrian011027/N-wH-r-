@@ -7,12 +7,23 @@ from django.http import JsonResponse
 from django.conf import settings
 
 
-def custom_404(request, exception=None):
+def custom_404(request, exception=None, undefined_path=None):
     """
     Vista personalizada para manejar errores 404
     No expone las rutas disponibles por razones de seguridad
+    
+    Esta vista puede ser llamada de dos formas:
+    1. Como handler404 por Django (recibe exception)
+    2. Como vista catch-all en urls.py (recibe undefined_path)
     """
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.path.startswith('/api/'):
+    # Determinar si es una petición AJAX o de API
+    is_api_request = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or 
+        request.headers.get('Accept', '').startswith('application/json') or
+        request.path.startswith('/api/')
+    )
+    
+    if is_api_request:
         return JsonResponse({
             'error': 'No encontrado',
             'status': 404,

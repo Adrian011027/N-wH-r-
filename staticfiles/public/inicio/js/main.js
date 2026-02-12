@@ -66,31 +66,35 @@ document.addEventListener('click', async e => {
 });
 
 /* —— Validar sesión y alternar login/cliente —— */
+function mostrarBotonesLogin() {
+  const btnLogin = document.getElementById("btn-login");
+  const btnUser  = document.getElementById("btn-user-menu");
+  if (btnLogin) btnLogin.style.display = "inline-flex";
+  if (btnUser)  btnUser.style.display = "none";
+}
+
 async function validarSesion() {
   const access = localStorage.getItem("access");
-  const loginPanel   = document.getElementById("login-panel");
-  const clientePanel = document.getElementById("cliente-panel");
+  const role   = localStorage.getItem("role");
 
-  if (!access) {
-    loginPanel.style.display = "block";
-    clientePanel.style.display = "none";
-    return;
-  }
+  // Sin token → nada que validar
+  if (!access) return;
+
+  // Si el JWT es de admin, no validar contra /clientes/
+  if (role === "admin" || role === "user") return;
+
+  // Solo validar tokens de cliente
+  if (!USER_ID) return;
 
   try {
-    // Use fetchGet helper which automatically adds JWT token
-    const res = await fetchGet(`/clientes/${USER_ID || 33}`);
-
+    const res = await fetchGet(`/clientes/${USER_ID}/`);
     if (!res.ok) throw new Error("Token inválido");
     const data = await res.json();
-
-    loginPanel.style.display = "none";
-    clientePanel.style.display = "block";
     document.getElementById("cliente-username").textContent = data.username || "";
   } catch {
+    // Token inválido: limpiar y revertir UI
     localStorage.clear();
-    loginPanel.style.display = "block";
-    clientePanel.style.display = "none";
+    mostrarBotonesLogin();
   }
 }
 document.addEventListener("DOMContentLoaded", validarSesion);
