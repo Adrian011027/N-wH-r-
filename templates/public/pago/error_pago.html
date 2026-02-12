@@ -19,7 +19,7 @@
     
     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
         {% if carrito %}
-        <a href="{% url 'formulario_pago_conekta' carrito.id %}" 
+        <a href="{% url 'formulario_pago_stripe' carrito.id %}" 
            style="background: #2563eb; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none;">
             🔄 Reintentar pago
         </a>

@@ -60,11 +60,11 @@ from .views.orden import (
     get_all_ordenes, cambiar_estado_orden, get_ordenes_cliente
 )
 
-# ─────────── Pago (Conekta) ───────────
+# ─────────── Pago (Stripe) ───────────
 from .views.payment import (
-    mostrar_formulario_pago_conekta, procesar_pago_conekta, webhook_conekta,
-    pago_exitoso, pago_cancelado, crear_checkout_conekta, verificar_orden_creada,
-    sincronizar_orden_conekta
+    mostrar_formulario_pago_stripe, webhook_stripe,
+    pago_exitoso, pago_cancelado, crear_checkout_stripe, verificar_orden_creada,
+    sincronizar_orden_stripe, session_status
 )
 
 # ─────────── Subcategorías ───────────
@@ -213,15 +213,15 @@ urlpatterns = [
     # ---------- API Órdenes (Cliente) ----------
     path("api/cliente/ordenes/",                       get_ordenes_cliente,  name="api_get_ordenes_cliente"),
     
-    # ---------- Pago con Conekta ----------
-    path("pago/crear-checkout/",                     crear_checkout_conekta,          name="crear_checkout_conekta"),
-    path("pago/formulario/<int:carrito_id>/",          mostrar_formulario_pago_conekta, name="formulario_pago_conekta"),
-    path("pago/procesar/",                             procesar_pago_conekta,           name="procesar_pago_conekta"),
-    path("pago/webhook/conekta/",                      webhook_conekta,                 name="webhook_conekta"),
-    path("pago/verificar-orden/",                      verificar_orden_creada,          name="verificar_orden_creada"),
-    path("pago/sincronizar/",                          sincronizar_orden_conekta,       name="sincronizar_orden_conekta"),
-    path("pago/exitoso/",                              pago_exitoso,                    name="pago_exitoso"),
-    path("pago/cancelado/",                            pago_cancelado,                  name="pago_cancelado"),
+    # ---------- Pago con Stripe ----------
+    path("pago/crear-checkout/",                     crear_checkout_stripe,            name="crear_checkout_stripe"),
+    path("pago/formulario/<int:carrito_id>/",          mostrar_formulario_pago_stripe,   name="formulario_pago_stripe"),
+    path("pago/webhook/stripe/",                       webhook_stripe,                   name="webhook_stripe"),
+    path("pago/verificar-orden/",                      verificar_orden_creada,           name="verificar_orden_creada"),
+    path("pago/sincronizar/",                          sincronizar_orden_stripe,         name="sincronizar_orden_stripe"),
+    path("pago/session-status/",                       session_status,                   name="session_status"),
+    path("pago/exitoso/",                              pago_exitoso,                     name="pago_exitoso"),
+    path("pago/cancelado/",                            pago_cancelado,                   name="pago_cancelado"),
     
     # ---------- Envío de Tickets ----------
     path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),

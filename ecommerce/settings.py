@@ -290,18 +290,13 @@ TWILIO_WHATSAPP_FROM  = config("TWILIO_WHATSAPP_FROM")
 TWILIO_ADMIN_PHONE    = config("TWILIO_ADMIN_PHONE")  # ← agrega esta variable al .env también
 
 
-# ───────── Configuración Conekta (Pasarela de Pago) ──────────
-# Llave privada (API Key) - para operaciones del servidor
-CONEKTA_API_KEY = config("CONEKTA_API_KEY", default="")
-# Llave pública - para el iframe del checkout en frontend
-CONEKTA_PUBLIC_KEY = config("CONEKTA_PUBLIC_KEY", default="")
-# Webhook secret para validar firmas
-CONEKTA_WEBHOOK_SECRET = config("CONEKTA_WEBHOOK_SECRET", default="")
-# Modo: sandbox o production
-CONEKTA_MODE = config("CONEKTA_MODE", default="sandbox")
-# URL de retorno después del pago (ajustar según tu dominio)
-CONEKTA_SUCCESS_URL = config("CONEKTA_SUCCESS_URL", default="http://127.0.0.1:8000/pago/exitoso/")
-CONEKTA_CANCEL_URL = config("CONEKTA_CANCEL_URL", default="http://127.0.0.1:8000/pago/cancelado/")
+# ───────── Configuración Stripe (Pasarela de Pago) ──────────
+# Llave secreta (Secret Key) - para operaciones del servidor
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY", default="")
+# Llave pública (Publishable Key) - para Stripe.js en frontend
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY", default="")
+# Webhook secret para validar firmas de eventos
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET", default="")
 
 
 # ───────── Configuración JWT ──────────
@@ -333,7 +328,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 
-# ───────── Configuración de Logging para Conekta ──────────
+# ───────── Configuración de Logging para Stripe ──────────
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -360,9 +355,9 @@ LOGGING = {
             'formatter': 'simple',
             'level': 'INFO',
         },
-        'conekta_file': {
+        'stripe_file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'conekta_payments.log'),
+            'filename': os.path.join(BASE_DIR, 'logs', 'stripe_payments.log'),
             'maxBytes': 1024 * 1024 * 10,  # 10 MB
             'backupCount': 5,
             'formatter': 'detailed',
@@ -386,8 +381,8 @@ LOGGING = {
         },
     },
     'loggers': {
-        'conekta_payments': {
-            'handlers': ['console', 'conekta_file', 'error_file'],
+        'stripe_payments': {
+            'handlers': ['console', 'stripe_file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
         },

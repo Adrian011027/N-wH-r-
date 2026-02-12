@@ -220,7 +220,7 @@
                 </div>
                 <div class="payment-info">
                   <span class="payment-name">Tarjeta de Crédito/Débito</span>
-                  <span class="payment-desc">Pago seguro con Conekta</span>
+                  <span class="payment-desc">Pago seguro con Stripe</span>
                 </div>
               </div>
             </label>
@@ -260,7 +260,7 @@
               </svg>
               Volver
             </button>
-            <a href="{% url 'formulario_pago_conekta' carrito.id %}" class="btn-pay" id="btn-proceed-payment">
+            <a href="{% url 'formulario_pago_stripe' carrito.id %}" class="btn-pay" id="btn-proceed-payment">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
