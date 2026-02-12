@@ -242,7 +242,7 @@ def _build_detalle_response(carrito):
         CarritoProducto.objects
         .filter(carrito=carrito)
         .select_related("variante__producto")
-        .prefetch_related("variante__producto__imagenes")
+        .prefetch_related("variante__producto__variantes__imagenes")
     )
 
     total_piezas    = sum(cp.cantidad for cp in qs)
@@ -258,8 +258,11 @@ def _build_detalle_response(carrito):
             float(var.precio if var.precio else prod.precio)
         )
         
-        # Galería de imágenes del producto
-        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        # Galería de imágenes de la variante principal del producto
+        variante_principal = prod.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
         
         items.append({
             "producto_id"    : prod.id,
@@ -487,7 +490,11 @@ def _carrito_to_template(carrito):
             if aplicar_mayoro else
             float(var.precio if var.precio else prod.precio)
         )
-        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        # Galería de imágenes de la variante principal del producto
+        variante_principal = prod.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
         items.append({
             "nombre"          : prod.nombre,
             "precio"          : precio_unit,
@@ -784,7 +791,11 @@ def mostrar_confirmacion_compra(request, carrito_id):
         var = it.variante
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
-        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        # Galería de imágenes de la variante principal del producto
+        variante_principal = prod.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
         imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
 
         items.append({
@@ -836,7 +847,11 @@ def mostrar_formulario_confirmacion(request, carrito_id):
         var = it.variante
         precio = float(var.precio if var.precio else prod.precio)
         subtotal = precio * it.cantidad
-        galeria = [img.imagen.url for img in prod.imagenes.all() if img.imagen]
+        # Galería de imágenes de la variante principal del producto
+        variante_principal = prod.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
         imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
 
         items.append({

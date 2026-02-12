@@ -202,8 +202,11 @@ def mostrar_formulario_pago_conekta(request, carrito_id):
             
             logger.debug(f"  Item {item_count}: {producto.nombre} | {variante.talla}-{variante.color} | Qty: {cp.cantidad} | Subtotal: {subtotal}")
             
-            # Obtener imagen
-            galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
+            # Obtener imagen de la variante principal
+            variante_principal = producto.variante_principal
+            galeria = []
+            if variante_principal:
+                galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
             imagen = galeria[0] if galeria else "/static/img/no-image.jpg"
             
             items_detalle.append({
