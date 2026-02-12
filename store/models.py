@@ -302,6 +302,15 @@ class ProductoImagen(models.Model):
         self._sync_to_first_variant()
     
     def delete(self, *args, **kwargs):
+        # ✅ IMPORTANTE: Eliminar el archivo físico ANTES de borrar el registro
+        # Esto evita que archivos huérfanos permanezcan en el servidor
+        # y previene colisiones de nombres cuando se reutilizan números de orden
+        if self.imagen:
+            try:
+                self.imagen.delete(save=False)
+            except Exception as e:
+                print(f"Error eliminando archivo físico de ProductoImagen: {e}")
+        
         # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
         if not kwargs.pop('_skip_sync', False):
             self._sync_delete_to_first_variant()
@@ -596,6 +605,15 @@ class VarianteImagen(models.Model):
         self._sync_to_producto()
     
     def delete(self, *args, **kwargs):
+        # ✅ IMPORTANTE: Eliminar el archivo físico ANTES de borrar el registro
+        # Esto evita que archivos huérfanos permanezcan en el servidor
+        # y previene colisiones de nombres cuando se reutilizan números de orden
+        if self.imagen:
+            try:
+                self.imagen.delete(save=False)
+            except Exception as e:
+                print(f"Error eliminando archivo físico de VarianteImagen: {e}")
+        
         # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
         if not kwargs.pop('_skip_sync', False):
             self._sync_delete_to_producto()

@@ -22,12 +22,12 @@ from .decorators import jwt_role_required, login_required_user, admin_required, 
 # ───────────────────────────────────────────────
 def index(request):
     # Productos Hombre (incluye Unisex)
-    qs_h = Producto.objects.filter(genero__in=["H", "U"], variantes__stock__gt=0) \
+    qs_h = Producto.objects.filter(genero__in=["Hombre", "Unisex"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
         .prefetch_related("imagenes")
     
     # Productos Mujer (incluye Unisex)
-    qs_m = Producto.objects.filter(genero__in=["M", "U"], variantes__stock__gt=0) \
+    qs_m = Producto.objects.filter(genero__in=["Mujer", "Unisex"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
         .prefetch_related("imagenes")
 
@@ -73,7 +73,7 @@ def genero_view(request, genero):
     from django.core.paginator import Paginator
     from django.db.models import Q
     
-    genero_map = {"dama": "M", "mujer": "M", "caballero": "H", "hombre": "H"}
+    genero_map = {"dama": "Mujer", "mujer": "Mujer", "caballero": "Hombre", "hombre": "Hombre"}
     genero_cod = genero_map.get(genero.lower())
     if not genero_cod:
         return HttpResponseNotFound("Género no válido")
@@ -102,7 +102,7 @@ def genero_view(request, genero):
     pagina = request.GET.get('pagina', 1)
 
     # Base query: productos del género (+ Unisex)
-    qs = Producto.objects.filter(genero__in=[genero_cod, "U"]) \
+    qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"]) \
         .select_related("categoria").prefetch_related("subcategorias", "imagenes", "variantes")
     
     # Filtrar por categoría
@@ -300,8 +300,8 @@ def catalogo_view(request):
     
     # Filtrar por género desde params
     genero_map = {
-        'hombre': (['H', 'U'], 'caballero'),
-        'mujer': (['M', 'U'], 'dama'),
+        'hombre': (['Hombre', 'Unisex'], 'caballero'),
+        'mujer': (['Mujer', 'Unisex'], 'dama'),
     }
     if genero in genero_map:
         genero_filtro, seccion = genero_map[genero]

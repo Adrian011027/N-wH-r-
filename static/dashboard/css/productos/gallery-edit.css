@@ -52,7 +52,8 @@
 .thumbnail-item-edit img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Cambiado de 'cover' a 'contain' para ver la imagen completa sin recortar */
+  background: #f9fafb; /* Fondo gris claro para imágenes con transparencia */
 }
 
 .thumbnail-item-edit:hover {
@@ -191,11 +192,11 @@
   position: relative;
   border-radius: 6px;
   overflow: hidden;
-  background: white;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   transition: all 0.2s ease;
   cursor: pointer;
-  width: 120px;
+  width: 120px; /* Tamaño fijo para consistencia */
   height: 120px;
   flex-shrink: 0;
 }
@@ -203,7 +204,8 @@
 .var-thumb-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* Ver imagen completa sin recortar */
+  background: #f9fafb;
   display: block;
 }
 
