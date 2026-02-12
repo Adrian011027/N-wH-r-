@@ -59,7 +59,10 @@ def get_all_ordenes(request):
             for detalle in orden.detalles.all():
                 variante = detalle.variante
                 producto = variante.producto
-                galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
+                variante_principal = producto.variante_principal
+                galeria = []
+                if variante_principal:
+                    galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
                 
                 items.append({
                     'producto_id': producto.id,
@@ -282,7 +285,7 @@ def get_ordenes_cliente(request):
         ordenes = Orden.objects.filter(
             cliente_id=cliente_id
         ).select_related('cliente').prefetch_related(
-            'detalles__variante__producto__imagenes'
+            'detalles__variante__producto__variantes__imagenes'
         ).order_by('-created_at')
         
         data = []
@@ -291,7 +294,10 @@ def get_ordenes_cliente(request):
             for detalle in orden.detalles.all():
                 variante = detalle.variante
                 producto = variante.producto
-                galeria = [img.imagen.url for img in producto.imagenes.all() if img.imagen]
+                variante_principal = producto.variante_principal
+                galeria = []
+                if variante_principal:
+                    galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
                 
                 items.append({
                     'producto_id': producto.id,

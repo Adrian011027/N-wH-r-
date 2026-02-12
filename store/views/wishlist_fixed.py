@@ -88,8 +88,11 @@ def wishlist_detail(request, id_cliente):
             return JsonResponse({'productos': ids})
 
         productos = []
-        for p in Producto.objects.filter(id__in=ids).prefetch_related('imagenes'):
-            galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+        for p in Producto.objects.filter(id__in=ids).prefetch_related('variantes__imagenes'):
+            variante_principal = p.variante_principal
+            galeria = []
+            if variante_principal:
+                galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
             productos.append({
                 'id'    : p.id,
                 'nombre': p.nombre,
@@ -218,8 +221,12 @@ def productos_por_ids(request):
         return JsonResponse({'error': 'IDs inválidos'}, status=400)
 
     productos = []
-    for p in Producto.objects.filter(id__in=id_list).prefetch_related('imagenes'):
-        galeria = [img.imagen.url for img in p.imagenes.all().order_by('orden') if img.imagen]
+    for p in Producto.objects.filter(id__in=id_list).prefetch_related('variantes__imagenes'):
+        # Galería de imágenes de la variante principal
+        variante_principal = p.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all().order_by('orden') if img.imagen]
         # La imagen principal es siempre la primera de la galería
         imagen_principal = galeria[0] if galeria else None
         

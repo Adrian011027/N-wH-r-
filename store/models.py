@@ -7,19 +7,6 @@ import os
 # Funciones para upload_to callbacks
 # ——————————————————————————————————————
 
-def producto_imagen_upload_to(instance, filename):
-    """
-    Callback para generar la ruta de imágenes de galería de producto.
-    Formato: productos/prod-{id}-{slug}/imagen-{numero}.{ext}
-    """
-    if not instance.producto.id:
-        return f'productos/galeria/{filename}'
-    
-    ext = os.path.splitext(filename)[1].lower()
-    slug = slugify(instance.producto.nombre)[:40]
-    return f'productos/prod-{instance.producto.id}-{slug}/{filename}'
-
-
 def variante_imagen_upload_to(instance, filename):
     """
     Callback para generar la ruta de imágenes de galería de variante.
@@ -231,149 +218,18 @@ class Producto(models.Model):
         Útil para mostrar stock global de un producto con variantes.
         """
         return sum( var.stock for var in self.variantes.all() )
-
-
-class ProductoImagen(models.Model):
-    """
-    Galería de imágenes para el carrusel del producto.
-    Carrusel de máximo 5 imágenes por producto.
-    """
-    MAX_IMAGENES = 5
     
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='imagenes')
-    imagen = models.ImageField(upload_to=producto_imagen_upload_to)
-    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en el carrusel (1-5)")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['orden', 'created_at']
-        verbose_name = 'Imagen de Producto'
-        verbose_name_plural = 'Imágenes de Productos'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['producto', 'orden'],
-                name='unique_producto_imagen_orden'
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.producto.nombre} - Imagen {self.orden}"
-    
-    def _generate_image_key(self, filename, imagen_numero):
+    @property
+    def variante_principal(self):
         """
-        Genera una ruta canónica para la imagen de la galería.
-        Formato: productos/prod-{id}-{nombre_slug}/imagen-{numero}.{ext}
-        Ejemplo: productos/prod-42-nike-air-force/imagen-1.jpg
+        Retorna la variante principal del producto.
+        La variante principal es la que tiene es_variante_principal=True.
+        Si no existe, retorna la primera variante por orden de creación.
         """
-        import os
-        from django.utils.text import slugify
-        
-        # Esperar a que el producto tenga ID
-        if not self.producto.id:
-            return f'productos/galeria/{filename}'
-        
-        ext = os.path.splitext(filename)[1].lower()
-        slug = slugify(self.producto.nombre)[:40]  # Limitar a 40 caracteres
-        return f'productos/prod-{self.producto.id}-{slug}/imagen-{imagen_numero}{ext}'
-    
-    def clean(self):
-        """
-        Valida que no existan más de 5 imágenes por producto.
-        Soporta formatos: JPG, PNG, WebP, GIF, AVIF, etc.
-        """
-        from django.core.exceptions import ValidationError
-        
-        # Contar imágenes existentes (excluyendo esta si ya existe)
-        query = ProductoImagen.objects.filter(producto=self.producto)
-        if self.pk:
-            query = query.exclude(pk=self.pk)
-        
-        if query.count() >= self.MAX_IMAGENES:
-            raise ValidationError(
-                f"El producto '{self.producto.nombre}' ya tiene {self.MAX_IMAGENES} imágenes. "
-                f"Máximo permitido: {self.MAX_IMAGENES}. "
-                f"Formatos soportados: JPG, PNG, WebP, GIF, AVIF."
-            )
-    
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
-        # Sincronizar con la primera variante después de guardar
-        self._sync_to_first_variant()
-    
-    def delete(self, *args, **kwargs):
-        # ✅ IMPORTANTE: Eliminar el archivo físico ANTES de borrar el registro
-        # Esto evita que archivos huérfanos permanezcan en el servidor
-        # y previene colisiones de nombres cuando se reutilizan números de orden
-        if self.imagen:
-            try:
-                self.imagen.delete(save=False)
-            except Exception as e:
-                print(f"Error eliminando archivo físico de ProductoImagen: {e}")
-        
-        # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
-        if not kwargs.pop('_skip_sync', False):
-            self._sync_delete_to_first_variant()
-        super().delete(*args, **kwargs)
-    
-    def _sync_to_first_variant(self):
-        """
-        Sincroniza esta imagen del producto con la galería de la PRIMERA variante.
-        Si no existe una VarianteImagen con el mismo orden en la primera variante, la crea.
-        Si ya existe, actualiza la imagen (reemplaza la anterior).
-        """
-        try:
-            # Obtener la primera variante (por ID más bajo)
-            primera_variante = self.producto.variantes.order_by('id').first()
-            if not primera_variante:
-                return  # No hay variantes, nada que sincronizar
-            
-            # Verificar si esta imagen es diferente (evitar loops infinitos)
-            variante_img = VarianteImagen.objects.filter(
-                variante=primera_variante,
-                orden=self.orden
-            ).first()
-            
-            if variante_img:
-                # Si existe y es la misma imagen, no hacer nada
-                if variante_img.imagen.name == self.imagen.name:
-                    return
-                # Si existe pero es diferente, eliminar la anterior y crear nueva
-                if variante_img.imagen:
-                    variante_img.imagen.delete(save=False)
-                variante_img.imagen = self.imagen
-                variante_img.save()
-            else:
-                # No existe, crear nueva
-                VarianteImagen.objects.create(
-                    variante=primera_variante,
-                    imagen=self.imagen,
-                    orden=self.orden
-                )
-        except Exception as e:
-            print(f"Error sincronizando imagen a primera variante: {e}")
-    
-    def _sync_delete_to_first_variant(self):
-        """
-        Elimina la imagen correspondiente en la primera variante cuando se elimina del producto.
-        """
-        try:
-            primera_variante = self.producto.variantes.order_by('id').first()
-            if not primera_variante:
-                return
-            
-            variante_img = VarianteImagen.objects.filter(
-                variante=primera_variante,
-                orden=self.orden
-            ).first()
-            
-            if variante_img:
-                if variante_img.imagen:
-                    variante_img.imagen.delete(save=False)
-                # Eliminar SIN activar la sincronización inversa para evitar recursión
-                variante_img.delete(_skip_sync=True)
-        except Exception as e:
-            print(f"Error eliminando imagen sincronizada en primera variante: {e}")
+        variante = self.variantes.filter(es_variante_principal=True).first()
+        if not variante:
+            variante = self.variantes.order_by('id').first()
+        return variante
 
 
 # ——————————————————————————————————————
@@ -391,6 +247,11 @@ class Variante(models.Model):
     - Playera: talla="M", color="Blanco", otros={"material": "Algodón 100%"}
     """
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="variantes")
+    es_variante_principal = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Indica si es la variante principal del producto (para mostrar imágenes por defecto)"
+    )
     sku = models.CharField(
         max_length=100, 
         blank=True, 
@@ -601,8 +462,6 @@ class VarianteImagen(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
-        # Sincronizar con el producto si es la primera variante
-        self._sync_to_producto()
     
     def delete(self, *args, **kwargs):
         # ✅ IMPORTANTE: Eliminar el archivo físico ANTES de borrar el registro
@@ -614,74 +473,7 @@ class VarianteImagen(models.Model):
             except Exception as e:
                 print(f"Error eliminando archivo físico de VarianteImagen: {e}")
         
-        # Sincronizar antes de eliminar SOLO si no estamos en un bucle de sincronismo
-        if not kwargs.pop('_skip_sync', False):
-            self._sync_delete_to_producto()
         super().delete(*args, **kwargs)
-    
-    def _sync_to_producto(self):
-        """
-        Sincroniza esta imagen con el producto SOLO si la variante es la PRIMERA (por ID más bajo).
-        Si la variante no es la primera, no hace nada.
-        """
-        try:
-            # Verificar si esta variante es la primera del producto
-            primera_variante = self.variante.producto.variantes.order_by('id').first()
-            if not primera_variante or primera_variante.id != self.variante.id:
-                return  # Esta no es la primera variante, nada que sincronizar
-            
-            # Esta SÍ es la primera variante, sincronizar con el producto
-            producto = self.variante.producto
-            
-            # Verificar si ya existe una imagen con este orden en el producto
-            producto_img = ProductoImagen.objects.filter(
-                producto=producto,
-                orden=self.orden
-            ).first()
-            
-            if producto_img:
-                # Si existe y es la misma imagen, no hacer nada
-                if producto_img.imagen.name == self.imagen.name:
-                    return
-                # Si existe pero es diferente, actualizar
-                if producto_img.imagen:
-                    producto_img.imagen.delete(save=False)
-                producto_img.imagen = self.imagen
-                producto_img.save()
-            else:
-                # No existe, crear nueva
-                ProductoImagen.objects.create(
-                    producto=producto,
-                    imagen=self.imagen,
-                    orden=self.orden
-                )
-        except Exception as e:
-            print(f"Error sincronizando imagen a producto desde primera variante: {e}")
-    
-    def _sync_delete_to_producto(self):
-        """
-        Elimina la imagen correspondiente del producto cuando se elimina de la primera variante.
-        """
-        try:
-            # Verificar si esta variante es la primera del producto
-            primera_variante = self.variante.producto.variantes.order_by('id').first()
-            if not primera_variante or primera_variante.id != self.variante.id:
-                return  # Esta no es la primera variante, nada que sincronizar
-            
-            producto = self.variante.producto
-            
-            producto_img = ProductoImagen.objects.filter(
-                producto=producto,
-                orden=self.orden
-            ).first()
-            
-            if producto_img:
-                if producto_img.imagen:
-                    producto_img.imagen.delete(save=False)
-                # Eliminar SIN activar la sincronización inversa para evitar recursión
-                producto_img.delete(_skip_sync=True)
-        except Exception as e:
-            print(f"Error eliminando imagen sincronizada en producto desde primera variante: {e}")
 
 # ——————————————————————————————————————
 # Carrito, Wishlist y Órdenes

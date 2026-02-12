@@ -283,8 +283,12 @@ def get_productos_filtrados(request):
     # Serializar productos
     productos_data = []
     for p in productos_pagina:
-        primera_img = p.imagenes.all().order_by('orden').first()
-        imagen_url = primera_img.imagen.url if primera_img else None
+        variante_principal = p.variante_principal
+        if variante_principal:
+            primera_img = variante_principal.imagenes.all().order_by('orden').first()
+            imagen_url = primera_img.imagen.url if primera_img else None
+        else:
+            imagen_url = None
         
         # Verificar si tiene stock
         tiene_stock = p.variantes.filter(stock__gt=0).exists()

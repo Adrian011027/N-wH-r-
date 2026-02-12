@@ -24,20 +24,24 @@ def index(request):
     # Productos Hombre (incluye Unisex)
     qs_h = Producto.objects.filter(genero__in=["Hombre", "Unisex"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
-        .prefetch_related("imagenes")
+        .prefetch_related("variantes__imagenes")
     
     # Productos Mujer (incluye Unisex)
     qs_m = Producto.objects.filter(genero__in=["Mujer", "Unisex"], variantes__stock__gt=0) \
         .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
-        .prefetch_related("imagenes")
+        .prefetch_related("variantes__imagenes")
 
     cab_home  = sample(list(qs_h), min(4, qs_h.count()))
     dama_home = sample(list(qs_m), min(4, qs_m.count()))
     
-    # Agregar primera imagen (galería) a cada producto
+    # Agregar primera imagen (galería) a cada producto desde variante principal
     for p in cab_home + dama_home:
-        primera_img = p.imagenes.all().order_by('orden').first()
-        p.imagen = primera_img.imagen if primera_img else None
+        variante_principal = p.variante_principal
+        if variante_principal:
+            primera_img = variante_principal.imagenes.all().order_by('orden').first()
+            p.imagen = primera_img.imagen if primera_img else None
+        else:
+            p.imagen = None
 
     return render(request, "public/home/index.html", {
         "cab_home": cab_home,
@@ -103,7 +107,7 @@ def genero_view(request, genero):
 
     # Base query: productos del género (+ Unisex)
     qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"]) \
-        .select_related("categoria").prefetch_related("subcategorias", "imagenes", "variantes")
+        .select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
     
     # Filtrar por categoría
     if categoria_id:
@@ -177,8 +181,12 @@ def genero_view(request, genero):
     
     # Agregar primera imagen a cada producto de la página actual
     for p in productos_pag:
-        primera_img = p.imagenes.all().order_by('orden').first()
-        p.imagen = primera_img.imagen if primera_img else None
+        variante_principal = p.variante_principal
+        if variante_principal:
+            primera_img = variante_principal.imagenes.all().order_by('orden').first()
+            p.imagen = primera_img.imagen if primera_img else None
+        else:
+            p.imagen = None
     
     # Obtener categorías únicas (solo de la página actual para eficiencia)
     categorias = sorted({p.categoria.nombre for p in productos_pag if p.categoria})
@@ -276,7 +284,7 @@ def catalogo_view(request):
     genero_normalizado = genero_map.get(genero.lower(), None)
     
     # Base query
-    qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes", "imagenes")
+    qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes", "variantes__imagenes")
     
     # Determinar género desde subcategoría si no viene en params
     seccion = "caballero"  # Default
@@ -343,8 +351,12 @@ def catalogo_view(request):
     
     # Agregar primera imagen (galería) a cada producto
     for p in qs:
-        primera_img = p.imagenes.all().order_by('orden').first()
-        p.imagen = primera_img.imagen if primera_img else None
+        variante_principal = p.variante_principal
+        if variante_principal:
+            primera_img = variante_principal.imagenes.all().order_by('orden').first()
+            p.imagen = primera_img.imagen if primera_img else None
+        else:
+            p.imagen = None
     
     return render(request, "public/catalogo/productos_genero.html", {
         "seccion": seccion,
@@ -594,7 +606,7 @@ def producto_aleatorio_subcategoria(request):
         productos = Producto.objects.filter(
             subcategorias__id=subcategoria_id,
             variantes__stock__gt=0
-        ).distinct().prefetch_related('imagenes')
+        ).distinct().prefetch_related('variantes__imagenes')
         
         if not productos.exists():
             return JsonResponse({"producto": None})
@@ -609,10 +621,11 @@ def producto_aleatorio_subcategoria(request):
         else:
             producto = productos.first()
         
-        # Obtener la primera imagen de la galería
+        # Obtener la primera imagen de la galería de la variante principal
         imagen_url = None
-        if producto.imagenes.exists():
-            imagen_url = producto.imagenes.first().imagen.url
+        variante_principal = producto.variante_principal
+        if variante_principal and variante_principal.imagenes.exists():
+            imagen_url = variante_principal.imagenes.first().imagen.url
         
         data = {
             "producto": {
@@ -847,7 +860,7 @@ def editar_producto(request, id):
     """Formulario para editar producto"""
     from store.models import Variante
     
-    producto = get_object_or_404(Producto.objects.prefetch_related("variantes", "imagenes"), id=id)
+    producto = get_object_or_404(Producto.objects.prefetch_related("variantes", "variantes__imagenes"), id=id)
     
     # Validación: Si el producto no tiene variantes, crear una variante por defecto
     if not producto.variantes.exists():
@@ -858,18 +871,16 @@ def editar_producto(request, id):
             precio=producto.precio,
             precio_mayorista=producto.precio_mayorista,
             stock=0,
+            es_variante_principal=True,
         )
         # Recargar las variantes
-        producto = Producto.objects.prefetch_related("variantes").get(id=id)
+        producto = Producto.objects.prefetch_related("variantes", "variantes__imagenes").get(id=id)
     
     categorias = Categoria.objects.all()
-    # Obtener imágenes de galería existentes
-    imagenes_galeria = producto.imagenes.all().order_by('orden')
     
     return render(request, "dashboard/productos/editar.html", {
         "producto": producto,
         "categorias": categorias,
-        "imagenes_galeria": imagenes_galeria
     })
 
 

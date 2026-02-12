@@ -171,7 +171,7 @@ def search_products(request):
     
     # ============ SERIALIZAR RESPUESTA ============
     data = []
-    for p in productos_pagina.prefetch_related('imagenes'):
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
         # Obtener tallas y colores disponibles
         tallas_disponibles = set()
         colores_disponibles = set()
@@ -193,8 +193,11 @@ def search_products(request):
                     'stock': v.stock
                 })
         
-        # Galería de imágenes
-        galeria = [img.imagen.url for img in p.imagenes.all() if img.imagen]
+        # Galería de imágenes de la variante principal
+        variante_principal = p.variante_principal
+        galeria = []
+        if variante_principal:
+            galeria = [img.imagen.url for img in variante_principal.imagenes.all() if img.imagen]
         
         data.append({
             'id': p.id,

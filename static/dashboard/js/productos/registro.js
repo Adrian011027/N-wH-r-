@@ -5,138 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tallasContainer = document.getElementById('tallasContainer');
   const addTallaBtn     = document.getElementById('addTalla');
   const categoriaSelect = document.querySelector('select[name="categoria_id"]');
-  const imageInput      = document.getElementById('imagen');
-  const uploadArea      = document.getElementById('imageUploadArea');
-  const thumbnailsGrid  = document.getElementById('thumbnailsGrid');
-  const thumbnailsSection = document.getElementById('thumbnailsSection');
-  const imageCountSpan  = document.getElementById('imageCount');
   
-  // 🖼️ Array para almacenar archivos de imagen
-  let imagenFiles = [];
-  const MAX_IMAGES = 5;
-
-  // ───── MANEJO DE MULTIPLES IMÁGENES ─────
-  
-  // Función para actualizar miniaturas
-  function actualizarMiniaturas() {
-    thumbnailsGrid.innerHTML = '';
-    imagenFiles.forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const div = document.createElement('div');
-        div.className = 'thumbnail-item';
-        div.style.position = 'relative';
-        div.style.borderRadius = '8px';
-        div.style.overflow = 'hidden';
-        div.style.backgroundColor = '#e0e0e0';
-        div.style.aspectRatio = '1';
-        
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'thumbnail-remove';
-        removeBtn.innerHTML = '×';
-        removeBtn.style.position = 'absolute';
-        removeBtn.style.top = '4px';
-        removeBtn.style.right = '4px';
-        removeBtn.style.width = '28px';
-        removeBtn.style.height = '28px';
-        removeBtn.style.borderRadius = '50%';
-        removeBtn.style.backgroundColor = 'rgba(0,0,0,0.6)';
-        removeBtn.style.color = 'white';
-        removeBtn.style.border = 'none';
-        removeBtn.style.cursor = 'pointer';
-        removeBtn.style.fontSize = '20px';
-        removeBtn.style.padding = '0';
-        removeBtn.style.display = 'flex';
-        removeBtn.style.alignItems = 'center';
-        removeBtn.style.justifyContent = 'center';
-        removeBtn.style.lineHeight = '1';
-        removeBtn.style.fontWeight = 'bold';
-        
-        removeBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          imagenFiles.splice(index, 1);
-          actualizarMiniaturas();
-        });
-        
-        removeBtn.addEventListener('mouseover', () => {
-          removeBtn.style.backgroundColor = 'rgba(0,0,0,0.8)';
-        });
-        removeBtn.addEventListener('mouseout', () => {
-          removeBtn.style.backgroundColor = 'rgba(0,0,0,0.6)';
-        });
-        
-        div.appendChild(img);
-        div.appendChild(removeBtn);
-        thumbnailsGrid.appendChild(div);
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    // Actualizar contador y visibilidad
-    imageCountSpan.textContent = `(${imagenFiles.length}/${MAX_IMAGES})`;
-    
-    if (imagenFiles.length > 0) {
-      thumbnailsSection.style.display = 'block';
-      uploadArea.querySelector('.upload-placeholder').style.display = imagenFiles.length >= MAX_IMAGES ? 'none' : 'flex';
-    } else {
-      thumbnailsSection.style.display = 'none';
-      uploadArea.querySelector('.upload-placeholder').style.display = 'flex';
-    }
-  }
-
-  // Manejador de cambio de input
-  imageInput.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    agregarImagenes(files);
-  });
-
-  // Función para agregar imágenes
-  function agregarImagenes(files) {
-    files.forEach(file => {
-      if (imagenFiles.length < MAX_IMAGES && file.type.startsWith('image/')) {
-        imagenFiles.push(file);
-      }
-    });
-    actualizarMiniaturas();
-    imageInput.value = ''; // Limpiar input para permitir resleccionar el mismo archivo
-  }
-
-  // ───── DRAG AND DROP ─────
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.classList.add('drag-over');
-  });
-
-  uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.classList.remove('drag-over');
-  });
-
-  uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.classList.remove('drag-over');
-    
-    const files = Array.from(e.dataTransfer.files);
-    agregarImagenes(files);
-  });
-
-  // Click en el área para abrir el selector de archivos
-  uploadArea.addEventListener('click', () => {
-    if (imagenFiles.length < MAX_IMAGES) {
-      imageInput.click();
-    }
-  });
-
   // 🔁 Contador global para IDs de variantes temporales
   let varianteCount = 0;
 
@@ -448,11 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formData = new FormData(form);
     
-    // 🖼️ Agregar todas las imágenes del PRODUCTO
-    imagenFiles.forEach((file) => {
-      formData.append('imagen_galeria_upload', file);
-    });
-    
     // 🖼️ Agregar todas las imágenes de VARIANTES
     varianteImagesMap.forEach((files, varianteId) => {
       files.forEach((file) => {
@@ -475,10 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Reset del formulario
       form.reset();
-      imagenFiles = [];
       varianteImagesMap.clear();
       varianteCount = 0;
-      actualizarMiniaturas();
 
       // Dejar una fila vacía de tallas
       tallasContainer.innerHTML = '';
