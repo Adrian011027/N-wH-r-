@@ -91,7 +91,7 @@ header.scrolled {
   user-select:none;
 }
 
-.menu-label::before{content:"Men├║"; transition:.3s;}
+.menu-label::before{content:"Menu"; transition:.3s;}
 /* cambia a ÔÇ£CerrarÔÇØ cuando el bot├│n tiene la clase .active */
 
 
