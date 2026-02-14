@@ -109,6 +109,10 @@ def genero_view(request, genero):
     qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"]) \
         .select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
     
+    # Debug: verificar cuántos productos hay con este género
+    print(f"[DEBUG FILTRO GÉNERO] Género solicitado: {genero} -> Código: {genero_cod}")
+    print(f"[DEBUG] Total productos con género '{genero_cod}' o 'Unisex': {qs.count()}")
+    
     # Filtrar por categoría
     if categoria_id:
         try:
@@ -162,6 +166,7 @@ def genero_view(request, genero):
     
     # Solo productos con stock (por defecto)
     qs = qs.filter(variantes__stock__gt=0).distinct()
+    print(f"[DEBUG] Productos después de filtrar por stock > 0: {qs.count()}")
     
     # Ordenamiento
     orden_map = {

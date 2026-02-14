@@ -127,16 +127,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const thumbsContainer = galleryEl.querySelector('.var-thumbnails');
     const MAX_IMAGES = 5;
     
-    // Contar imágenes existentes
-    const existingCount = galleryEl.querySelectorAll('.var-thumb-item[data-image-id]').length;
+    // Contar imágenes existentes que NO están marcadas para eliminar
+    const existingThumbsAll = galleryEl.querySelectorAll('.var-thumb-item[data-image-id]');
+    let existingCount = 0;
+    existingThumbsAll.forEach(item => {
+      const imgId = parseInt(item.dataset.imageId);
+      if (!gallery.imagesToDelete.has(imgId)) {
+        existingCount++;
+      }
+    });
+    
     const currentNewCount = gallery.newImages.length;
+    const imagesToDeleteCount = gallery.imagesToDelete.size;
     let totalCount = existingCount + currentNewCount;
 
-    console.log(`[Variante ${varianteId}] Procesando ${files.length} archivos. Existentes: ${existingCount}, Nuevas: ${currentNewCount}, Total: ${totalCount}`);
+    console.log(`[Variante ${varianteId}] Procesando ${files.length} archivos.`);
+    console.log(`[Variante ${varianteId}] Existentes totales: ${existingThumbsAll.length}, Marcadas para eliminar: ${imagesToDeleteCount}`);
+    console.log(`[Variante ${varianteId}] Existentes que quedan: ${existingCount}, Nuevas: ${currentNewCount}`);
+    console.log(`[Variante ${varianteId}] Total efectivo: ${totalCount}, Intentando añadir: ${files.length}`);
 
     Array.from(files).forEach((file, fileIdx) => {
       if (totalCount >= MAX_IMAGES) {
-        toast(`Máximo ${MAX_IMAGES} imágenes permitidas por variante`, 'error');
+        const espaciosLibres = MAX_IMAGES - totalCount;
+        const mensaje = imagesToDeleteCount > 0 
+          ? `Máximo ${MAX_IMAGES} imágenes. Tienes ${existingCount} activas + ${currentNewCount} nuevas. ${imagesToDeleteCount} marcadas para eliminar.`
+          : `Máximo ${MAX_IMAGES} imágenes permitidas por variante`;
+        toast(mensaje, 'error');
+        console.warn(`[Variante ${varianteId}] Límite alcanzado. No se puede agregar más imágenes.`);
         return;
       }
 
@@ -213,11 +230,27 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const newCount = gallery.newImages.length;
     const totalCount = existingCount + newCount;
+    const imagesToDeleteCount = gallery.imagesToDelete.size;
     
-    console.log(`[Variante ${varianteId}] Conteo: ${existingCount} existentes + ${newCount} nuevas = ${totalCount} total`);
+    console.log(`[Variante ${varianteId}] Estado de galería:`);
+    console.log(`  - Existentes totales: ${allExisting.length}`);
+    console.log(`  - Marcadas para eliminar: ${imagesToDeleteCount}`);
+    console.log(`  - Existentes que quedan: ${existingCount}`);
+    console.log(`  - Nuevas pendientes: ${newCount}`);
+    console.log(`  - Total efectivo: ${totalCount}/5`);
+    console.log(`  - Espacios disponibles: ${5 - totalCount}`);
     
     if (countSpan) {
       countSpan.textContent = `${totalCount}/5`;
+      
+      // Añadir indicador visual si hay imágenes marcadas para eliminar
+      if (imagesToDeleteCount > 0) {
+        countSpan.title = `${totalCount} imágenes activas (${imagesToDeleteCount} marcadas para eliminar)`;
+        countSpan.style.color = '#f59e0b'; // Amber para indicar cambios pendientes
+      } else {
+        countSpan.title = '';
+        countSpan.style.color = '';
+      }
     }
   }
 

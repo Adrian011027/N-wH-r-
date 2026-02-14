@@ -11,7 +11,8 @@ from .decorators import jwt_role_required
 import json
 from django.views.decorators.csrf import csrf_exempt
 from ..utils.serializers import serializar_producto_completo
-
+import os  # Importar os para operaciones de archivo
+from store.models import VarianteImagen
 
 def detalle_producto(request, id):
     producto = get_object_or_404(
@@ -317,13 +318,6 @@ def create_product(request):
 def update_productos(request, id):
     try:
         producto = get_object_or_404(Producto, id=id)
-
-        # Campos del Producto
-        from decimal import Decimal  # asegúrate de tener esta importación al inicio del archivo
-        import json  # Importar json para procesamiento de datos del frontend
-        import os  # Importar os para operaciones de archivo
-
-        # Campos del Producto
         campos = ('nombre', 'descripcion', 'precio', 'precio_mayorista', 'genero')
         for field in campos:
             if field in request.POST:
@@ -368,10 +362,6 @@ def update_productos(request, id):
                 es_variante_principal=True,
             )
 
-        # ─────── PROCESAR IMÁGENES DE VARIANTES ───────
-        from store.models import VarianteImagen
-        
-        
         # 1. ELIMINAR IMÁGENES DE VARIANTES MARCADAS PARA ELIMINACIÓN
         # Buscar todas las claves con formato: variante_imagenes_a_eliminar_{variante_id}
         for key in request.POST:
@@ -421,6 +411,7 @@ def update_productos(request, id):
         variante_imagenes = {}
         
         for key in request.FILES:
+            print("[FILES] Clave recibida: ", key)
             if key.startswith('variante_imagen_'):
                 try:
                     # Formato: variante_imagen_{variante_id}_{idx}
@@ -440,17 +431,37 @@ def update_productos(request, id):
                 variante = producto.variantes.get(id=variante_id)
                 print(f"[PROCESS] Procesando {len(imagenes_list)} imagen(es) para variante {variante_id}")
                 
-                for imagen_file in imagenes_list:
-                    # Contar imágenes actuales (se recalcula cada vez para estar seguro)
-                    current_count = variante.imagenes.count()
-                    
-                    if current_count >= 5:
-                        print(f"[SKIP] Variante {variante_id}: límite de 5 imágenes alcanzado")
-                        break
+                # IMPORTANTE: Después de las eliminaciones, recompactar los órdenes de las imágenes restantes
+                # para evitar huecos en la numeración (1, 2, 3... en vez de 1, 3, 5...)
+                imagenes_existentes = list(variante.imagenes.all().order_by('orden'))
+                print(f"[REORDEN] Variante {variante_id}: {len(imagenes_existentes)} imágenes existentes antes de recompactar")
+                
+                # Renumerar las imágenes existentes secuencialmente
+                for nuevo_orden, img_existente in enumerate(imagenes_existentes, start=1):
+                    if img_existente.orden != nuevo_orden:
+                        print(f"[REORDEN] Cambiando orden de imagen {img_existente.id}: {img_existente.orden} → {nuevo_orden}")
+                        img_existente.orden = nuevo_orden
+                        img_existente.save()
+                
+                # Ahora calcular cuántas imágenes tenemos y cuántas podemos agregar
+                current_count = len(imagenes_existentes)
+                espacios_disponibles = 5 - current_count
+                
+                print(f"[VALIDATE] Variante {variante_id}: {current_count} imágenes actuales, {espacios_disponibles} espacios disponibles")
+                print(f"[VALIDATE] Intentando agregar {len(imagenes_list)} imágenes")
+                
+                if current_count + len(imagenes_list) > 5:
+                    print(f"[SKIP] Variante {variante_id}: límite de 5 imágenes alcanzado. Tienes {current_count} y quieres agregar {len(imagenes_list)}")
+                    continue
+                
+                # Agregar las nuevas imágenes en orden secuencial
+                next_orden = current_count + 1
+                
+                for idx, imagen_file in enumerate(imagenes_list):
+                    numero_orden = next_orden + idx
                     
                     # Generar nombre canónico
                     ext = os.path.splitext(imagen_file.name)[1]
-                    numero_orden = current_count + 1
                     nombre_canonico = f'imagen-{numero_orden}{ext}'
                     imagen_file.name = nombre_canonico
                     
