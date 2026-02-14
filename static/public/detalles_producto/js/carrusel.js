@@ -17,7 +17,7 @@ class ProductoCarrusel {
     this.totalSlides = this.slides.length;
     this.currentSlide = 0;
     this.autoplayInterval = null;
-    this.AUTOPLAY_DELAY = 10000; // 10 segundos
+    this.AUTOPLAY_DELAY = 8000; // 8 segundos
     
     if (this.totalSlides <= 1) {
       // Si hay una o menos imágenes, no mostrar controles

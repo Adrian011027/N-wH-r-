@@ -26,6 +26,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     return v ? `Talla ${talla}: Stock disponible ${v.stock}` : '';
   };
 
+  /* ====== actualizar carrusel con imágenes de variante ====== */
+  function actualizarCarruselVariante(talla) {
+    // Buscar la variante que coincida con la talla seleccionada
+    const variante = variantes.find(v => v.talla === talla);
+    
+    console.log('[DEBUG] Talla seleccionada:', talla);
+    console.log('[DEBUG] Variante encontrada:', variante);
+    console.log('[DEBUG] Imágenes de la variante:', variante?.imagenes);
+    console.log('[DEBUG] window.productoCarrusel existe?', !!window.productoCarrusel);
+    
+    if (variante && variante.imagenes && variante.imagenes.length > 0 && window.productoCarrusel) {
+      console.log('[DEBUG] Cambiando imágenes del carrusel a:', variante.imagenes);
+      // Cambiar las imágenes del carrusel a las de la variante seleccionada
+      window.productoCarrusel.changeImages(variante.imagenes);
+    } else {
+      console.warn('[DEBUG] No se pudo actualizar el carrusel:', {
+        tieneVariante: !!variante,
+        tieneImagenes: variante?.imagenes?.length > 0,
+        tieneCarrusel: !!window.productoCarrusel
+      });
+    }
+  }
+
   /* ====== reintento post-login ====== */
   const prelogin = sessionStorage.getItem('prelogin_carrito');
   if (CLIENTE_ID && prelogin) {
@@ -60,6 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     elegidas.add(talla);
     if (stockInfo) stockInfo.textContent = stockTxt(talla);
+    
+    // Actualizar carrusel con imágenes de la variante seleccionada
+    actualizarCarruselVariante(talla);
 
     const fila = document.createElement('div');
     fila.className = 'linea-talla';
@@ -154,6 +180,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     sel.closest('.linea-talla').dataset.talla = ahora;
     sel.dataset.old = ahora;
     if (stockInfo) stockInfo.textContent = stockTxt(ahora);
+    
+    // Actualizar carrusel cuando cambie la talla
+    actualizarCarruselVariante(ahora);
   }
 
   selInicial.addEventListener('change', function onSelInicialChange() {
