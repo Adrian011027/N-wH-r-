@@ -422,3 +422,118 @@ Traceback (most recent call last):
   File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
     raise AttributeError(
 AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()
+ERROR 2026-02-14 19:49:06 log 25020 31108 Internal Server Error: /api/search/
+Traceback (most recent call last):
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\store\views\search.py", line 174, in search_products
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1951, in _fetch_all
+    self._prefetch_related_objects()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1328, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
+    raise AttributeError(
+AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()
+ERROR 2026-02-14 19:49:12 log 25020 31108 Internal Server Error: /api/search/
+Traceback (most recent call last):
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\store\views\search.py", line 174, in search_products
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1951, in _fetch_all
+    self._prefetch_related_objects()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1328, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
+    raise AttributeError(
+AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()
+ERROR 2026-02-14 19:49:14 log 25020 31108 Internal Server Error: /api/search/
+Traceback (most recent call last):
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\store\views\search.py", line 174, in search_products
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1951, in _fetch_all
+    self._prefetch_related_objects()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1328, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
+    raise AttributeError(
+AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()
+ERROR 2026-02-14 19:49:20 log 25020 12748 Internal Server Error: /api/search/
+Traceback (most recent call last):
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\store\views\search.py", line 174, in search_products
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1951, in _fetch_all
+    self._prefetch_related_objects()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1328, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
+    raise AttributeError(
+AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()
+ERROR 2026-02-14 19:49:23 log 25020 12748 Internal Server Error: /api/search/
+Traceback (most recent call last):
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\views\decorators\http.py", line 64, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\store\views\search.py", line 174, in search_products
+    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 384, in __iter__
+    self._fetch_all()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1951, in _fetch_all
+    self._prefetch_related_objects()
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 1328, in _prefetch_related_objects
+    prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+  File "C:\Users\angel\Desktop\Nowhere\N-wH-r-\venv\Lib\site-packages\django\db\models\query.py", line 2372, in prefetch_related_objects
+    raise AttributeError(
+AttributeError: Cannot find 'imagenes' on Producto object, 'imagenes' is an invalid parameter to prefetch_related()

@@ -33,10 +33,9 @@ def search_products(request):
     
     # Iniciar queryset con prefetch para optimizar
     productos = Producto.objects.prefetch_related(
-        Prefetch('variantes', queryset=Variante.objects.filter(stock__gt=0)),
+        Prefetch('variantes', queryset=Variante.objects.filter(stock__gt=0).prefetch_related('imagenes')),
         'categoria',
-        'subcategorias',
-        'imagenes'
+        'subcategorias'
     ).distinct()
     
     # ============ FILTRO: Término de búsqueda ============
@@ -171,7 +170,7 @@ def search_products(request):
     
     # ============ SERIALIZAR RESPUESTA ============
     data = []
-    for p in productos_pagina.prefetch_related('variantes__imagenes'):
+    for p in productos_pagina:
         # Obtener tallas y colores disponibles
         tallas_disponibles = set()
         colores_disponibles = set()

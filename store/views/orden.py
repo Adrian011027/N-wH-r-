@@ -311,9 +311,25 @@ def get_ordenes_cliente(request):
                     'subtotal': float(detalle.precio_unitario * detalle.cantidad)
                 })
             
+            # Mapear estado a Display
+            status_map = {
+                'pendiente': {'text': 'Pendiente', 'color': '#FFA500', 'icon': 'clock'},
+                'procesando': {'text': 'Procesando', 'color': '#4169E1', 'icon': 'settings'},
+                'enviado': {'text': 'Enviado', 'color': '#32CD32', 'icon': 'truck'},
+                'entregado': {'text': 'Entregado', 'color': '#228B22', 'icon': 'check'},
+                'cancelado': {'text': 'Cancelado', 'color': '#DC143C', 'icon': 'x'},
+                'reembolso': {'text': 'Reembolso', 'color': '#FF6347', 'icon': 'info'}
+            }
+            status_display = status_map.get(orden.status.lower(), {
+                'text': orden.status.capitalize(),
+                'color': '#808080',
+                'icon': 'info'
+            })
+            
             data.append({
                 'id': orden.id,
                 'status': orden.status,
+                'status_display': status_display,
                 'total_amount': float(orden.total_amount),
                 'payment_method': orden.payment_method,
                 'created_at': orden.created_at.strftime('%d/%m/%Y %H:%M'),

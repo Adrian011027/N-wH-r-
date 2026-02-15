@@ -100,9 +100,18 @@ function crearOrdenCard(orden) {
   const card = document.createElement('div');
   card.className = 'orden-card';
   
+  // Protección: asegurar que status_display existe
+  if (!orden.status_display) {
+    orden.status_display = {
+      text: orden.status || 'Desconocido',
+      color: '#808080',
+      icon: 'info'
+    };
+  }
+  
   // Preparar productos preview (máx 4)
-  const productosPreview = orden.items.slice(0, 4);
-  const masProductos = orden.items.length > 4 ? orden.items.length - 4 : 0;
+  const productosPreview = orden.items?.slice(0, 4) || [];
+  const masProductos = (orden.items?.length || 0) > 4 ? (orden.items.length - 4) : 0;
   
   card.innerHTML = `
     <div class="orden-header">
@@ -119,7 +128,7 @@ function crearOrdenCard(orden) {
     <div class="orden-productos">
       ${productosPreview.map(item => `
         <div class="producto-thumb">
-          ${item.producto_imagen 
+          ${item?.producto_imagen 
             ? `<img src="${item.producto_imagen}" alt="${item.producto_nombre}">`
             : `<div class="producto-thumb-placeholder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" 
@@ -130,7 +139,7 @@ function crearOrdenCard(orden) {
                 </svg>
               </div>`
           }
-          ${item.cantidad > 1 ? `<span class="producto-cantidad">×${item.cantidad}</span>` : ''}
+          ${(item?.cantidad || 1) > 1 ? `<span class="producto-cantidad">×${item.cantidad}</span>` : ''}
         </div>
       `).join('')}
       ${masProductos > 0 ? `<div class="mas-productos">+${masProductos}</div>` : ''}
@@ -138,7 +147,7 @@ function crearOrdenCard(orden) {
     
     <div class="orden-footer">
       <div class="orden-total">
-        <span>Total:</span> $${orden.total_amount.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+        <span>Total:</span> $${(orden.total_amount || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}
       </div>
       <div class="orden-actions">
         <button class="btn-ver-detalle" onclick="verDetalle(${orden.id})">Ver detalle</button>
@@ -178,6 +187,15 @@ function verDetalle(ordenId) {
   
   if (!ordenData) return;
   
+  // Protección: asegurar que status_display existe
+  if (!ordenData.status_display) {
+    ordenData.status_display = {
+      text: ordenData.status || 'Desconocido',
+      color: '#808080',
+      icon: 'info'
+    };
+  }
+  
   // Llenar modal
   document.getElementById('modal-orden-id').textContent = `#${ordenData.id}`;
   
@@ -216,11 +234,13 @@ function verDetalle(ordenId) {
     <div class="modal-section">
       <h3>Productos</h3>
       <div class="modal-productos">
-        ${ordenData.items.map(item => `
+        ${(ordenData.items || []).map(item => {
+          if (!item) return '';
+          return `
           <div class="modal-producto">
             <div class="modal-producto-img">
               ${item.producto_imagen 
-                ? `<img src="${item.producto_imagen}" alt="${item.producto_nombre}">`
+                ? `<img src="${item.producto_imagen}" alt="${item.producto_nombre || 'Producto'}">`
                 : `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" 
                        stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24" style="margin: 24px auto; display: block;">
                     <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -230,17 +250,18 @@ function verDetalle(ordenId) {
               }
             </div>
             <div class="modal-producto-info">
-              <h4 class="modal-producto-nombre">${item.producto_nombre}</h4>
+              <h4 class="modal-producto-nombre">${item.producto_nombre || 'Producto'}</h4>
               <p class="modal-producto-attrs">
                 ${[item.talla ? `Talla: ${item.talla}` : '', item.color && item.color !== 'N/A' ? `Color: ${item.color}` : ''].filter(Boolean).join(' · ') || 'Sin variantes'}
               </p>
               <div class="modal-producto-precio">
-                <span>${item.cantidad} × $${item.precio_unitario.toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>
-                <span>$${item.subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>
+                <span>${item.cantidad || 1} × $${(item.precio_unitario || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>
+                <span>$${(item.subtotal || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</span>
               </div>
             </div>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </div>
     </div>
     
