@@ -1,135 +1,540 @@
 {% extends "public/base.html" %}
+{% load static %}
 
-{% block title %}Pago Exitoso{% endblock %}
+{% block title %}
+  {% if orden and orden.status == 'pendiente_pago' %}Orden Registrada{% else %}Pago Exitoso{% endif %} – NöwHėrē
+{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<div class="pago-resultado pago-exitoso">
-    <div class="resultado-icon">
-        {% if orden and orden.status == 'pendiente_pago' %}
-            <!-- Ícono de reloj/pendiente -->
-            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #fb8c00;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-        {% else %}
-            <!-- Ícono de check/éxito -->
-            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-        {% endif %}
-    </div>
-    
+<div class="pe-page">
+
+  <!-- ═══════ Progress Steps ═══════ -->
+  <div class="pe-steps">
+    {% with steps="Carrito,Resumen,Envío,Pago,Confirmación" %}
+    {% for label in steps.split %}
+      <div class="pe-step completed">
+        <div class="pe-step-num">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="pe-step-label">{{ label }}</span>
+      </div>
+      {% if not forloop.last %}<div class="pe-step-line completed"></div>{% endif %}
+    {% endfor %}
+    {% endwith %}
+  </div>
+
+  <!-- ═══════ Main Card ═══════ -->
+  <div class="pe-card">
+
     {% if orden and orden.status == 'pendiente_pago' %}
-        <h1 style="color: #e65100;">¡Orden Generada!</h1>
-        <p class="mensaje">Tu pedido ha sido registrado correctamente.</p>
-        
-        <div class="detalles">
-            <p><strong>IMPORTANTE:</strong> Hemos enviado las instrucciones de pago a tu correo.</p>
-            <p>Tu orden será procesada una vez que realices el pago (Transferencia / Efectivo).</p>
-        </div>
-    {% else %}
-        <h1>¡Pago Exitoso!</h1>
-        <p class="mensaje">Tu pago ha sido procesado correctamente.</p>
-        
-        <div class="detalles">
-            <p>Pronto recibirás un correo de confirmación con los detalles de tu compra.</p>
-            <p>Puedes revisar el estado de tu orden en tu cuenta.</p>
-        </div>
-    {% endif %}
-    
-    <div class="acciones">
-        <a href="{% url 'index' %}" class="btn btn-primary">Volver al inicio</a>
-        <a href="{% url 'mis_pedidos' %}" class="btn btn-secondary">Ver mis pedidos</a>
+    <!-- ── Estado: pendiente de pago ── -->
+    <div class="pe-icon pe-icon--pending">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
     </div>
+
+    <h1 class="pe-title pe-title--pending">Orden Registrada</h1>
+    <p class="pe-subtitle">Tu pedido ha sido registrado correctamente</p>
+
+    <div class="pe-info-box pe-info-box--pending">
+      <div class="pe-info-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <p>Hemos enviado las instrucciones de pago a tu correo electrónico.</p>
+      </div>
+      <div class="pe-info-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Tu orden será procesada una vez que realices el pago (Transferencia / Efectivo).</p>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- ── Estado: pagado / procesando ── -->
+    <div class="pe-icon pe-icon--success">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+
+    <h1 class="pe-title">¡Pago Exitoso!</h1>
+    <p class="pe-subtitle">Tu pago ha sido procesado correctamente</p>
+
+    <div class="pe-info-box">
+      <div class="pe-info-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <p>Recibirás un correo de confirmación con los detalles de tu compra.</p>
+      </div>
+      <div class="pe-info-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <p>Puedes revisar el estado de tu orden en cualquier momento desde tu cuenta.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Order details (if available) ── -->
+    {% if orden %}
+    <div class="pe-order-summary">
+      <div class="pe-summary-header">
+        <span class="pe-summary-label">PEDIDO</span>
+        <span class="pe-summary-value">#{{ orden.id }}</span>
+      </div>
+      <div class="pe-summary-divider"></div>
+      <div class="pe-summary-row">
+        <span>Total</span>
+        <span class="pe-summary-total">${{ orden.total_amount|floatformat:2 }} MXN</span>
+      </div>
+      <div class="pe-summary-row">
+        <span>Método de pago</span>
+        <span>{{ orden.payment_method|title }}</span>
+      </div>
+      <div class="pe-summary-row">
+        <span>Estado</span>
+        <span class="pe-badge pe-badge--{{ orden.status }}">
+          {% if orden.status == 'pagado' or orden.status == 'procesando' %}Confirmado
+          {% elif orden.status == 'pendiente_pago' %}Pendiente
+          {% else %}{{ orden.status|title }}{% endif %}
+        </span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ── -->
+    <div class="pe-actions">
+      <a href="{% url 'mis_pedidos' %}" class="pe-btn pe-btn--primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Ver mis pedidos
+      </a>
+      <a href="{% url 'index' %}" class="pe-btn pe-btn--secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Volver al inicio
+      </a>
+    </div>
+
+    {% if not orden or orden.status != 'pendiente_pago' %}
+    <p class="pe-redirect">
+      Redirigiendo al inicio en <strong id="countdown-seconds">8</strong> segundos…
+    </p>
+    {% endif %}
+
+  </div>
 </div>
 
 <style>
-    .pago-resultado {
-        max-width: 500px;
-        margin: 80px auto;
-        padding: 40px;
-        text-align: center;
-        border-radius: 8px;
-    }
-    
-    .pago-exitoso {
-        background: #f0f9ff;
-        border: 2px solid #4caf50;
-    }
-    
-    .resultado-icon {
-        margin-bottom: 20px;
-    }
-    
-    .icon-check {
-        width: 80px;
-        height: 80px;
-        color: #4caf50;
-        animation: scale-in 0.5s ease-out;
-    }
-    
-    @keyframes scale-in {
-        from {
-            transform: scale(0);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-    
-    .pago-resultado h1 {
-        color: #4caf50;
-        margin-bottom: 10px;
-    }
-    
-    .mensaje {
-        font-size: 18px;
-        color: #333;
-        margin-bottom: 20px;
-    }
-    
-    .detalles {
-        background: white;
-        padding: 20px;
-        border-radius: 4px;
-        margin: 20px 0;
-        text-align: left;
-        line-height: 1.6;
-    }
-    
-    .acciones {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        margin-top: 30px;
-    }
-    
-    .btn {
-        padding: 12px 24px;
-        border-radius: 4px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-primary {
-        background: #007bff;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background: #0056b3;
-    }
-    
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
-    
-    .btn-secondary:hover {
-        background: #545b62;
-    }
+/* ═══════════════════════════════════════════════════════════
+   PAGO EXITOSO – Inline styles (matches checkout design)
+   ═══════════════════════════════════════════════════════════ */
+.pe-page {
+  max-width: 660px;
+  margin: 0 auto;
+  /* top padding = header height (~60px) + breathing room */
+  padding: 80px 20px 60px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  animation: peFadeIn .5s ease;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes peFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Steps ── */
+.pe-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  padding: 12px 0;
+}
+
+.pe-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.pe-step-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .3s ease;
+}
+
+.pe-step-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #000;
+}
+
+.pe-step-line {
+  width: 32px;
+  height: 2px;
+  background: #000;
+  margin: 0 6px;
+  margin-bottom: 20px;
+}
+
+/* ── Main Card ── */
+.pe-card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 44px 36px 36px;
+  text-align: center;
+}
+
+/* ── Success Icon ── */
+.pe-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 24px;
+}
+
+.pe-icon--success {
+  background: #000;
+  animation: peIconPop .6s cubic-bezier(.175,.885,.32,1.275);
+}
+
+.pe-icon--pending {
+  background: transparent;
+  border: 2px solid #1a1a1a;
+  color: #1a1a1a;
+  animation: peIconPop .6s cubic-bezier(.175,.885,.32,1.275);
+}
+
+@keyframes peIconPop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Typography ── */
+.pe-title {
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+
+.pe-title--pending {
+  color: #1a1a1a;
+}
+
+.pe-subtitle {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+  margin: 0 0 28px;
+}
+
+/* ── Info Box ── */
+.pe-info-box {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.pe-info-box--pending {
+  background: #fffaf5;
+  border-color: #f0e6da;
+}
+
+.pe-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.pe-info-row svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #999;
+}
+
+.pe-info-box--pending .pe-info-row svg {
+  color: #b07a3a;
+}
+
+.pe-info-row p {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Order Summary ── */
+.pe-order-summary {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.pe-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pe-summary-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #999;
+}
+
+.pe-summary-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.pe-summary-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 12px 0;
+}
+
+.pe-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.pe-summary-total {
+  font-size: 17px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+/* ── Badge ── */
+.pe-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.pe-badge--pagado, .pe-badge--procesando {
+  background: #f0f0f0;
+  color: #1a1a1a;
+}
+
+.pe-badge--pendiente_pago {
+  background: #fff3e0;
+  color: #b07a3a;
+}
+
+/* ── Actions ── */
+.pe-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.pe-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  text-decoration: none;
+  transition: all .25s ease;
+  cursor: pointer;
+}
+
+.pe-btn--primary {
+  background: #000;
+  color: #fff;
+  border: 1px solid #000;
+}
+
+.pe-btn--primary:hover {
+  background: #222;
+}
+
+.pe-btn--secondary {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #d0d0d0;
+}
+
+.pe-btn--secondary:hover {
+  border-color: #1a1a1a;
+  background: #fafafa;
+}
+
+.pe-redirect {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE – mobile-first approach
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .pe-page {
+    padding: 70px 12px 40px;   /* tighter but clears the fixed header */
+  }
+  .pe-steps {
+    margin-bottom: 16px;
+    padding: 8px 0;
+  }
+  .pe-step-num {
+    width: 24px;
+    height: 24px;
+  }
+  .pe-step-num svg {
+    width: 10px;
+    height: 10px;
+  }
+  .pe-step-label {
+    display: none;             /* hide labels on mobile to save space */
+  }
+  .pe-step-line {
+    width: 20px;
+    margin: 0 4px;
+    margin-bottom: 0;
+  }
+  .pe-card {
+    padding: 28px 18px 24px;
+    border-radius: 10px;
+  }
+  .pe-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 18px;
+  }
+  .pe-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  .pe-title {
+    font-size: 20px;
+  }
+  .pe-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .pe-info-box {
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .pe-info-row {
+    gap: 10px;
+    padding: 5px 0;
+  }
+  .pe-info-row svg {
+    width: 16px;
+    height: 16px;
+  }
+  .pe-info-row p {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .pe-order-summary {
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .pe-summary-row {
+    font-size: 12px;
+    padding: 4px 0;
+  }
+  .pe-summary-total {
+    font-size: 15px;
+  }
+  .pe-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pe-btn {
+    justify-content: center;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 12px;
+  }
+  .pe-redirect {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pe-page {
+    padding: 64px 10px 32px;
+  }
+  .pe-card {
+    padding: 24px 14px 20px;
+  }
+  .pe-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 14px;
+  }
+  .pe-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .pe-title {
+    font-size: 18px;
+  }
+  .pe-subtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+}
 </style>
+
+{% if not orden or orden.status != 'pendiente_pago' %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let seconds = 8;
+    const el = document.getElementById('countdown-seconds');
+    const timer = setInterval(function() {
+      seconds--;
+      if (el) el.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(timer);
+        window.location.href = '{% url "index" %}';
+      }
+    }, 1000);
+  });
+</script>
+{% endif %}
 {% endblock %}

@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 # ─────────── Reset password ───────────
 from .views.reset_password import (
-    solicitar_reset, reset_password_confirm, reset_password_submit,
+    solicitar_reset, solicitar_reset_api, reset_password_confirm, reset_password_submit,
 )
 
 # ─────────── Email Verification ───────────
@@ -93,6 +93,7 @@ from .views.api_filtros import (
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
+    path("api/auth/solicitar-reset/",            solicitar_reset_api,    name="cliente_solicitar_reset_api"),
     path("recuperar/",                         solicitar_reset,        name="cliente_solicitar_reset"),
     path("recuperar/<uidb64>/<token>/",        reset_password_confirm, name="cliente_reset_password_confirm"),
     path("recuperar/<uidb64>/<token>/submit/", reset_password_submit,  name="cliente_reset_password_submit"),

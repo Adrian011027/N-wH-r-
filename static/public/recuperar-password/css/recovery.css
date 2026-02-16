@@ -1,45 +1,218 @@
+/* ========= RECOVERY – Luxury Aesthetic ========= */
+
 .recovery-section {
-  max-width: 600px;           /* mismo ancho que una columna de tu grid */
-  margin: 100px auto 100px;       /* coherente con main */
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  
+  max-width: 420px;
+  margin: 120px auto 80px;
+  padding: 0 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
 
-
 .recovery-section h1 {
-  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  color: #000;
 }
 
+.recovery-section .recovery-desc {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* ---- Form fields ---- */
 .recovery-section .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .recovery-section .form-group label {
   display: block;
-  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #000;
+  margin-bottom: 8px;
 }
 
 .recovery-section .form-group input {
   width: 100%;
-  padding: 0.8em;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  padding: 12px 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 0;
+  font-size: 14px;
+  font-family: inherit;
+  color: #000;
+  background: #fff;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
+.recovery-section .form-group input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.recovery-section .form-group input::placeholder {
+  color: #999;
+}
+
+/* Password field with toggle */
+.recovery-section .password-wrapper {
+  position: relative;
+}
+
+.recovery-section .password-wrapper input {
+  padding-right: 48px;
+}
+
+.recovery-section .toggle-password {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 16px;
+  transition: color 0.2s;
+}
+
+.recovery-section .toggle-password:hover {
+  color: #000;
+}
+
+/* ---- Buttons ---- */
 .recovery-section .btn-primary {
-  padding: 0.8em 2em;
+  display: block;
+  width: 100%;
+  padding: 12px;
   background: #000;
   color: #fff;
   border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
   cursor: pointer;
-  border-radius: 5px;
+  transition: opacity 0.2s ease;
+  margin-top: 8px;
 }
 
+.recovery-section .btn-primary:hover {
+  opacity: 0.85;
+}
+
+.recovery-section .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recovery-section .btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: none;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 30px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+  margin-top: 12px;
+}
+
+.recovery-section .btn-secondary:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* ---- Messages ---- */
 .recovery-section .error {
-  color: red;
-  margin-top: 10px;
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+/* ---- Success state ---- */
+.recovery-success {
+  text-align: center;
+  padding-top: 40px;
+}
+
+.recovery-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.recovery-success-icon svg {
+  animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.recovery-success h1 {
+  margin-bottom: 12px;
+}
+
+.recovery-success p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.recovery-success .redirect-note {
+  font-size: 12px;
+  color: #999;
+  margin-top: 24px;
+}
+
+/* ---- Invalid token state ---- */
+.recovery-invalid {
+  text-align: center;
+  padding-top: 40px;
+}
+
+.recovery-invalid-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.recovery-invalid h1 {
+  margin-bottom: 12px;
+}
+
+.recovery-invalid p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .recovery-section {
+    margin-top: 90px;
+    padding: 0 16px;
+  }
 }

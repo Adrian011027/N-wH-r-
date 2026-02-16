@@ -7,7 +7,6 @@
    ──────────────────────────────────────────────────────────── */
 export function setupCategoriaCards() {
   const cards = document.querySelectorAll('.categoria-card');
-  console.log('🟢 Encontradas:', cards.length, 'tarjetas');
 
   if (!cards.length) return;
 
@@ -16,17 +15,16 @@ export function setupCategoriaCards() {
       if (entry.isIntersecting) {
         const card  = entry.target;
         const index = [...cards].indexOf(card);
-        const delay = index * 150;
+        const delay = index * 100;
 
         /* animación escalonada */
         card.style.transitionDelay = `${delay}ms`;
 
         const overlay = card.querySelector('.overlay-text');
-        if (overlay) overlay.style.transitionDelay = `${delay + 500}ms`;
+        if (overlay) overlay.style.transitionDelay = `${delay + 300}ms`;
 
         card.classList.add('visible');
         obs.unobserve(card);
-        console.log('🔵 Animación tarjeta:', card);
       }
     });
   }, { threshold: 0.1 });
@@ -41,7 +39,6 @@ export function setupIntroAnimation() {
   const introItems = document.querySelectorAll(
     '.promo-intro__title, .promo-intro__subtitle'
   );
-  console.log('🟢 Encontrados:', introItems.length, 'elementos de intro');
 
   if (!introItems.length) return;
 
@@ -50,7 +47,6 @@ export function setupIntroAnimation() {
       if (entry.isIntersecting) {
         entry.target.classList.add('in-view');
         obs.unobserve(entry.target);
-        console.log('🔵 Animación intro:', entry.target);
       }
     });
   }, {
@@ -62,9 +58,6 @@ export function setupIntroAnimation() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   3. Inicialización global
+   3. Inicialización: se invoca desde main.js (no auto-init
+      para evitar observadores duplicados)
    ──────────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  setupCategoriaCards();
-  setupIntroAnimation();
-});

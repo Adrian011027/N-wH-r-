@@ -1,11 +1,11 @@
+/* Reset */
+@import url('/static/public/inicio/css/reset.css');
 
+/* Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 @import url('header.css');
-
 @import url('recovery.css');
 
-/* 6. Media queries: responsive adaptado */
 @import url('/static/public/inicio/css/pre-footer.css');
-
-/* 7. Media queries: responsive adaptado */
 @import url('/static/public/inicio/css/footer.css');

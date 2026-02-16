@@ -19,27 +19,30 @@ import { setupCategoriaCards, setupIntroAnimation } from './categorias-gral.js';
 const IS_AUTH = !!localStorage.getItem("access");
 const USER_ID = localStorage.getItem("user_id");
 
-/* —— Animaciones iniciales —— */
+/* —— Inicialización única al cargar el DOM —— */
 document.addEventListener('DOMContentLoaded', () => {
+
+  /* Animaciones de tarjetas e intro */
   setupCategoriaCards();
   setupIntroAnimation();
 
+  /* Footer: fade-in con retardo */
   setTimeout(() => {
     document.querySelectorAll('.info-footer, .site-footer')
             .forEach(el => el.classList.add('fade-in-footer'));
   }, 4500);
-});
 
-/* —— Wishlist global —— */
-let wishlistAPI;
-document.addEventListener('DOMContentLoaded', () => {
-  wishlistAPI = initWishlist({
+  /* Wishlist */
+  window.__wishlistAPI = initWishlist({
     selector        : '.wishlist-btn',
     isAuthenticated : IS_AUTH,
     clienteId       : USER_ID,
     backendURL      : '/wishlist/',
     fetchProductoURL: '/api/productos_por_ids/?ids='
   });
+
+  /* Validar sesión JWT */
+  validarSesion();
 });
 
 /* —— Logout (con JWT) —— */
@@ -58,7 +61,7 @@ document.addEventListener('click', async e => {
     } catch (err) {
       console.error("Error en logout:", err);
     } finally {
-      wishlistAPI?.nukeAllKeys?.();
+      window.__wishlistAPI?.nukeAllKeys?.();
       localStorage.clear();
       window.location.href = "/";
     }
@@ -97,7 +100,6 @@ async function validarSesion() {
     mostrarBotonesLogin();
   }
 }
-document.addEventListener("DOMContentLoaded", validarSesion);
 
 /* —— Módulos de interfaz —— */
 setupScrollRestoration();
@@ -110,28 +112,3 @@ setupNavigationButtons();
 setupContactPanel();
 setupLoginPanel();
 setupClientePanel();
-
-/* —— Menú hamburguesa overlay —— */
-document.addEventListener('DOMContentLoaded', () => {
-  const burger   = document.getElementById('btn-burger');
-  const navMenu  = document.querySelector('.nav-menu');
-  const overlay  = document.querySelector('.page-overlay');
-  const closeBtn = document.getElementById('btn-close-menu');
-
-  const abrirMenu  = () => {
-    navMenu.classList.add('open');
-    overlay.classList.add('active');
-    burger.classList.add('active');
-    document.body.classList.add('no-scroll');
-  };
-  const cerrarMenu = () => {
-    navMenu.classList.remove('open');
-    overlay.classList.remove('active');
-    burger.classList.remove('active');
-    document.body.classList.remove('no-scroll');
-  };
-
-  burger.addEventListener('click', abrirMenu);
-  overlay.addEventListener('click', cerrarMenu);
-  closeBtn.addEventListener('click', cerrarMenu);
-});

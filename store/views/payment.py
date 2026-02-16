@@ -4,6 +4,7 @@ Pasarela de pagos internacional - Stripe Checkout Embebido + Webhooks
 """
 import json
 import logging
+import threading
 import stripe
 from decimal import Decimal
 from django.http import JsonResponse
@@ -11,6 +12,8 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from ..models import Carrito, Orden, OrdenDetalle, Cliente
 
@@ -35,6 +38,108 @@ logger.debug(f"[INIT] stripe.api_key configurado: {stripe.api_key[:30] if stripe
 # ───────────────────────────────────────────────────────────────
 # Helpers
 # ───────────────────────────────────────────────────────────────
+def _enviar_email_confirmacion(orden, request=None):
+    """
+    Envía el correo de confirmación de orden al cliente.
+    Se ejecuta en un hilo separado para no bloquear la respuesta.
+    """
+    try:
+        cliente = orden.cliente
+        if not cliente or not cliente.correo:
+            logger.warning(f"[EMAIL] Orden #{orden.id}: cliente sin correo, no se envía email")
+            return
+
+        # Verificar que no se haya enviado ya (evitar duplicados)
+        cache_key = f'email_sent_orden_{orden.id}'
+        from django.core.cache import cache
+        if cache.get(cache_key):
+            logger.info(f"[EMAIL] Orden #{orden.id}: email ya enviado, omitiendo")
+            return
+
+        # Preparar items de la orden
+        items = []
+        total_amount = Decimal('0.00')
+        total_piezas = 0
+
+        for detalle in orden.detalles.select_related('variante__producto__categoria').all():
+            variante = detalle.variante
+            producto = variante.producto
+            subtotal = detalle.cantidad * detalle.precio_unitario
+
+            items.append({
+                'producto': producto.nombre,
+                'categoria': producto.categoria.nombre if producto.categoria else 'Sin categoría',
+                'talla': variante.talla or 'Única',
+                'color': variante.color or 'N/A',
+                'cantidad': detalle.cantidad,
+                'precio_unitario': float(detalle.precio_unitario),
+                'subtotal': float(subtotal),
+            })
+            total_amount += subtotal
+            total_piezas += detalle.cantidad
+
+        # Link a mis pedidos
+        link_pedidos = ''
+        if request:
+            try:
+                from django.urls import reverse
+                link_pedidos = request.build_absolute_uri(reverse('mis_pedidos'))
+            except Exception:
+                pass
+
+        context = {
+            'orden': orden,
+            'cliente': cliente,
+            'items': items,
+            'total': float(total_amount),
+            'total_piezas': total_piezas,
+            'es_mayoreo': total_piezas >= 6,
+            'link_pedidos': link_pedidos,
+        }
+
+        html_message = render_to_string('public/emails/orden_confirmada.html', context)
+
+        # Texto plano como fallback
+        plain_message = (
+            f"CONFIRMACIÓN DE PEDIDO - NöwHėrē\n"
+            f"Pedido #{orden.id}\n\n"
+            f"Cliente: {cliente.nombre}\n"
+            f"Email: {cliente.correo}\n\n"
+            f"PRODUCTOS:\n"
+        )
+        for item in items:
+            plain_message += (
+                f"- {item['producto']} | Talla: {item['talla']} | "
+                f"Cant: {item['cantidad']} x ${item['precio_unitario']:.2f} = ${item['subtotal']:.2f}\n"
+            )
+        plain_message += f"\nTOTAL: ${float(total_amount):.2f} MXN\n"
+        plain_message += f"Piezas: {total_piezas}\n\n"
+        plain_message += "Gracias por tu compra.\n"
+
+        def _send():
+            try:
+                send_mail(
+                    subject=f'Pedido #{orden.id} confirmado – NöwHėrē',
+                    message=plain_message,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@nowhere.com'),
+                    recipient_list=[cliente.correo],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                # Marcar como enviado en cache (24 horas)
+                cache.set(cache_key, True, 86400)
+                logger.info(f"[EMAIL] Orden #{orden.id}: email de confirmación enviado a {cliente.correo}")
+            except Exception as e:
+                logger.error(f"[EMAIL] Orden #{orden.id}: error enviando email: {e}")
+
+        # Enviar en hilo separado para no bloquear
+        thread = threading.Thread(target=_send, daemon=True)
+        thread.start()
+
+    except Exception as e:
+        logger.error(f"[EMAIL] Error preparando email para orden #{orden.id}: {e}")
+
+
 def _calcular_items_carrito(carrito):
     """
     Calcula items del carrito con lógica de mayoreo.
@@ -355,6 +460,10 @@ def webhook_stripe(request):
             orden.save()
             logger.info(f"Orden #{orden.id} actualizada → {orden.status}")
 
+            # Enviar email de confirmación si el pago fue exitoso
+            if payment_status == 'paid':
+                _enviar_email_confirmacion(orden, request=request)
+
         except Orden.DoesNotExist:
             logger.warning(f"Orden no encontrada para session: {session_id}")
 
@@ -553,6 +662,8 @@ def pago_exitoso(request):
                             orden.stripe_payment_intent = session.payment_intent or ''
                             orden.save()
                             logger.info(f"[PAGO_EXITOSO] Orden #{orden.id} sincronizada → procesando")
+                            # Enviar email de confirmación
+                            _enviar_email_confirmacion(orden, request=request)
                     except stripe.error.StripeError as e:
                         logger.warning(f"[PAGO_EXITOSO] Error sincronizando: {e}")
 
@@ -567,6 +678,10 @@ def pago_exitoso(request):
 
         if orden:
             context['orden'] = orden
+            # Si la orden ya está pagada/procesando, intentar enviar email
+            # (el cache evitará duplicados si el webhook ya lo envió)
+            if orden.status in ('pagado', 'procesando'):
+                _enviar_email_confirmacion(orden, request=request)
 
     except Exception as e:
         logger.error(f"[PAGO_EXITOSO] Error: {e}")

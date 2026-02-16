@@ -1,13 +1,25 @@
 export function setupZoomEffect() {
   const header   = document.querySelector('header');
   const banners  = Array.from(document.querySelectorAll('.banner-zoom'));
-  const cards    = document.querySelectorAll('.categoria-card');
+
+  /* ── Altura fija: se captura UNA VEZ y no cambia con address bar ── */
+  const root = document.documentElement;
+  root.style.setProperty('--app-h', `${window.innerHeight}px`);
 
   const setHeaderH = () =>
-    document.documentElement.style.setProperty(
+    root.style.setProperty(
       '--header-h', `${header.getBoundingClientRect().height}px`);
   setHeaderH();
-  addEventListener('resize', setHeaderH);
+
+  /* Solo recalcular header si cambia el ANCHO (rotación / resize real) */
+  let lastW = window.innerWidth;
+  addEventListener('resize', () => {
+    if (Math.abs(window.innerWidth - lastW) > 1) {
+      lastW = window.innerWidth;
+      root.style.setProperty('--app-h', `${window.innerHeight}px`);
+      setHeaderH();
+    }
+  });
 
   const onScroll = () => {
     const sy = window.scrollY;
@@ -30,12 +42,6 @@ export function setupZoomEffect() {
 
       if (sy >= nextTop) banner.style.opacity = '0';
       if (sy < start)   banner.style.opacity = '1';
-    });
-
-    cards.forEach(card => {
-      if (card.getBoundingClientRect().top < innerHeight - 50){
-        card.classList.add('visible');
-      }
     });
   };
 

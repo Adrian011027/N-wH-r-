@@ -62,7 +62,7 @@ a.user-icon svg {
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 999;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   transform: translateX(100%);
   transition: transform 0.4s ease;
@@ -94,6 +94,10 @@ a.user-icon svg {
   align-items: center;
   justify-content: center;
   transition: opacity 0.2s;
+  color: #000;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 300;
 }
 
 .login-header .close-btn:hover {
@@ -106,10 +110,11 @@ a.user-icon svg {
 }
 
 .login-section h3 {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   margin-bottom: 15px;
-  color: #1D1D1D;
+  color: #000;
+  letter-spacing: -0.01em;
 }
 
 /* Info lines con iconos */
@@ -166,16 +171,40 @@ form {
 }
 
 label {
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #000;
 }
 
 input[type="text"],
+input[type="email"],
 input[type="password"] {
-  padding: 10px;
-  font-size: 16px; /* Ô£à Mejora para m├│viles */
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #000;
+  border: 1px solid #e8e8e8;
+  border-radius: 0;
   width: 100%;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: #000;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: #999;
 }
 
 .password-wrapper {
@@ -185,17 +214,25 @@ input[type="password"] {
 
 .password-wrapper input {
   width: 100%;
-  padding: 10px;
+  padding: 12px 14px;
   padding-right: 44px;
-  font-size: 16px;
+  font-size: 14px;
+  font-family: inherit;
   height: 44px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+  border-radius: 0;
   background-color: #fff;
+  color: #000;
   appearance: none;
   -webkit-appearance: none;
   z-index: 1;
+  transition: border-color 0.2s ease;
+}
+
+.password-wrapper input:focus {
+  outline: none;
+  border-color: #000;
 }
 
 .toggle-password {
@@ -227,6 +264,7 @@ input[type="password"]::-ms-clear {
 /* Accesibilidad y compatibilidad responsive */
 @media (max-width: 600px) {
   input[type="text"],
+  input[type="email"],
   input[type="password"] {
     font-size: 16px;
   }
@@ -246,6 +284,10 @@ input[type="password"]::-ms-clear {
   text-decoration: underline;
   color: #000;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
 }
 
 .login-alt-text {
@@ -265,7 +307,14 @@ input[type="password"]::-ms-clear {
   padding: 12px;
   border-radius: 30px;
   font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
   cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.login-btn:hover {
+  opacity: 0.85;
 }
 
 .register-btn {
@@ -276,11 +325,19 @@ input[type="password"]::-ms-clear {
   background: none;
   padding: 12px;
   font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
   border-radius: 30px;
   cursor: pointer;
   width: 100%;
   text-align: center;
   text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.register-btn:hover {
+  background: #000;
+  color: #fff;
 }
 
 hr {
@@ -337,6 +394,57 @@ hr {
 }
 
 /* Header del registro con bot├│n volver */
+/* ========= VISTAS RECUPERAR CONTRASEÑA ========= */
+#view-recovery .login-header,
+#view-recovery-sent .login-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#view-recovery .login-header h2,
+#view-recovery-sent .login-header h2 {
+  flex: 1;
+  margin: 0;
+}
+
+.recovery-subtitle {
+  color: #666;
+  margin-bottom: 20px !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.recovery-sent-section {
+  text-align: center;
+  padding-top: 20px;
+}
+
+.recovery-sent-section p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.recovery-sent-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.recovery-sent-icon svg {
+  animation: envelopePulse 2s ease-in-out infinite;
+}
+
+@keyframes envelopePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+/* ========= VISTA REGISTRO ========= */
 #view-register .login-header {
   display: flex;
   align-items: center;
@@ -488,10 +596,6 @@ hr {
 
 .input-with-icon input {
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 /* ========= PEDIDOS EN PANEL ========= */

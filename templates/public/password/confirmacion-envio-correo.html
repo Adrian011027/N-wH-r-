@@ -1,35 +1,36 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar contraseña</title>
+    <title>Revisa tu correo</title>
 
-    <!-- CSS global -->
-    <link rel="stylesheet" href="{% static 'public/registro_usuario/css/main.css' %}">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
-    <!-- CSS específico de recuperación -->
-    <link rel="stylesheet" href="{% static 'public/recuperar-password/css/main.css' %}">  {# ← usa “/”, no “\” #}
+    <link rel="stylesheet" href="{% static 'public/recuperar-password/css/main.css' %}">
 </head>
 <body>
 
 <header>
     <div class="header-left">
         <a href="{% url 'index' %}">
-            <img src="{% static 'images/NowHere.svg' %}" id="Logo" class="fade-in" alt="NöwHėrē">
+            <img src="{% static 'images/NowHere.svg' %}" id="Logo" alt="NöwHėrē">
         </a>
-        <h2>| Creación de cuenta N:</h2>
+        <h2>| Recuperar contraseña</h2>
     </div>
 </header>
 
 <main>
-    <section class="recovery-section">
-        <h1>Revisa tu correo</h1>
-        <p>📬 Te hemos enviado un enlace para restablecer tu contraseña.
-           Revisa tu bandeja de entrada o carpeta de spam.</p>
-    </section>
+  <section class="recovery-section recovery-success">
+    <div class="recovery-success-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.2">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <polyline points="22,4 12,13 2,4"/>
+      </svg>
+    </div>
+    <h1>Revisa tu correo</h1>
+    <p>Te hemos enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada o carpeta de spam.</p>
+    <a href="{% url 'index' %}" class="btn-secondary" style="margin-top:24px; display:inline-block; text-decoration:none;">Volver al inicio</a>
+  </section>
 </main>
 
 </body>
