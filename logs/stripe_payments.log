@@ -22,7 +22,7 @@
 [INFO] 2026-02-16 14:11:20 - stripe_payments - crear_checkout_stripe:187 - Client Secret: cs_test_a19prC6fNOT2TbveSXeW1y...
 [INFO] 2026-02-16 14:11:20 - stripe_payments - crear_checkout_stripe:195 - Orden local #20 creada (pendiente_pago)
 [INFO] 2026-02-16 14:11:20 - stripe_payments - crear_checkout_stripe:201 - Carrito #36 vaciado
-[INFO] 2026-02-16 14:33:01 - stripe_payments - _send:130 - [EMAIL] Orden #20: email de confirmación enviado a jona.emir@hotmail.com
+[INFO] 2026-02-16 14:33:01 - stripe_payments - _send:130 - [EMAIL] Orden #20: email de confirmaciÃ³n enviado a jona.emir@hotmail.com
 [INFO] 2026-02-16 14:35:39 - stripe_payments - crear_checkout_stripe:232 - ================================================================================
 [INFO] 2026-02-16 14:35:39 - stripe_payments - crear_checkout_stripe:233 - [CREAR_CHECKOUT_STRIPE] INICIANDO
 [INFO] 2026-02-16 14:35:40 - stripe_payments - crear_checkout_stripe:254 - Carrito #38 | Cliente: zem1r (jona.emir@hotmail.com)
@@ -31,8 +31,8 @@
 [INFO] 2026-02-16 14:35:41 - stripe_payments - crear_checkout_stripe:292 - Client Secret: cs_test_a1unn60jXf4zzuV1bD0Als...
 [INFO] 2026-02-16 14:35:41 - stripe_payments - crear_checkout_stripe:300 - Orden local #21 creada (pendiente_pago)
 [INFO] 2026-02-16 14:35:41 - stripe_payments - crear_checkout_stripe:306 - Carrito #38 vaciado
-[INFO] 2026-02-16 14:36:12 - stripe_payments - _send:130 - [EMAIL] Orden #21: email de confirmación enviado a jona.emir@hotmail.com
-[INFO] 2026-02-16 14:36:13 - stripe_payments - _send:130 - [EMAIL] Orden #21: email de confirmación enviado a jona.emir@hotmail.com
+[INFO] 2026-02-16 14:36:12 - stripe_payments - _send:130 - [EMAIL] Orden #21: email de confirmaciÃ³n enviado a jona.emir@hotmail.com
+[INFO] 2026-02-16 14:36:13 - stripe_payments - _send:130 - [EMAIL] Orden #21: email de confirmaciÃ³n enviado a jona.emir@hotmail.com
 [INFO] 2026-02-16 15:09:37 - stripe_payments - crear_checkout_stripe:232 - ================================================================================
 [INFO] 2026-02-16 15:09:37 - stripe_payments - crear_checkout_stripe:233 - [CREAR_CHECKOUT_STRIPE] INICIANDO
 [INFO] 2026-02-16 15:09:37 - stripe_payments - crear_checkout_stripe:254 - Carrito #39 | Cliente: zem1r (jona.emir@hotmail.com)
