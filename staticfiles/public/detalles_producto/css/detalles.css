@@ -1,0 +1,438 @@
+/* ===========================================================
+   DETALLE PRODUCTO – CSS unificado
+   =========================================================== */
+
+/* ========== 1. Layout general ========== */
+
+/* Contenedor principal: divide imagen e info en columnas */
+.detalle-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Imagen del producto */
+.detalle-imagen {
+  width: 50%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ========== CARRUSEL DE IMÁGENES ========== */
+.carrusel-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.carrusel-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.carrusel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
+.carrusel-slide {
+  min-width: 100%;
+  height: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carrusel-slide .slide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Botones de navegación del carrusel */
+.carrusel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.carrusel-container:hover .carrusel-btn {
+  opacity: 1;
+}
+
+.carrusel-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carrusel-btn-prev {
+  left: 20px;
+}
+
+.carrusel-btn-next {
+  right: 20px;
+}
+
+.carrusel-btn svg {
+  color: #1d1d1d;
+}
+
+/* Indicadores (dots) del carrusel */
+.carrusel-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.carrusel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.carrusel-dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+.carrusel-dot.active {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.3);
+}
+
+.detalle-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Panel de información del producto */
+.detalle-info {
+  width: 50%;
+  margin-top: 100px;
+  padding: 120px 120px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  font-family: 'Helvetica Neue', sans-serif;
+  color: #1d1d1d;
+  background: #fff;
+}
+
+.detalle-info h2,
+.detalle-info h3 {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.detalle-info h2 { font-weight: normal; }
+
+.detalle-info p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.detalle-info label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.detalle-info select {
+  font-size: 14px;
+  padding: 6px 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  appearance: none;
+}
+
+/* Botones de contacto y asesor */
+.detalle-info .boton-contacto,
+.btn-asesor {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 15px 0;
+  width: 100%;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+}
+.btn-asesor:hover,
+.detalle-info .boton-contacto:hover {
+  opacity: 0.85;
+}
+
+/* Guía de tallas */
+.guia-tallas {
+  font-size: 10px;
+  color: #000;
+  margin: 25px 0 15px;
+}
+
+/* Flecha de volver */
+.volver-atras {
+  position: absolute;
+  top: 40px;
+  left: 20px;
+  transform: rotate(90deg) translateY(5px);
+  text-decoration: none;
+  z-index: 10;
+}
+.volver-atras .chevron {
+  width: 16px;
+  height: 16px;
+  stroke: #1d1d1d;
+  transition: transform 0.2s;
+}
+.volver-atras:hover .chevron {
+  transform: translateY(6px) scale(1.1);
+}
+
+/* Fade-in del contenedor info */
+.detalle-section {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 3s ease 1.5s, transform 3s ease 1.5s;
+}
+.detalle-section.fade-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ========== 2. UI de tallas y cantidades ========== */
+
+/* Select de tallas fuera de la línea de cantidad */
+#select-talla-inicial,
+#select-talla-extra {
+  width: 120px;
+  height: 24px;
+  line-height: 22px;
+  font-size: 12px;
+  padding: 0 6px;
+  margin-bottom: 15px;
+  display: inline-block;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+/* Línea con select de talla + cantidad + botón eliminar */
+.linea-talla {
+  display: flex;
+  align-items: center;
+  margin: 12px 0;
+  font-size: 14px;
+  transition: max-height 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
+  max-height: 0;
+  opacity: 0;
+  transform: translateX(40px);
+  position: relative;
+  padding-top: 24px;
+  overflow: visible;
+}
+
+/* Línea expandida */
+.linea-talla.expand {
+  max-height: 120px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Línea colapsada */
+.linea-talla.collapse {
+  max-height: 0;
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+/* Select dentro de la línea de cantidad */
+.linea-talla select.talla-select {
+  width: 70px;
+  height: 24px;
+  font-size: 14px;
+  padding: 0 6px;
+  margin: 0;
+  position: relative;
+  top: 7px;
+}
+
+/* Bloque con botones − + y cantidad */
+.qty-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 250px;
+}
+
+/* Input de cantidad sin bordes */
+.qty-wrap input.qty {
+  width: 48px;
+  text-align: center;
+  font-size: 16px;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+/* Quitar spinners del input número */
+.qty-wrap input.qty::-webkit-outer-spin-button,
+.qty-wrap input.qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.qty-wrap input.qty[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Botones − y ＋ */
+.btn-minus,
+.btn-plus {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+.btn-minus:hover,
+.btn-plus:hover {
+  opacity: .7;
+}
+
+/* ========== 3. Utilidades y extras ========== */
+
+/* Tabla de tallas */
+.tabla-tallas {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 14px;
+}
+.tabla-tallas th,
+.tabla-tallas td {
+  border: 1px solid #ccc;
+  text-align: center;
+  padding: 10px;
+}
+
+/* Input alternativo de cantidad */
+.input-cantidad {
+  width: 60px;
+  padding: 5px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Resumen del pedido */
+.resumen-pedido {
+  margin: 15px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.resumen-pedido strong {
+  font-weight: bold;
+}
+
+/* Etiqueta "Cantidad" SOLO para la primera fila */
+.qty-wrap::before {
+  content: none;
+}
+#lineas-tallas > .linea-talla:first-child .qty-wrap {
+  position: relative;
+}
+#lineas-tallas > .linea-talla:first-child .qty-wrap::before {
+  content: "Cantidad";
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: #1d1d1d;
+  pointer-events: none;
+}
+
+/* ========== 4. Animaciones ========== */
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(40px); }
+}
+
+/* Animación al agregar línea */
+.linea-talla.animate-in {
+  animation: fadeInRight 0.35s ease forwards;
+}
+
+/* Animación al eliminar línea */
+.linea-talla.fade-out {
+  animation: fadeOutLeft 0.35s ease forwards;
+}
+
+/* ========== 5. Ícono de basura animado (cuando cantidad = 1) ========== */
+
+.btn-minus.trash {
+  color: #000;
+  font-size: 12px;
+}
+
+.btn-minus.trash i {
+  pointer-events: none;
+  animation: fadeInIcon 0.2s ease-in;
+}
+
+.btn-minus.fade-out i {
+  animation: fadeOutIcon 0.2s ease-out;
+}
+
+@keyframes fadeInIcon {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOutIcon {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.8); }
+}

@@ -65,8 +65,21 @@
       <h2>{{ producto.nombre }}</h2>
       <h3 id="precio-actual">${{ producto.precio|floatformat:2 }}</h3>
 
-      <!-- Selector inicial -->
-      <label for="select-talla-inicial">Elige tu primera talla:</label>
+      <!-- Selector de color -->
+      {% if colores|length > 1 %}
+      <label for="select-color">Color:</label>
+      <select id="select-color">
+        <option value="">Seleccionar color</option>
+        {% for c in colores %}
+          <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+      {% elif colores %}
+      <input type="hidden" id="select-color" value="{{ colores.0 }}">
+      {% endif %}
+
+      <!-- Selector de talla -->
+      <label for="select-talla-inicial">Elige tu talla:</label>
       <select id="select-talla-inicial">
         <option value="">Seleccionar talla</option>
         {% for t in tallas %}

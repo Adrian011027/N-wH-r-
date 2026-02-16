@@ -27,8 +27,9 @@ def detalle_producto(request, id):
 
     variantes_serializadas = []    # para el JS
     for v in producto.variantes.all():
-        if v.talla:
-            tallas.add(v.talla)
+        # Extraer tallas del JSONField
+        for talla_key in v.tallas_stock.keys():
+            tallas.add(talla_key)
         if v.color:
             colores.add(v.color)
 
@@ -36,12 +37,12 @@ def detalle_producto(request, id):
         imagenes_variante = [img.imagen.url for img in v.imagenes.all().order_by('orden') if img.imagen]
         
         variantes_serializadas.append({
-            "id"    : v.id,
-            "talla" : v.talla,
-            "color" : v.color,
-            "precio": float(v.precio or producto.precio),
-            "stock" : v.stock,
-            "imagenes": imagenes_variante,  # Imágenes específicas de la variante
+            "id"          : v.id,
+            "color"       : v.color,
+            "precio"      : float(v.precio or producto.precio),
+            "tallas_stock": v.tallas_stock,
+            "stock_total" : v.stock_total_variante,
+            "imagenes"    : imagenes_variante,
         })
 
     # Obtener imágenes de la variante principal (para cuando no hay variante seleccionada)
@@ -62,8 +63,8 @@ def detalle_producto(request, id):
             "origen"         : origen,
             "tallas"         : sorted(tallas, key=lambda x: (len(x), x)),
             "colores"        : sorted(colores),
-            "imagenes_producto": imagenes_producto,  # Imágenes del producto base
-            "variantes_json" : json.dumps(variantes_serializadas),
+            "imagenes_producto": imagenes_producto,
+            "variantes_json" : json.dumps(variantes_serializadas, ensure_ascii=False),
         },
     )
 
@@ -78,16 +79,20 @@ def get_all_products(request):
     for p in productos:
         variantes = []
         for v in p.variantes.all():
+            # Obtener imágenes de la galería de la variante
+            imagenes_variante = [img.imagen.url for img in v.imagenes.all().order_by('orden') if img.imagen]
+            
             variantes.append({
                 'id': v.id,
                 'sku': v.sku,
-                'talla': v.talla,
                 'color': v.color,
+                'tallas_stock': v.tallas_stock or {},
                 'otros': v.otros,
                 'precio': float(v.precio or p.precio),
                 'precio_mayorista': float(v.precio_mayorista or p.precio_mayorista),
-                'stock': v.stock,
-                'imagen': v.imagen.url if v.imagen else '',
+                'stock_total': v.stock_total_variante,
+                'imagen': imagenes_variante[0] if imagenes_variante else '',
+                'imagenes': imagenes_variante,
             })
         
         # Galería de imágenes de la variante principal
@@ -185,8 +190,8 @@ def create_product(request):
         en_oferta=en_oferta,
     )
 
-    # Sistema nuevo: Variantes con talla y color directos
-    # Variantes múltiples (tallas + stocks)
+    # Sistema nuevo: 1 variante = 1 color, con tallas_stock JSONField
+    # Variantes múltiples (tallas + stocks → agrupadas por color)
     primera_variante_precio = None
     primera_variante_creada = False
     if tallas and stocks and len(tallas) == len(stocks):
@@ -200,11 +205,11 @@ def create_product(request):
         precios_var = request.POST.getlist("precios") if request.method == "POST" else []
         precios_mayorista_var = request.POST.getlist("precios_mayorista") if request.method == "POST" else []
 
+        # Agrupar tallas por color para crear 1 variante por color
+        color_variants = {}  # {color: {tallas_stock: {}, precio: X, precio_mayorista: Y, idx: 0}}
         for idx, (talla, stock) in enumerate(zip(tallas, stocks)):
-            # Obtener color de esta variante (o usar N/A)
             color = colores[idx] if idx < len(colores) and colores[idx] else "N/A"
             
-            # Obtener precio de esta variante (o usar el del producto)
             precio_var = precio
             if idx < len(precios_var) and precios_var[idx]:
                 try:
@@ -212,61 +217,69 @@ def create_product(request):
                 except ValueError:
                     precio_var = precio
             
-            # Obtener precio mayorista de esta variante (o usar el del producto)
-            precio_mayorista_var = precio_mayorista
+            pmay = precio_mayorista
             if idx < len(precios_mayorista_var) and precios_mayorista_var[idx]:
                 try:
-                    precio_mayorista_var = float(precios_mayorista_var[idx])
+                    pmay = float(precios_mayorista_var[idx])
                 except ValueError:
-                    precio_mayorista_var = precio_mayorista
+                    pmay = precio_mayorista
             
+            if color not in color_variants:
+                color_variants[color] = {
+                    'tallas_stock': {},
+                    'precio': precio_var,
+                    'precio_mayorista': pmay,
+                    'idx': idx,  # Para buscar imágenes
+                }
+            color_variants[color]['tallas_stock'][talla] = stock
+
+        # Crear una variante por color
+        is_first = True
+        for color, cv_data in color_variants.items():
             variante = Variante.objects.create(
                 producto=producto,
-                talla=talla,
                 color=color,
-                precio=precio_var,
-                precio_mayorista=precio_mayorista_var,
-                stock=stock,
-                es_variante_principal=(idx == 0),  # Marcar la primera como principal
+                tallas_stock=cv_data['tallas_stock'],
+                precio=cv_data['precio'],
+                precio_mayorista=cv_data['precio_mayorista'],
+                es_variante_principal=is_first,
             )
-            # Capturar precio de la primera variante
-            if idx == 0:
+            if is_first:
                 primera_variante_precio = variante.precio
                 primera_variante_creada = True
             
             # 🖼️ PROCESAR IMÁGENES DE ESTA VARIANTE
+            # Buscar imágenes por el índice original de la primera talla de este color
             try:
                 from store.models import VarianteImagen
                 import os
                 
-                # Obtener imágenes para esta variante específica (formato: variante_imagen_temp_{idx})
-                imagenes_variante = request.FILES.getlist(f'variante_imagen_temp_{idx}')
+                img_idx = cv_data['idx']
+                imagenes_variante = request.FILES.getlist(f'variante_imagen_temp_{img_idx}')
                 
                 if imagenes_variante:
-                    logger.debug(f"[VARIANTE {idx}] Procesando {len(imagenes_variante)} imagen(es)")
+                    logger.debug(f"[VARIANTE color={color}] Procesando {len(imagenes_variante)} imagen(es)")
                     
-                    for img_idx, imagen_file in enumerate(imagenes_variante, start=1):
-                        if img_idx > 5:  # Máximo 5 imágenes por variante
+                    for img_order, imagen_file in enumerate(imagenes_variante, start=1):
+                        if img_order > 5:
                             break
-                        
                         try:
-                            # Generar nombre canonico
                             ext = os.path.splitext(imagen_file.name)[1]
-                            nombre_canonico = f'imagen-{img_idx}{ext}'
+                            nombre_canonico = f'imagen-{img_order}{ext}'
                             imagen_file.name = nombre_canonico
                             
-                            # Crear VarianteImagen
                             variante_imagen = VarianteImagen(
                                 variante=variante,
                                 imagen=imagen_file,
-                                orden=img_idx
+                                orden=img_order
                             )
                             variante_imagen.save()
-                            logger.debug(f"[VARIANTE {idx}] Imagen guardada en orden {img_idx}")
                         except Exception as e:
-                            logger.debug(f"[VARIANTE {idx}] Error guardando imagen {img_idx}: {e}")
+                            logger.debug(f"[VARIANTE color={color}] Error guardando imagen {img_order}: {e}")
             except Exception as e:
-                logger.debug(f"[VARIANTE {idx}] Error general procesando imágenes: {e}")
+                logger.debug(f"[VARIANTE color={color}] Error general procesando imágenes: {e}")
+            
+            is_first = False
 
     # Variante simple (stock único)
     else:
@@ -285,12 +298,11 @@ def create_product(request):
 
         variante = Variante.objects.create(
             producto=producto,
-            talla=talla_unica,
             color=color_unico,
+            tallas_stock={talla_unica: stock_unico},
             precio=precio,
             precio_mayorista=precio_mayorista,
-            stock=stock_unico,
-            es_variante_principal=True,  # Variante única es siempre la principal
+            es_variante_principal=True,
         )
         primera_variante_precio = variante.precio
         primera_variante_creada = True
@@ -355,11 +367,10 @@ def update_productos(request, id):
         if not producto.variantes.exists():
             Variante.objects.create(
                 producto=producto,
-                talla='UNICA',
                 color='N/A',
+                tallas_stock={'UNICA': 0},
                 precio=producto.precio,
                 precio_mayorista=producto.precio_mayorista,
-                stock=0,
                 es_variante_principal=True,
             )
 
@@ -505,14 +516,16 @@ def create_variant(request):
     Crea una nueva variante para un producto existente.
     
     Parámetros:
-    - producto_id: ID del producto
-    - talla: Talla de la variante
+    - producto_id: ID del producto (requerido)
     - color: Color de la variante
+    - tallas_stock: JSON con tallas y stock {'38': 5, '39': 10} (preferido)
+    - talla + stock: Talla y stock individual (backward compatibility)
     - precio: Precio (opcional, usa el del producto si no se especifica)
     - precio_mayorista: Precio mayorista (opcional)
-    - stock: Stock disponible
+    - imagenes_*: Imágenes de la variante (múltiples archivos soportados)
     """
     from decimal import Decimal
+    import json
     
     try:
         producto_id = request.POST.get('producto_id')
@@ -521,32 +534,68 @@ def create_variant(request):
         
         producto = get_object_or_404(Producto, id=producto_id)
         
-        talla = request.POST.get('talla', 'UNICA')
         color = request.POST.get('color', 'N/A')
         precio_str = request.POST.get('precio', str(producto.precio))
         precio_mayorista_str = request.POST.get('precio_mayorista', str(producto.precio_mayorista))
-        stock = request.POST.get('stock', 0)
+        
+        # Parsear tallas_stock como JSON o usar talla+stock individual
+        tallas_stock = {}
+        if 'tallas_stock' in request.POST:
+            try:
+                ts = json.loads(request.POST['tallas_stock'])
+                if isinstance(ts, dict):
+                    tallas_stock = {k: int(v) for k, v in ts.items()}
+            except (json.JSONDecodeError, ValueError) as e:
+                return JsonResponse({'error': f'tallas_stock inválido: {str(e)}'}, status=400)
+        elif 'talla' in request.POST and 'stock' in request.POST:
+            # Backward compatibility
+            talla = request.POST.get('talla', 'UNICA')
+            stock = int(request.POST.get('stock', 0))
+            tallas_stock = {talla: stock}
+        else:
+            return JsonResponse({'error': 'Falta tallas_stock o talla+stock'}, status=400)
         
         try:
             precio = Decimal(precio_str)
             precio_mayorista = Decimal(precio_mayorista_str)
-            stock = int(stock)
         except (ValueError, TypeError):
-            return JsonResponse({'error': 'Valores numéricos inválidos'}, status=400)
+            return JsonResponse({'error': 'Precio inválido'}, status=400)
         
         # Crear la variante
         variante = Variante.objects.create(
             producto=producto,
-            talla=talla,
             color=color,
+            tallas_stock=tallas_stock,
             precio=precio,
             precio_mayorista=precio_mayorista,
-            stock=stock
         )
+        
+        # Manejar imágenes de la variante (formato: imagenes_0, imagenes_1, etc.)
+        imagenes_guardadas = 0
+        for key in request.FILES.keys():
+            if key.startswith('imagenes_'):
+                imagen_file = request.FILES[key]
+                try:
+                    # Generar nombre canónico
+                    nombre_canonico = variante._generate_image_key(imagen_file.name)
+                    
+                    # Crear VarianteImagen
+                    variante_imagen = VarianteImagen(
+                        variante=variante,
+                        imagen=imagen_file,
+                        orden=imagenes_guardadas
+                    )
+                    variante_imagen.imagen.name = nombre_canonico
+                    variante_imagen.save()
+                    imagenes_guardadas += 1
+                    logger.debug(f"Imagen guardada para nueva variante {variante.id}: {variante_imagen.imagen.url}")
+                except Exception as e:
+                    logger.warning(f"Error al guardar imagen para variante {variante.id}: {e}")
         
         return JsonResponse({
             'id': variante.id,
-            'mensaje': f'Variante {variante.id} creada correctamente'
+            'mensaje': f'Variante {variante.id} creada correctamente',
+            'imagenes_guardadas': imagenes_guardadas
         }, status=201)
     
     except Exception as e:
@@ -562,8 +611,29 @@ def update_variant(request, variante_id):
     variante = get_object_or_404(Variante, id=variante_id)
     precio_actualizado = False
 
-    if 'stock' in request.POST:
-        variante.stock = int(request.POST['stock'])
+    # Manejar tallas_stock como JSON
+    if 'tallas_stock' in request.POST:
+        try:
+            import json
+            ts = json.loads(request.POST['tallas_stock'])
+            if isinstance(ts, dict):
+                variante.tallas_stock = {k: int(v) for k, v in ts.items()}
+        except (json.JSONDecodeError, ValueError):
+            pass
+    # Backward compat: si envían talla+stock individuales, actualizar en tallas_stock
+    elif 'stock' in request.POST:
+        talla_key = request.POST.get('talla', '')
+        stock_val = int(request.POST['stock'])
+        if talla_key:
+            variante.tallas_stock[talla_key] = stock_val
+        else:
+            # Si solo hay una talla, actualizar esa
+            if len(variante.tallas_stock) == 1:
+                key = next(iter(variante.tallas_stock))
+                variante.tallas_stock[key] = stock_val
+            else:
+                variante.tallas_stock['UNICA'] = stock_val
+
     if 'precio' in request.POST:
         variante.precio = request.POST['precio']
         precio_actualizado = True
@@ -571,8 +641,6 @@ def update_variant(request, variante_id):
         variante.precio_mayorista = request.POST['precio_mayorista']
     if 'sku' in request.POST:
         variante.sku = request.POST['sku']
-    if 'talla' in request.POST:
-        variante.talla = request.POST['talla']
     if 'color' in request.POST:
         variante.color = request.POST['color']
     

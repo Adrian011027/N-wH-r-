@@ -1,0 +1,649 @@
+/* ========================================
+   MIS PEDIDOS - PÁGINA PRINCIPAL
+   ======================================== */
+
+.pedidos-page {
+  min-height: 100vh;
+  background: #f8f8f8;
+  padding: 40px 20px;
+  padding-top: 120px;
+}
+
+.pedidos-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Header */
+.pedidos-header {
+  margin-bottom: 32px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 16px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #000;
+}
+
+.pedidos-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 8px;
+}
+
+.pedidos-subtitle {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Estados vacíos */
+.pedidos-empty,
+.pedidos-error,
+.pedidos-loading {
+  text-align: center;
+  padding: 80px 20px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.pedidos-empty svg,
+.pedidos-error svg {
+  color: #ccc;
+  margin-bottom: 24px;
+}
+
+.pedidos-empty h2,
+.pedidos-error h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0 0 12px;
+}
+
+.pedidos-empty p,
+.pedidos-error p {
+  color: #666;
+  margin: 0 0 24px;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 14px 32px;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #333;
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 14px 32px;
+  background: #f5f5f5;
+  color: #333;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background 0.2s;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #eee;
+}
+
+/* Loading */
+.pedidos-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Lista de pedidos */
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tarjeta de pedido */
+.orden-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.orden-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.orden-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.orden-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.orden-id {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+
+.orden-fecha {
+  font-size: 14px;
+  color: #666;
+}
+
+.orden-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.orden-status svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Productos preview */
+.orden-productos {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.producto-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.producto-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.producto-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+}
+
+.producto-cantidad {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: #000;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.mas-productos {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* Footer de orden */
+.orden-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fafafa;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.orden-total {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+}
+
+.orden-total span {
+  color: #666;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+.orden-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-ver-detalle {
+  padding: 10px 20px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-ver-detalle:hover {
+  background: #333;
+}
+
+.btn-recomprar {
+  padding: 10px 20px;
+  background: transparent;
+  color: #000;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-recomprar:hover {
+  border-color: #000;
+}
+
+/* ========================================
+   MODAL DE DETALLE
+   ======================================== */
+
+.orden-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  padding: 20px;
+}
+
+.orden-modal.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.orden-modal-content {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+
+.orden-modal.open .orden-modal-content {
+  transform: translateY(0);
+}
+
+.orden-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.orden-modal-header h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #666;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.close-modal:hover {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.orden-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Detalle del modal */
+.modal-section {
+  margin-bottom: 24px;
+}
+
+.modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.modal-section h3 {
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+}
+
+.modal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.modal-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-info-item label {
+  font-size: 12px;
+  color: #999;
+}
+
+.modal-info-item span {
+  font-size: 14px;
+  color: #000;
+  font-weight: 500;
+}
+
+/* Productos en modal */
+.modal-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-producto {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.modal-producto-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #eee;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.modal-producto-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-producto-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.modal-producto-nombre {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  margin: 0 0 4px;
+}
+
+.modal-producto-attrs {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px;
+}
+
+.modal-producto-precio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-producto-precio span:first-child {
+  font-size: 14px;
+  color: #666;
+}
+
+.modal-producto-precio span:last-child {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+/* Resumen total en modal */
+.modal-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: #000;
+  color: #fff;
+  border-radius: 12px;
+  margin-top: 24px;
+}
+
+.modal-total span:first-child {
+  font-size: 16px;
+}
+
+.modal-total span:last-child {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Línea de tiempo de estado */
+.status-timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 20px 0;
+}
+
+.status-timeline::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: #eee;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.timeline-step.active .timeline-dot {
+  background: #000;
+  color: #fff;
+}
+
+.timeline-step.completed .timeline-dot {
+  background: #10b981;
+  color: #fff;
+}
+
+.timeline-label {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+}
+
+.timeline-step.active .timeline-label,
+.timeline-step.completed .timeline-label {
+  color: #000;
+  font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .pedidos-page {
+    padding: 20px 16px;
+    padding-top: 100px;
+  }
+  
+  .pedidos-header h1 {
+    font-size: 26px;
+  }
+  
+  .orden-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .orden-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .orden-actions {
+    justify-content: stretch;
+  }
+  
+  .orden-actions button {
+    flex: 1;
+  }
+  
+  .modal-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-timeline {
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+  }
+  
+  .status-timeline::before {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .pedidos-empty,
+  .pedidos-error {
+    padding: 60px 16px;
+  }
+  
+  .pedidos-empty h2,
+  .pedidos-error h2 {
+    font-size: 20px;
+  }
+  
+  .orden-productos {
+    padding: 16px;
+    gap: 8px;
+  }
+  
+  .producto-thumb {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .mas-productos {
+    width: 60px;
+    height: 60px;
+    font-size: 12px;
+  }
+}

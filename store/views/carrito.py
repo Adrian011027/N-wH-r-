@@ -155,36 +155,54 @@ def create_carrito(request, cliente_id):
         carrito.save(update_fields=["status"])
 
     # ── Variante según talla ───────────────────────────────────
-    if talla_val:
-        # Sistema nuevo: buscar directamente por talla
-        variante = get_object_or_404(
-            Variante,
-            producto=producto,
-            talla__iexact=talla_val
-        )
+    # Ahora 1 variante = 1 color, con tallas_stock JSONField
+    variante_id = data.get("variante_id")
+    if variante_id:
+        variante = get_object_or_404(Variante, id=int(variante_id), producto=producto)
+    elif talla_val:
+        # Buscar variante que tenga esta talla en su tallas_stock
+        variantes = Variante.objects.filter(producto=producto)
+        variante = None
+        for v in variantes:
+            if talla_val.upper() in {k.upper() for k in v.tallas_stock.keys()}:
+                variante = v
+                break
+        if not variante:
+            return JsonResponse({"error": f"No se encontró variante con talla '{talla_val}'"}, status=404)
     else:
-        # Sin talla especificada → buscar variante única
-        variante = (
-            Variante.objects
-            .filter(producto=producto)
-            .filter(models.Q(talla="UNICA") | models.Q(talla="N/A"))
-            .first()
-        )
+        # Sin talla → buscar variante única
+        variante = Variante.objects.filter(producto=producto).first()
         if not variante:
             return JsonResponse({"error": "Debes especificar una talla válida"}, status=400)
+        # Usar la primera talla disponible
+        if variante.tallas_stock:
+            talla_val = next(iter(variante.tallas_stock))
+        else:
+            talla_val = "UNICA"
 
-    if variante.stock < cantidad:
-        return JsonResponse({"error": f"Stock insuficiente ({variante.stock})"}, status=409)
+    # Normalizar talla_val para coincidir con la key exacta del dict
+    if not talla_val:
+        talla_val = "UNICA"
+    talla_key = talla_val
+    for k in variante.tallas_stock.keys():
+        if k.upper() == talla_val.upper():
+            talla_key = k
+            break
+
+    stock_disponible = variante.stock_de_talla(talla_key)
+    if stock_disponible < cantidad:
+        return JsonResponse({"error": f"Stock insuficiente ({stock_disponible})"}, status=409)
 
     # ── Línea de carrito ───────────────────────────────────────
     cp, creado = CarritoProducto.objects.get_or_create(
         carrito  = carrito,
         variante = variante,
+        talla    = talla_key,
         defaults = {"cantidad": cantidad}
     )
     if not creado:
         nueva_cant = cp.cantidad + cantidad
-        if variante.stock < nueva_cant:
+        if stock_disponible < nueva_cant:
             return JsonResponse({"error": f"Stock insuficiente para {nueva_cant} piezas"}, status=409)
         cp.cantidad = nueva_cant
         cp.save(update_fields=["cantidad"])
@@ -199,7 +217,7 @@ def create_carrito(request, cliente_id):
         "producto"  : producto.nombre,
         "variante"  : {
             "sku"      : variante.sku,
-            "talla"    : variante.talla,
+            "talla"    : talla_key,
             "color"    : variante.color,
             "otros"    : variante.otros
         },
@@ -274,7 +292,7 @@ def _build_detalle_response(carrito):
                 var.precio_mayorista if var.precio_mayorista > 0 else prod.precio_mayorista
             ),
             "cantidad"       : cp.cantidad,
-            "talla"          : var.talla,
+            "talla"          : cp.talla,
             "color"          : var.color,
             "otros"          : var.otros,
             "subtotal"       : round(precio_unit * cp.cantidad, 2),
@@ -315,7 +333,12 @@ def delete_producto_carrito(request, cliente_id, variante_id):
     
     cliente = get_object_or_404(Cliente, id=cliente_id)
     carrito = get_carrito_activo_cliente(cliente)
-    cp      = get_object_or_404(CarritoProducto, carrito=carrito, variante_id=variante_id)
+    # Filtrar también por talla si se envía (una variante puede tener múltiples tallas)
+    talla = request.GET.get('talla') or request.POST.get('talla')
+    filtro = {'carrito': carrito, 'variante_id': variante_id}
+    if talla:
+        filtro['talla'] = talla
+    cp = get_object_or_404(CarritoProducto, **filtro)
     cp.delete()
     return JsonResponse({"mensaje": "Producto eliminado del carrito."}, status=200)
 
@@ -403,7 +426,9 @@ def actualizar_cantidad_producto(request, cliente_id, variante_id):
         }, status=403)
     
     try:
-        cantidad = int(json.loads(request.body).get("cantidad", 0))
+        body = json.loads(request.body)
+        cantidad = int(body.get("cantidad", 0))
+        talla = body.get("talla")
         if cantidad < 1:
             raise ValueError
     except Exception:
@@ -413,10 +438,13 @@ def actualizar_cantidad_producto(request, cliente_id, variante_id):
     carrito = get_carrito_activo_cliente(cliente)
 
     with transaction.atomic():
+        filtro = {'carrito': carrito, 'variante_id': variante_id}
+        if talla:
+            filtro['talla'] = talla
         cp = (
             CarritoProducto.objects
             .select_for_update()
-            .get(carrito=carrito, variante_id=variante_id)
+            .get(**filtro)
         )
         cp.cantidad = cantidad
         cp.save(update_fields=["cantidad"])
@@ -500,7 +528,7 @@ def _carrito_to_template(carrito):
             "nombre"          : prod.nombre,
             "precio"          : precio_unit,
             "cantidad"        : it.cantidad,
-            "talla"           : var.talla or "Única",
+            "talla"           : it.talla or "Única",
             "color"           : var.color,
             "imagen"          : galeria[0] if galeria else None,
             "variante_id"     : var.id,
@@ -522,6 +550,7 @@ def actualizar_cantidad_guest(request, variante_id):
     try:
         data = json.loads(request.body)
         cantidad = int(data.get("cantidad", 1))
+        talla = data.get("talla")
     except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
@@ -529,7 +558,10 @@ def actualizar_cantidad_guest(request, variante_id):
     if not carrito:
         return JsonResponse({'error': 'Carrito no encontrado'}, status=404)
 
-    item = carrito.items.filter(variante_id=variante_id).first()
+    filtro = {'variante_id': variante_id}
+    if talla:
+        filtro['talla'] = talla
+    item = carrito.items.filter(**filtro).first()
     if not item:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
@@ -549,7 +581,12 @@ def eliminar_item_guest(request, variante_id):
     if not carrito:
         return JsonResponse({'error': 'Carrito no encontrado'}, status=404)
 
-    item = carrito.items.filter(variante_id=variante_id).first()
+    # Filtrar también por talla si se envía
+    talla = request.GET.get('talla') or request.POST.get('talla')
+    filtro = {'variante_id': variante_id}
+    if talla:
+        filtro['talla'] = talla
+    item = carrito.items.filter(**filtro).first()
     if not item:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
@@ -606,7 +643,7 @@ def finalizar_compra(request, carrito_id):
             "cantidad"   : cp.cantidad,
             "precio_unitario": float(precio_unit),
             "subtotal"   : float(subtotal),
-            "talla"      : var.talla,
+            "talla"      : cp.talla,
             "color"      : var.color,
             "otros"      : var.otros,
         })
@@ -797,7 +834,7 @@ def mostrar_confirmacion_compra(request, carrito_id):
 
         items.append({
             "nombre": prod.nombre,
-            "talla": var.talla or "Única",
+            "talla": it.talla or "Única",
             "color": var.color,
             "cantidad": it.cantidad,
             "precio_unitario": precio,
@@ -853,7 +890,7 @@ def mostrar_formulario_confirmacion(request, carrito_id):
 
         items.append({
             "nombre": prod.nombre,
-            "talla": var.talla or "Única",
+            "talla": it.talla or "Única",
             "color": var.color,
             "cantidad": it.cantidad,
             "precio_unitario": precio,
@@ -922,8 +959,8 @@ def enviar_ticket_whatsapp(request, carrito_id):
             variante = detalle.variante
             producto = variante.producto
             
-            # Obtener talla directamente de la variante
-            talla = variante.talla or "Única"
+            # Obtener talla del detalle de la orden (no de la variante)
+            talla = detalle.talla or "Única"
             
             subtotal = detalle.cantidad * detalle.precio_unitario
             
@@ -1082,8 +1119,8 @@ def enviar_ticket_email(request, carrito_id):
             variante = detalle.variante
             producto = variante.producto
             
-            # Obtener talla directamente de la variante
-            talla = variante.talla or "Única"
+            # Obtener talla del detalle de la orden (no de la variante)
+            talla = detalle.talla or "Única"
             
             subtotal = detalle.cantidad * detalle.precio_unitario
             

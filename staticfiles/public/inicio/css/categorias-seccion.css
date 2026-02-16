@@ -1,0 +1,248 @@
+/* ==============================================================  
+   CATEGORÍAS DAMA & HOMBRE  
+   ============================================================== */
+
+/* 1. CONTENEDORES ------------------------------------------------ */
+.categorias-dama,
+.categorias-hombre {
+  padding: 30px 20px;
+  background: #fff;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  box-sizing:border-box;
+}
+
+/* 2. ENCABEZADOS ------------------------------------------------- */
+.categorias-dama h2,
+.categorias-hombre h2 {
+  font-size: 1em;
+  margin-bottom: 20px;
+  color: #1D1D1D;
+  font-family: 'librebaskerville-regular', serif;
+}
+
+.categorias-dama h3,
+.categorias-hombre h3,
+.categorias-dama h4,
+.categorias-hombre h4 {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #1D1D1D;
+  text-align: left;
+  font-family: 'librebaskerville-regular', serif;
+}
+
+.categorias-dama h5,
+.categorias-hombre h5 {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color:#1d1d1dcc;
+  text-align: left;
+  font-weight: bold;
+  font-family: 'librebaskerville-regular', serif;
+}
+
+.categorias-dama p,
+.categorias-hombre p {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 15px;
+  font-family: 'librebaskerville-regular', serif;
+}
+
+
+/* 3. GRID DE TARJETAS ------------------------------------------- */
+.categorias-dama .categoria-grid,
+.categorias-hombre .categoria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 300px);
+  gap: 20px;
+  justify-content: center;
+}
+
+/* 4. TARJETA INDIVIDUAL ----------------------------------------- */
+.categorias-dama .categoria-card,
+.categorias-hombre .categoria-card {
+  flex: 1 1 350px;
+  max-width: 350px;
+  height: auto;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: center;
+  transition: transform .3s ease, opacity .3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  position: relative;
+}
+
+/* --- Botón de Wishlist (corazón) --- */
+.wishlist-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.wishlist-btn i {
+  font-size: 20px;
+  color: #1d1d1d;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active i {
+  color: #e74c3c;
+}
+
+.wishlist-btn:hover i {
+  color: #e74c3c;
+}
+
+.categorias-dama .categoria-card img,
+.categorias-hombre .categoria-card img,
+.categorias-dama .categoria-card video,
+.categorias-hombre .categoria-card video {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+
+  /* 🆕 hace el zoom desde el centro y suaviza el repintado */
+  transform-origin: center center;
+  will-change: transform;
+
+  transition: transform .4s ease;
+}
+
+/* ── 3. Zoom sólo dentro de la tarjeta ── */
+.categorias-dama .categoria-card:hover img,
+.categorias-hombre .categoria-card:hover img {
+  transform: scale(1.05);   /* o 1.03, 1.08 según gusto */
+}
+
+/* --- 4-a .thumb: contenedor de la imagen --- */
+.categorias-dama .thumb,
+.categorias-hombre .thumb {
+  width: 100%;
+  height: 450px;           /* alto fijo para el área de la foto */
+  overflow: hidden;        /* aquí se recorta el zoom */
+  position: relative;
+}
+
+/* --- 4-b la imagen real --- */
+.categorias-dama .thumb img,
+.categorias-hombre .thumb img {
+  position: absolute;      /* rellena por completo la “thumb” */
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  transform-origin: center;
+  will-change: transform;  /* suaviza el repintado */
+  transition: transform .4s ease;
+}
+
+/* --- 4-c efecto hover SOLO dentro de la thumb --- */
+.categorias-dama .categoria-card:hover .thumb img,
+.categorias-hombre .categoria-card:hover .thumb img {
+  transform: scale(1.05);  /* o la intensidad que prefieras */
+}
+
+/* Animación de entrada */
+.categorias-dama .categoria-card.visible,
+.categorias-hombre .categoria-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fadeInUp .6s ease forwards;
+}
+
+/* 5. BOTONES ----------------------------------------------------- */
+.boton-dama,
+.boton-hombre {
+  text-align: center;
+  margin-top: 25px;
+  margin-bottom: 0px;
+
+}
+
+.boton-dama button,
+.boton-hombre button {
+  padding: 12px 32px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1d1d1d;
+  background-color: transparent;
+  border: 1.5px solid #1d1d1d6f;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all .3s ease;
+}
+
+.boton-dama button:hover,
+.boton-hombre button:hover {
+  border-color: #000;
+}
+
+
+/* 6. RESPONSIVE (≤ 600 px) -------------------------------------- */
+@media (max-width: 600px) {
+
+  .categorias-dama,
+  .categorias-hombre{
+   /* padding lateral sigue en 20 px → 40 px totales */
+   padding:24px 12px;     /* o mantener 20 px pero con border-box ya no suma */
+   box-sizing:border-box; /* por si acaso */
+  }
+  
+  .categorias-dama .categoria-grid,
+  .categorias-hombre .categoria-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .categorias-dama .categoria-card,
+  .categorias-hombre .categoria-card {
+    width: 100%;
+    height: auto;
+    padding-bottom: 10px;
+  }
+
+  .categorias-dama .categoria-card h3,
+  .categorias-hombre .categoria-card h3 {
+    bottom: 5px;
+    font-size: .7em;
+    margin-top: 20px;
+  }
+
+  .categorias-dama .thumb,
+  .categorias-hombre .thumb {
+    height: 300px;   /* o la altura que prefieras en móvil */
+  }
+
+}
+
+/* -------------------------------------------------------------
+   ANIMACIONES  (compartidas con otros módulos)
+   ------------------------------------------------------------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
