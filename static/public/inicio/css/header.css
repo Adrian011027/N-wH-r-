@@ -13,9 +13,19 @@ header {
   background: transparent;
   backdrop-filter: none;
   transition:
-    background 0.4s ease,
-    backdrop-filter 0.4s ease,
-    box-shadow 0.4s ease;
+    background 0.6s ease,
+    backdrop-filter 0.6s ease;
+}
+
+/* Header con scroll: blur gradiente (oscuro arriba, claro abajo) sin línea */
+header.scrolled {
+  backdrop-filter: blur(8px);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.01) 100%
+  );
 }
 
 
@@ -489,7 +499,7 @@ header.scrolled #Logo {
 .fade-in {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .fade-in.fade-active {
   opacity: 1;
@@ -897,7 +907,7 @@ header.scrolled #Logo {
   display: none !important;
 }
 
-@keyframes fadeInUp {
+@keyframes fadeInUpSmall {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -908,7 +918,7 @@ header.scrolled #Logo {
   }
 }
 
-@keyframes fadeOutDown {
+@keyframes fadeOutDownSmall {
   from {
     opacity: 1;
     transform: translateY(0);
@@ -920,11 +930,11 @@ header.scrolled #Logo {
 }
 
 .wishlist-count.animate-in {
-  animation: fadeInUp 0.3s ease forwards;
+  animation: fadeInUpSmall 0.3s ease forwards;
 }
 
 .wishlist-count.animate-out {
-  animation: fadeOutDown 0.3s ease forwards;
+  animation: fadeOutDownSmall 0.3s ease forwards;
 }
 
 #btn-wishlist-panel {

@@ -3,7 +3,7 @@
 .hero-banner {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: var(--app-h, 100vh);
   overflow: hidden;
   display: flex;
   align-items: flex-end;
@@ -84,7 +84,7 @@
 .banner3-section{
   position:relative;
   width:100%;
-  height:100vh;
+  height:var(--app-h, 100vh);
   margin:0 auto;
   overflow:hidden;
 }
@@ -100,7 +100,7 @@
 .banner-zoom{
   position:sticky;
   top:var(--header-h,80px);   /* pegado justo bajo el header */
-  height:100vh;
+  height:var(--app-h, 100vh);
   overflow:hidden;
 
   /* ⬇️  NUEVO: lo mandamos al fondo del stacking-context */
@@ -127,9 +127,8 @@
   .hero-title { font-size: 1.8rem; }
   .hero-link { font-size: 0.9rem; }
   .hero-banner {
-    height: auto;
-    aspect-ratio: 9 / 16;
-    max-height: 100vh;
+    height: var(--app-h, 100vh);
+    max-height: none;
   }
   .banner-text {
     bottom: 55%;
@@ -148,13 +147,13 @@
     font-size: 1rem; 
   }
 
-  .banner2-section { height: 50vh; }
+  .banner2-section { height: calc(var(--app-h, 100vh) * 0.5); }
   .banner2 {
     height: 100%;
     object-fit: cover;
   }
   .banner3-section {
-    height: 40vh;
+    height: calc(var(--app-h, 100vh) * 0.4);
     width: 100vw;
     margin: 0;
     padding: 0;

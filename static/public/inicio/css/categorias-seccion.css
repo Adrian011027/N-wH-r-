@@ -22,33 +22,54 @@
   font-family: 'librebaskerville-regular', serif;
 }
 
-.categorias-dama h3,
-.categorias-hombre h3,
-.categorias-dama h4,
-.categorias-hombre h4 {
-  font-size: 14px;
-  margin-bottom: 5px;
-  color: #1D1D1D;
-  text-align: left;
-  font-family: 'librebaskerville-regular', serif;
-}
-
-.categorias-dama h5,
-.categorias-hombre h5 {
-  font-size: 14px;
-  margin-bottom: 5px;
-  color:#1d1d1dcc;
-  text-align: left;
-  font-weight: bold;
-  font-family: 'librebaskerville-regular', serif;
-}
-
 .categorias-dama p,
 .categorias-hombre p {
   text-align: center;
   font-size: 14px;
   margin-bottom: 15px;
   font-family: 'librebaskerville-regular', serif;
+}
+
+/* 2-b. CARD INFO — nombre + precio ------------------------------ */
+.card-info {
+  padding: 14px 6px 10px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-info h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.card-price {
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  font-weight: 300;
+  color: #0d0d0d;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.card-price small {
+  font-size: 10px;
+  font-weight: 400;
+  color: #999;
+  letter-spacing: 0.04em;
+  margin-left: 2px;
+  vertical-align: baseline;
 }
 
 
@@ -73,9 +94,10 @@
   flex-direction: column;
   justify-content: flex-start;
   text-align: center;
-  transition: transform .3s ease, opacity .3s ease;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(14px);
   position: relative;
 }
 
@@ -166,12 +188,11 @@
   transform: scale(1.05);  /* o la intensidad que prefieras */
 }
 
-/* Animación de entrada */
+/* Animación de entrada (via transition, sin animation duplicada) */
 .categorias-dama .categoria-card.visible,
 .categorias-hombre .categoria-card.visible {
   opacity: 1;
   transform: translateY(0);
-  animation: fadeInUp .6s ease forwards;
 }
 
 /* 5. BOTONES ----------------------------------------------------- */
@@ -222,19 +243,30 @@
   .categorias-hombre .categoria-card {
     width: 100%;
     height: auto;
-    padding-bottom: 10px;
+    padding-bottom: 0;
   }
 
-  .categorias-dama .categoria-card h3,
-  .categorias-hombre .categoria-card h3 {
-    bottom: 5px;
-    font-size: .7em;
-    margin-top: 20px;
+  .card-info {
+    padding: 10px 4px 8px;
+    gap: 4px;
+  }
+
+  .card-info h4 {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .card-price {
+    font-size: 12.5px;
+  }
+
+  .card-price small {
+    font-size: 9px;
   }
 
   .categorias-dama .thumb,
   .categorias-hombre .thumb {
-    height: 300px;   /* o la altura que prefieras en móvil */
+    height: 300px;
   }
 
 }

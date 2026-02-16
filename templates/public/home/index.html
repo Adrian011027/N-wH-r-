@@ -98,10 +98,11 @@
     <i class="{% if p.id in wishlist_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
   </button>
 
-  <h4>{{ p.nombre }}</h4>
-  <h5>${{ p.precio|floatformat:2 }}</h5>
+  <div class="card-info">
+    <h4>{{ p.nombre }}</h4>
+    <span class="card-price">${{ p.precio|floatformat:2 }} <small>MXN</small></span>
+  </div>
 </div>
-
 
     {% empty %}
       <p>No hay productos de dama disponibles.</p>
@@ -143,8 +144,10 @@
     <i class="{% if p.id in wishlist_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
   </button>
 
-  <h4>{{ p.nombre }}</h4>
-  <h5>${{ p.precio|floatformat:2 }}</h5>
+  <div class="card-info">
+    <h4>{{ p.nombre }}</h4>
+    <span class="card-price">${{ p.precio|floatformat:2 }} <small>MXN</small></span>
+  </div>
 </div>
 
 

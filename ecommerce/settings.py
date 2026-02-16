@@ -34,7 +34,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 DEBUG_PROPAGATE_EXCEPTIONS = False
 
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.100.14,.ngrok.io,.ngrok-free.app', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.100.6,.ngrok.io,.ngrok-free.app', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Google Maps API Key (obtener en https://console.cloud.google.com/)
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
@@ -315,6 +315,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.1.73:3000",    # Si usas servidor en otra máquina
     "http://192.168.1.73:5173",
     "http://192.168.100.14:8000",
+    "http://192.168.100.6:8000",
 ]
 
 # Headers permitidos para JWT

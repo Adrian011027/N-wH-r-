@@ -6,16 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contraseña restablecida</title>
 
-  <!-- CSS global -->
-  <link rel="stylesheet" href="{% static 'public/registro_usuario/css/main.css' %}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="{% static 'public/recuperar-password/css/main.css' %}">
 
-  <!-- Redirección automática -->
   <script>
     setTimeout(() => {
       window.location.href = "{% url 'index' %}";
-    }, 3000); // redirige en 3 segundos
+    }, 4000);
   </script>
 </head>
 <body>
@@ -23,19 +19,26 @@
 <header>
   <div class="header-left">
     <a href="{% url 'index' %}">
-      <img src="{% static 'images/NowHere.svg' %}" id="Logo" class="fade-in" alt="NöwHėrē">
+      <img src="{% static 'images/NowHere.svg' %}" id="Logo" alt="NöwHėrē">
     </a>
-    <h2>| Creación de cuenta N:</h2>
+    <h2>| Recuperar contraseña</h2>
   </div>
 </header>
 
 <main>
-  <section class="recovery-section">
-    <h1>✅ Contraseña actualizada con éxito</h1>
-    <p>Tu contraseña ha sido cambiada exitosamente. Serás redirigido al inicio.</p>
+  <section class="recovery-section recovery-success">
+    <div class="recovery-success-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="8 12 11 15 16 9"/>
+      </svg>
+    </div>
+    <h1>Contraseña actualizada</h1>
+    <p>Tu contraseña ha sido cambiada exitosamente.</p>
+    <p class="redirect-note">Serás redirigido al inicio en unos segundos...</p>
+    <a href="{% url 'index' %}" class="btn-primary" style="margin-top:24px; display:inline-block; text-decoration:none;">Ir al inicio</a>
   </section>
 </main>
-
 
 </body>
 </html>

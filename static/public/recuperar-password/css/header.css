@@ -1,9 +1,7 @@
 
 :root {
-  --c-text: #333333;
-  --c-grey: #888888;
-  --c-danger: #e63946;
-  --width-max: 1024px;
+  --c-text: #000;
+  --c-grey: #666;
 }
 
 header {
@@ -14,77 +12,42 @@ header {
   width: 100%;
   z-index: 600;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e5e5;
-  padding: 0px 20px;
-  background: transparent;
-  backdrop-filter: none;
-  transition: background 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  box-sizing: border-box;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem; /* más separación entre logo y texto */
+  gap: 14px;
 }
 
 .header-left h2 {
-  font-size: 14px;  /* aumentado */
-  color: var(--c-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--c-grey);
   margin: 0;
+  letter-spacing: 0.02em;
 }
 
 #Logo {
-  width: 120px;  /* aumentado */
+  width: 110px;
 }
 
-/* Tablets (≤ 1024px) */
-@media (max-width: 1024px) {
-  header {
-    padding: 10px 20px;
-  }
-
-  #Logo {
-    width: 140px;
-  }
-
-  .header-left h2 {
-    font-size: 16px;
-  }
-}
-
-/* Celulares grandes (≤ 768px) */
-@media (max-width: 768px) {
-  #Logo {
-    width: 120px;
-  }
-
-  .header-left h2 {
-    font-size: 15px;
-  }
-}
-
-/* Celulares pequeños (≤ 480px) */
 @media (max-width: 480px) {
   header {
-    flex-wrap: nowrap;
-    padding: 10px 15px;
-  }
-
-  .header-left,
-  .header-center,
-  .header-right {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 0;
+    padding: 0 16px;
   }
 
   #Logo {
-    width: 100px;
+    width: 90px;
   }
 
   .header-left h2 {
-    font-size: 14px;
+    font-size: 12px;
   }
 }
