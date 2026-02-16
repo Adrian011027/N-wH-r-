@@ -288,14 +288,6 @@ class Variante(models.Model):
         help_text="Atributos extras en JSON: material, dimensiones, peso, etc."
     )
     
-    # Imagen específica de la variante
-    imagen = models.ImageField(
-        upload_to='variantes/',
-        blank=True,
-        null=True,
-        help_text="Imagen específica de esta variante (color/talla específica)"
-    )
-    
     # Precio y stock
     precio = models.DecimalField(
         max_digits=10, 
@@ -525,6 +517,8 @@ class Orden(models.Model):
     payment_method      = models.CharField(max_length=50)
     conekta_order_id    = models.CharField(max_length=100, blank=True, null=True)
     conekta_charge_id   = models.CharField(max_length=100, blank=True, null=True)
+    stripe_session_id   = models.CharField(max_length=255, blank=True, null=True)
+    stripe_payment_intent = models.CharField(max_length=255, blank=True, null=True)
     created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

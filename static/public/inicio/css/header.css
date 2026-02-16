@@ -19,11 +19,6 @@ header {
 }
 
 
-
-header.scrolled {
-  /* Mantener transparente, sin efectos */
-}
-
 /* ========== HEADER BLOCKS ========== */
 .header-left,
 .header-center,
@@ -1260,7 +1255,6 @@ header.scrolled #Logo {
 
 .nav-category-card.nav-category-all::before {
   display: none;
-}
 }
 
 /* Spinner en el container */

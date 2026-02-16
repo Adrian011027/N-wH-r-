@@ -6,13 +6,14 @@ from ..models import Producto, Categoria, Variante, Subcategoria
 from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
 from django.db.models import Prefetch, Q
 from django.db import models
-from decimal import Decimal
-from .decorators import jwt_role_required
+from decimal import Decimal, InvalidOperation
 import json
 from django.views.decorators.csrf import csrf_exempt
 from ..utils.serializers import serializar_producto_completo
 import os  # Importar os para operaciones de archivo
 from store.models import VarianteImagen
+import logging
+logger = logging.getLogger(__name__)
 
 def detalle_producto(request, id):
     producto = get_object_or_404(
@@ -191,7 +192,7 @@ def create_product(request):
     if tallas and stocks and len(tallas) == len(stocks):
         try:
             stocks = [int(s) for s in stocks]
-        except:
+        except (ValueError, TypeError):
             return JsonResponse({"error": "Stock debe ser numérico"}, status=400)
 
         # Obtener colores, precios, precios_mayorista (pueden estar vacíos)
@@ -242,7 +243,7 @@ def create_product(request):
                 imagenes_variante = request.FILES.getlist(f'variante_imagen_temp_{idx}')
                 
                 if imagenes_variante:
-                    print(f"[VARIANTE {idx}] Procesando {len(imagenes_variante)} imagen(es)")
+                    logger.debug(f"[VARIANTE {idx}] Procesando {len(imagenes_variante)} imagen(es)")
                     
                     for img_idx, imagen_file in enumerate(imagenes_variante, start=1):
                         if img_idx > 5:  # Máximo 5 imágenes por variante
@@ -261,11 +262,11 @@ def create_product(request):
                                 orden=img_idx
                             )
                             variante_imagen.save()
-                            print(f"[VARIANTE {idx}] Imagen guardada en orden {img_idx}")
+                            logger.debug(f"[VARIANTE {idx}] Imagen guardada en orden {img_idx}")
                         except Exception as e:
-                            print(f"[VARIANTE {idx}] Error guardando imagen {img_idx}: {e}")
+                            logger.debug(f"[VARIANTE {idx}] Error guardando imagen {img_idx}: {e}")
             except Exception as e:
-                print(f"[VARIANTE {idx}] Error general procesando imágenes: {e}")
+                logger.debug(f"[VARIANTE {idx}] Error general procesando imágenes: {e}")
 
     # Variante simple (stock único)
     else:
@@ -279,7 +280,7 @@ def create_product(request):
 
         try:
             stock_unico = int(stock_unico)
-        except:
+        except (ValueError, TypeError):
             return JsonResponse({"error": "stock debe ser numérico"}, status=400)
 
         variante = Variante.objects.create(
@@ -305,7 +306,7 @@ def create_product(request):
             subcategorias = Subcategoria.objects.filter(id__in=subcategorias_ids)
             producto.subcategorias.set(subcategorias)
         except Exception as e:
-            print(f"Error al guardar subcategorías: {e}")
+            logger.warning(f"Error al guardar subcategorías: {e}")
 
     return JsonResponse(
         {"id": producto.id, "message": "Producto y variantes creados"},
@@ -325,7 +326,7 @@ def update_productos(request, id):
                 if field in ['precio', 'precio_mayorista']:
                     try:
                         valor = Decimal(valor)
-                    except:
+                    except (ValueError, TypeError, InvalidOperation):
                         return JsonResponse({'error': f'Formato inválido en {field}'}, status=400)
                 setattr(producto, field, valor)
 
@@ -348,7 +349,7 @@ def update_productos(request, id):
                 subcategorias = Subcategoria.objects.filter(id__in=subcategorias_ids)
                 producto.subcategorias.set(subcategorias)
             except Exception as e:
-                print(f"Error al guardar subcategorías: {e}")
+                logger.warning(f"Error al guardar subcategorías: {e}")
         
         # Validación: Si el producto no tiene variantes, crear una variante por defecto
         if not producto.variantes.exists():
@@ -376,42 +377,42 @@ def update_productos(request, id):
                     if ids_json:
                         try:
                             ids_a_eliminar = json.loads(ids_json)
-                            print(f"[DELETE] Variante {variante_id}: IDs recibidos del frontend: {ids_a_eliminar}")
+                            logger.debug(f"[DELETE] Variante {variante_id}: IDs recibidos del frontend: {ids_a_eliminar}")
                             
                             if isinstance(ids_a_eliminar, list) and ids_a_eliminar:
-                                print(f"[DELETE] Variante {variante_id}: Procesando eliminación de {len(ids_a_eliminar)} imagen(es)")
+                                logger.debug(f"[DELETE] Variante {variante_id}: Procesando eliminación de {len(ids_a_eliminar)} imagen(es)")
                                 # Eliminar cada imagen
                                 for img_id in ids_a_eliminar:
                                     try:
                                         # Asegurar que img_id es un entero
                                         img_id_int = int(img_id) if not isinstance(img_id, int) else img_id
-                                        print(f"[DELETE] Buscando imagen {img_id_int} para variante {variante_id}")
+                                        logger.debug(f"[DELETE] Buscando imagen {img_id_int} para variante {variante_id}")
                                         
                                         img = VarianteImagen.objects.get(id=img_id_int, variante__producto=producto)
                                         img.delete()
-                                        print(f"[DELETE] ✓ Imagen {img_id_int} eliminada exitosamente")
+                                        logger.debug(f"[DELETE] ✓ Imagen {img_id_int} eliminada exitosamente")
                                     except VarianteImagen.DoesNotExist:
-                                        print(f"[SKIP] Imagen {img_id} no encontrada o no pertenece al producto")
+                                        logger.debug(f"[SKIP] Imagen {img_id} no encontrada o no pertenece al producto")
                                     except ValueError as ve:
-                                        print(f"[ERROR] ID inválido {img_id}: {ve}")
+                                        logger.error(f"[ERROR] ID inválido {img_id}: {ve}")
                                     except Exception as e:
-                                        print(f"[ERROR] Error eliminando imagen {img_id}: {e}")
+                                        logger.error(f"[ERROR] Error eliminando imagen {img_id}: {e}")
                                         import traceback
                                         traceback.print_exc()
                             else:
-                                print(f"[SKIP] Array vacío o inválido para variante {variante_id}")
+                                logger.debug(f"[SKIP] Array vacío o inválido para variante {variante_id}")
                         except (json.JSONDecodeError, ValueError) as e:
-                            print(f"[ERROR] Error parseando JSON para {key}: {e}")
-                            print(f"[ERROR] Contenido recibido: {ids_json}")
+                            logger.error(f"[ERROR] Error parseando JSON para {key}: {e}")
+                            logger.error(f"[ERROR] Contenido recibido: {ids_json}")
                 except (ValueError, IndexError) as e:
-                    print(f"[ERROR] Error extrayendo variante_id de {key}: {e}")
+                    logger.error(f"[ERROR] Error extrayendo variante_id de {key}: {e}")
     
         # 2. PROCESAR NUEVAS IMÁGENES DE VARIANTES
         # Agrupar imágenes por variante_id para procesarlas de forma correcta
         variante_imagenes = {}
         
         for key in request.FILES:
-            print("[FILES] Clave recibida: ", key)
+            logger.debug(f"[FILES] Clave recibida: {key}")
             if key.startswith('variante_imagen_'):
                 try:
                     # Formato: variante_imagen_{variante_id}_{idx}
@@ -421,25 +422,25 @@ def update_productos(request, id):
                         if variante_id not in variante_imagenes:
                             variante_imagenes[variante_id] = []
                         variante_imagenes[variante_id].append(request.FILES[key])
-                        print(f"[GROUP] Imagen agregada al grupo de variante {variante_id}")
+                        logger.debug(f"[GROUP] Imagen agregada al grupo de variante {variante_id}")
                 except (ValueError, IndexError) as e:
-                    print(f"[ERROR] Error parseando clave: {key} - {e}")
+                    logger.error(f"[ERROR] Error parseando clave: {key} - {e}")
         
         # Procesar cada grupo de imágenes por variante
         for variante_id, imagenes_list in variante_imagenes.items():
             try:
                 variante = producto.variantes.get(id=variante_id)
-                print(f"[PROCESS] Procesando {len(imagenes_list)} imagen(es) para variante {variante_id}")
+                logger.debug(f"[PROCESS] Procesando {len(imagenes_list)} imagen(es) para variante {variante_id}")
                 
                 # IMPORTANTE: Después de las eliminaciones, recompactar los órdenes de las imágenes restantes
                 # para evitar huecos en la numeración (1, 2, 3... en vez de 1, 3, 5...)
                 imagenes_existentes = list(variante.imagenes.all().order_by('orden'))
-                print(f"[REORDEN] Variante {variante_id}: {len(imagenes_existentes)} imágenes existentes antes de recompactar")
+                logger.debug(f"[REORDEN] Variante {variante_id}: {len(imagenes_existentes)} imágenes existentes antes de recompactar")
                 
                 # Renumerar las imágenes existentes secuencialmente
                 for nuevo_orden, img_existente in enumerate(imagenes_existentes, start=1):
                     if img_existente.orden != nuevo_orden:
-                        print(f"[REORDEN] Cambiando orden de imagen {img_existente.id}: {img_existente.orden} → {nuevo_orden}")
+                        logger.debug(f"[REORDEN] Cambiando orden de imagen {img_existente.id}: {img_existente.orden} → {nuevo_orden}")
                         img_existente.orden = nuevo_orden
                         img_existente.save()
                 
@@ -447,11 +448,11 @@ def update_productos(request, id):
                 current_count = len(imagenes_existentes)
                 espacios_disponibles = 5 - current_count
                 
-                print(f"[VALIDATE] Variante {variante_id}: {current_count} imágenes actuales, {espacios_disponibles} espacios disponibles")
-                print(f"[VALIDATE] Intentando agregar {len(imagenes_list)} imágenes")
+                logger.debug(f"[VALIDATE] Variante {variante_id}: {current_count} imágenes actuales, {espacios_disponibles} espacios disponibles")
+                logger.debug(f"[VALIDATE] Intentando agregar {len(imagenes_list)} imágenes")
                 
                 if current_count + len(imagenes_list) > 5:
-                    print(f"[SKIP] Variante {variante_id}: límite de 5 imágenes alcanzado. Tienes {current_count} y quieres agregar {len(imagenes_list)}")
+                    logger.debug(f"[SKIP] Variante {variante_id}: límite de 5 imágenes alcanzado. Tienes {current_count} y quieres agregar {len(imagenes_list)}")
                     continue
                 
                 # Agregar las nuevas imágenes en orden secuencial
@@ -472,12 +473,12 @@ def update_productos(request, id):
                         orden=numero_orden
                     )
                     variante_imagen.save()
-                    print(f"[SUCCESS] Imagen guardada para variante {variante_id} en orden {numero_orden}: {variante_imagen.imagen.url}")
+                    logger.debug(f"[SUCCESS] Imagen guardada para variante {variante_id} en orden {numero_orden}: {variante_imagen.imagen.url}")
                     
             except Variante.DoesNotExist:
-                print(f"[ERROR] Variante {variante_id} no encontrada para producto {producto.id}")
+                logger.error(f"[ERROR] Variante {variante_id} no encontrada para producto {producto.id}")
             except Exception as e:
-                print(f"[ERROR] Error procesando imágenes para variante {variante_id}: {e}")
+                logger.error(f"[ERROR] Error procesando imágenes para variante {variante_id}: {e}")
                 import traceback
                 traceback.print_exc()
 
@@ -487,7 +488,7 @@ def update_productos(request, id):
         )
     
     except Exception as e:
-        print(f"[ERROR CRÍTICO] Error en update_productos: {e}")
+        logger.error(f"[ERROR CRÍTICO] Error en update_productos: {e}")
         import traceback
         traceback.print_exc()
         return JsonResponse(
@@ -549,7 +550,7 @@ def create_variant(request):
         }, status=201)
     
     except Exception as e:
-        print(f"Error al crear variante: {e}")
+        logger.warning(f"Error al crear variante: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
 

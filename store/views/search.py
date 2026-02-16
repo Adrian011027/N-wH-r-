@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db.models import Q, Min, Max, Prefetch, Count
 from ..models import Producto, Categoria, Variante, Subcategoria
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import json
 
 
@@ -99,13 +99,13 @@ def search_products(request):
     if precio_min:
         try:
             productos = productos.filter(precio__gte=Decimal(precio_min))
-        except:
+        except (ValueError, TypeError, InvalidOperation):
             pass
     
     if precio_max:
         try:
             productos = productos.filter(precio__lte=Decimal(precio_max))
-        except:
+        except (ValueError, TypeError, InvalidOperation):
             pass
     
     # ============ FILTRO: En oferta ============
@@ -159,7 +159,7 @@ def search_products(request):
     try:
         page = int(request.GET.get('page', 1))
         per_page = int(request.GET.get('per_page', 20))
-    except:
+    except (ValueError, TypeError):
         page = 1
         per_page = 20
     

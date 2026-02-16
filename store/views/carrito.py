@@ -1,6 +1,6 @@
 # store/views/carrito.py
 # ==============================================================
-from venv import logger
+import logging
 from django.forms import model_to_dict
 from django.shortcuts            import get_object_or_404, render
 from django.db                   import models, transaction
@@ -28,6 +28,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 signer = TimestampSigner()
+logger = logging.getLogger(__name__)
 twilio_client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 # ───────────────────────────────────────────────────────────────
@@ -451,9 +452,9 @@ def carrito_publico(request):
 
     datos = _carrito_to_template(carrito)
     
-    # Obtener llave pública de Conekta desde settings
+    # Obtener llave pública de Stripe desde settings
     from django.conf import settings
-    conekta_public_key = getattr(settings, 'CONEKTA_PUBLIC_KEY', '')
+    stripe_public_key = getattr(settings, 'STRIPE_PUBLIC_KEY', '')
 
     return render(
         request,
@@ -463,7 +464,7 @@ def carrito_publico(request):
             "mayoreo": datos["mayoreo"],
             "session_key": session_key,  # Puedes usarlo en el HTML si quieres
             "carrito": carrito,
-            "conekta_public_key": conekta_public_key,  # Para el iframe de Conekta
+            "stripe_public_key": stripe_public_key,  # Para el checkout embebido de Stripe
         }
     )
 
@@ -521,7 +522,7 @@ def actualizar_cantidad_guest(request, variante_id):
     try:
         data = json.loads(request.body)
         cantidad = int(data.get("cantidad", 1))
-    except:
+    except (ValueError, TypeError, json.JSONDecodeError):
         return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
     carrito = get_carrito_by_session(session_key)
@@ -625,19 +626,19 @@ def finalizar_compra(request, carrito_id):
         "total_amount": float(round(total_amount, 2)),
         "items"       : items,
     }
-    print(json.dumps(payload, indent=2, ensure_ascii=False))
+    logger.debug("Payload finalizar_compra: %s", json.dumps(payload, indent=2, ensure_ascii=False))
 
     # ───── Evitar duplicación de órdenes ───────────────────────────
     orden = Orden.objects.filter(carrito=carrito).first()
     if not orden:
         try:
             orden = crear_orden_desde_payload(payload)
-            print(f"[✅] Orden creada con ID: {orden.id}")
+            logger.info("Orden creada con ID: %s", orden.id)
         except Exception as e:
             logger.error("Error creando la orden: %s", e)
             return JsonResponse({"error": "Fallo al crear orden."}, status=500)
     else:
-        print(f"[⚠️] Orden ya existente con ID: {orden.id}")
+        logger.info("Orden ya existente con ID: %s", orden.id)
 
     # ───── Generar token y link para cambiar estatus ───────────────
     token = signer.sign(str(orden.id))
@@ -730,16 +731,12 @@ def finalizar_compra(request, carrito_id):
                 body=fallback_body
             )
 
-        print("✅ WhatsApp enviado. SID:", msg.sid)
+        logger.info("WhatsApp enviado. SID: %s", msg.sid)
 
     except ImportError as e:
-        logger.warning("⚠️ Twilio no está instalado: %s", e)
-        print("⚠️ Twilio no instalado. Pedido creado sin envío de WhatsApp.")
+        logger.warning("Twilio no está instalado: %s", e)
     except Exception as e:
-        import traceback
-        logger.error("❌ Error Twilio: %s", e)
-        traceback.print_exc()
-        print(f"⚠️ Error al enviar WhatsApp: {e}. Continuando con el proceso...")
+        logger.error("Error al enviar WhatsApp: %s", e, exc_info=True)
         # No retornar error 500, continuar con el flujo
 
     # Vaciar carrito (siempre, independiente de si se envió WhatsApp)

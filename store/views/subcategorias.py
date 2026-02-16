@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from ..models import Subcategoria, Categoria
+from store.utils.genero import get_genero_filter
 from .decorators import admin_required
 import json
 
@@ -270,16 +271,6 @@ def subcategorias_por_categoria_query(request):
     categoria_id = request.GET.get('categoria_id', '').strip()
     genero_param = request.GET.get('genero', '').lower()
     
-    # Mapeo de género
-    genero_map = {
-        'hombre': ['Hombre', 'Unisex'],
-        'mujer': ['Mujer', 'Unisex'],
-        'unisex': ['Unisex'],
-        'h': ['Hombre', 'Unisex'],
-        'm': ['Mujer', 'Unisex'],
-        'u': ['Unisex'],
-    }
-    
     if not categoria_id:
         return JsonResponse({'error': 'categoria_id es requerido'}, status=400)
     
@@ -288,15 +279,7 @@ def subcategorias_por_categoria_query(request):
     except ValueError:
         return JsonResponse({'error': 'categoria_id inválido'}, status=400)
     
-    # Mapear parámetro a valores de BD
-    genero_map = {
-        'hombre': ['H', 'U'],
-        'mujer': ['M', 'U'],
-        'h': ['H', 'U'],
-        'm': ['M', 'U'],
-    }
-    
-    generos = genero_map.get(genero_param, [])
+    generos = get_genero_filter(genero_param)
     
     # Obtener subcategorías activas de la categoría
     subcategorias = categoria.subcategorias.filter(activa=True)

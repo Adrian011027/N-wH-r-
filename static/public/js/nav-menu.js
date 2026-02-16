@@ -161,7 +161,6 @@
   }
 
   async function loadCategorias(genero) {
-    console.log('📂 Cargando categorías para género:', genero);
     try {
       // Usar caché si existe
       if (state.cache.categorias[genero]) {
@@ -289,8 +288,6 @@
   }
 
   async function loadSubcategorias(categoriaId, genero) {
-    console.log('📂 Cargando subcategorías para categoría:', categoriaId);
-    
     const cacheKey = `${genero}-${categoriaId}`;
     
     try {
@@ -431,7 +428,6 @@
         updateProductImage(linkElement, null);
       }
     } catch (error) {
-      console.log('No se pudo cargar producto aleatorio:', error);
       updateProductImage(linkElement, null);
     }
   }

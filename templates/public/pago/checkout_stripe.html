@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Pago Seguro con Stripe</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .checkout-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .checkout-header {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .checkout-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .order-info {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .order-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .order-total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        #stripe-checkout-container {
+            background: white;
+            min-height: 700px;
+            border-radius: 0 0 8px 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            color: #333;
+        }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: #666;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #1a1a2e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-container {
+            text-align: center;
+            padding: 40px;
+        }
+        .error-container h3 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+        .btn-retry {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .btn-retry:hover {
+            background: #2a2a4e;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-wrapper">
+        <a href="/carrito/" class="back-link">← Volver al carrito</a>
+        
+        <div class="checkout-header">
+            <h1>🔒 Pago Seguro</h1>
+        </div>
+        
+        <div class="order-info">
+            <p><strong>Cliente:</strong> {{ cliente.nombre }} ({{ cliente.correo }})</p>
+            <p class="order-total">Total: ${{ total|floatformat:2 }} MXN</p>
+        </div>
+        
+        <div id="stripe-checkout-container">
+            <div class="loading-container" id="stripe-loading">
+                <div class="spinner"></div>
+                <p>Cargando formulario de pago...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (async function() {
+        const container = document.getElementById('stripe-checkout-container');
+        const loading = document.getElementById('stripe-loading');
+        
+        try {
+            // 1. Crear Checkout Session en el servidor
+            const response = await fetch('/pago/crear-checkout/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ carrito_id: {{ carrito.id }} })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Error al crear la sesión de pago');
+            }
+            
+            // 2. Inicializar Stripe y montar el checkout embebido
+            const stripe = Stripe('{{ stripe_public_key }}');
+            
+            loading.style.display = 'none';
+            
+            const checkout = await stripe.initEmbeddedCheckout({
+                clientSecret: data.client_secret,
+            });
+            
+            checkout.mount('#stripe-checkout-container');
+            
+        } catch (error) {
+            console.error('Error:', error);
+            loading.style.display = 'none';
+            container.innerHTML = `
+                <div class="error-container">
+                    <h3>⚠️ Error al cargar el formulario de pago</h3>
+                    <p>${error.message}</p>
+                    <button class="btn-retry" onclick="location.reload()">Reintentar</button>
+                </div>
+            `;
+        }
+    })();
+    </script>
+</body>
+</html>

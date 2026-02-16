@@ -4,22 +4,22 @@
 {% block title %}Mi Carrito - NöwHėrē{% endblock %}
 
 {% block extra_head %}
-<!-- Script de Conekta Checkout - Debe estar en el head -->
-<script type="text/javascript" src="https://pay.conekta.com/v1.0/js/conekta-checkout.min.js"></script>
+<!-- Script de Stripe.js - Debe estar en el head -->
+<script src="https://js.stripe.com/v3/"></script>
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}?v=1.5">
+<link rel="stylesheet" href="{% static 'public/carrito/css/carrito.css' %}?v=1.9">
 <link rel="stylesheet" href="{% static 'public/carrito/css/checkout.css' %}?v=2.0">
 <style>
-  /* Estilos para el iframe de Conekta */
-  #conektaIframeContainer {
+  /* Estilos para el checkout embebido de Stripe */
+  #stripeCheckoutContainer {
     min-height: 650px;
     background: #fafafa;
     border-radius: 8px;
   }
   
-  .conekta-loading {
+  .stripe-loading {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,7 +28,7 @@
     color: #666;
   }
   
-  .conekta-loading .spinner {
+  .stripe-loading .spinner {
     width: 40px;
     height: 40px;
     border: 3px solid #e0e0e0;
@@ -65,13 +65,13 @@
     font-weight: 600;
   }
   
-  .conekta-error {
+  .stripe-checkout-error {
     text-align: center;
     padding: 40px;
     color: #c62828;
   }
   
-  .conekta-error h3 {
+  .stripe-checkout-error h3 {
     margin-bottom: 10px;
   }
   
@@ -465,12 +465,12 @@
           </div>
         </div>
 
-        <!-- Step 4: Conekta Checkout iFrame -->
+        <!-- Step 4: Stripe Checkout Embebido -->
         <div class="checkout-step-content" id="step-4">
           <div class="checkout-card" style="padding: 0; background: transparent; box-shadow: none;">
-            <!-- Contenedor del iframe de Conekta -->
-            <div id="conektaIframeContainer" style="min-height: 600px; background: #fff; border-radius: 8px;">
-              <div class="conekta-loading" id="conektaLoading">
+            <!-- Contenedor del checkout embebido de Stripe -->
+            <div id="stripeCheckoutContainer" style="min-height: 600px; background: #fff; border-radius: 8px;">
+              <div class="stripe-loading" id="stripeLoading">
                 <div class="spinner"></div>
                 <p>Cargando opciones de pago...</p>
               </div>
@@ -772,7 +772,7 @@
     } else {
       // Si estamos en step 3 o 4, volver al step anterior
       if (currentStep === 4) {
-        conektaLoading = false; // Reset flag de Conekta
+        stripeCheckoutLoading = false; // Reset flag de Stripe
       }
       goToStep(currentStep - 1);
     }
@@ -791,10 +791,11 @@
   // VALIDAR Y PROCEDER AL PAGO (desde Step 3 - Envío)
   // ═══════════════════════════════════════════════════════════
   
-  let conektaLoading = false; // Flag para evitar doble carga
+  let stripeCheckoutLoading = false;
+  let stripeCheckoutInstance = null;
   
   function validarYProcederAlPago() {
-    if (conektaLoading) return; // Evitar doble click
+    if (stripeCheckoutLoading) return;
     
     const form = document.getElementById('shipping-form');
     if (!form.checkValidity()) {
@@ -816,29 +817,28 @@
     };
     sessionStorage.setItem('checkout_shipping', JSON.stringify(shippingData));
     
-    // Ir al paso 4 (Pago) y cargar el checkout de Conekta
+    // Ir al paso 4 (Pago) y cargar Stripe Checkout
     goToStep(4);
-    cargarConektaCheckout();
+    cargarStripeCheckout();
   }
 
   // ═══════════════════════════════════════════════════════════
-  // CARGAR CONEKTA CHECKOUT IFRAME
+  // CARGAR STRIPE EMBEDDED CHECKOUT
   // ═══════════════════════════════════════════════════════════
   
-  async function cargarConektaCheckout() {
-    if (conektaLoading) return; // Evitar doble llamada
-    conektaLoading = true;
+  async function cargarStripeCheckout() {
+    if (stripeCheckoutLoading) return;
+    stripeCheckoutLoading = true;
     
-    const container = document.getElementById('conektaIframeContainer');
-    const loading = document.getElementById('conektaLoading');
+    const container = document.getElementById('stripeCheckoutContainer');
+    const loading = document.getElementById('stripeLoading');
     
-    // Mostrar loading
     if (loading) loading.style.display = 'flex';
     
     try {
-      console.log('[Conekta] Iniciando creación de checkout para carrito:', window.CARRITO_ID);
+      console.log('[Stripe] Iniciando creación de checkout para carrito:', window.CARRITO_ID);
       
-      // Crear checkout en el servidor
+      // Crear Checkout Session en el servidor
       const response = await fetch('/pago/crear-checkout/', {
         method: 'POST',
         headers: {
@@ -849,79 +849,54 @@
         })
       });
       
-      console.log('[Conekta] Respuesta del servidor:', response.status);
+      console.log('[Stripe] Respuesta del servidor:', response.status);
       const data = await response.json();
-      console.log('[Conekta] Datos recibidos:', data);
+      console.log('[Stripe] Datos recibidos:', data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Error al crear checkout: ' + response.status);
       }
       
-      const checkoutId = data.checkout_id;
-      const publicKey = data.public_key;
+      const clientSecret = data.client_secret;
       
-      if (!checkoutId || !publicKey) {
-        throw new Error('Respuesta del servidor incompleta: falta checkout_id o public_key');
+      if (!clientSecret) {
+        throw new Error('Respuesta del servidor incompleta: falta client_secret');
       }
       
-      console.log('[Conekta] Checkout ID recibido:', checkoutId);
-      console.log('[Conekta] Public Key:', publicKey);
+      console.log('[Stripe] Client Secret recibido');
       
-      if (!window.ConektaCheckoutComponents) {
-        throw new Error('Conekta SDK no está cargado. Recarga la página e intenta nuevamente.');
-      }
+      // Inicializar Stripe.js
+      const stripe = Stripe('{{ stripe_public_key }}');
       
       // Preparar contenedor
       if (loading) loading.style.display = 'none';
       container.innerHTML = '';
       container.style.minHeight = '700px';
-      container.style.height = '700px';
       
-      console.log('[Conekta] Inicializando ConektaCheckoutComponents...');
+      console.log('[Stripe] Inicializando Embedded Checkout...');
       
-      // Inicializar iframe de Conekta
-      window.ConektaCheckoutComponents.Integration({
-        targetIFrame: "#conektaIframeContainer",
-        checkoutRequestId: checkoutId,
-        publicKey: publicKey,
-        options: {},
-        styles: {},
-        onFinalizePayment: function(event) {
-          console.log('[Conekta] Pago completado:', event);
-          conektaLoading = false;
-          // Ir al step 5 (pago exitoso) en lugar de redirigir inmediatamente
-          goToStep(5);
-          iniciarContadorRedireccion();
-        },
-        onErrorPayment: function(event) {
-          console.error('[Conekta] Error en pago:', event);
-          console.error('[Conekta] Type:', typeof event);
-          console.error('[Conekta] Keys:', event ? Object.keys(event) : 'null');
-          console.error('[Conekta] Full Error Object:', JSON.stringify(event, null, 2));
-          conektaLoading = false;
-          
-          // Intentar extraer mensaje de error
-          let errorMsg = 'Error en el pago. Por favor intenta nuevamente.';
-          if (event) {
-            if (event.message) errorMsg = event.message;
-            if (event.error_message) errorMsg = event.error_message;
-            if (event.details) errorMsg = JSON.stringify(event.details);
-          }
-          alert(errorMsg);
-        }
+      // Montar Stripe Embedded Checkout
+      const checkout = await stripe.initEmbeddedCheckout({
+        clientSecret: clientSecret,
       });
       
-      console.log('[Conekta] Checkout cargado correctamente');
+      stripeCheckoutInstance = checkout;
+      checkout.mount('#stripeCheckoutContainer');
+      
+      console.log('[Stripe] Checkout embebido montado correctamente');
       
     } catch (error) {
-      console.error('❌ Error cargando Conekta:', error);
-      conektaLoading = false;
+      console.error('❌ Error cargando Stripe:', error);
+      stripeCheckoutLoading = false;
       if (loading) loading.style.display = 'none';
       container.innerHTML = `
-        <div class="conekta-error">
+        <div style="text-align: center; padding: 40px 20px;">
           <h3>⚠️ Error al cargar el checkout de pago</h3>
-          <p>${error.message}</p>
-          <button class="btn-retry" onclick="conektaLoading=false; cargarConektaCheckout()">Reintentar</button>
+          <p style="color: #666; margin: 15px 0;">${error.message}</p>
+          <button class="btn-retry" onclick="stripeCheckoutLoading=false; cargarStripeCheckout()" 
+                  style="background: #1a1a2e; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer;">
+            Reintentar
+          </button>
         </div>
       `;
     }
@@ -965,5 +940,5 @@
     }
   });
 </script>
-<script src="{% static 'public/carrito/js/carrito.js' %}?v=1.4"></script>
+<script src="{% static 'public/carrito/js/carrito.js' %}?v=2.0"></script>
 {% endblock %}

@@ -148,6 +148,7 @@ export function initWishlist({
   };
   dom.wishlistBtn ?.addEventListener('click', showWishlist);
   dom.closeBtn    ?.addEventListener('click', hideWishlist);
+  document.getElementById('close-wishlist-header')?.addEventListener('click', hideWishlist);
   dom.overlay     ?.addEventListener('click', hideWishlist);
 
   /* ========== Corazones catálogo ========== */
@@ -293,7 +294,7 @@ export function initWishlist({
       });
       
       if (!r.ok) throw new Error(await r.text());
-      console.log('🛒', await r.json());
+      await r.json();
 
       const card = dom.wishlistPanel.querySelector(
         `.wishlist-item .btn-carrito-mini[data-id="${pid}"]`

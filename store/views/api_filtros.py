@@ -72,7 +72,7 @@ def get_filtros_disponibles(request):
     def talla_sort_key(t):
         try:
             return (0, float(t))
-        except:
+        except (ValueError, TypeError):
             return (1, t)
     
     tallas = sorted(set(tallas), key=talla_sort_key)
