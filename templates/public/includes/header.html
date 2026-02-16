@@ -206,7 +206,7 @@
           </button>
         </div>
 
-        <a href="{% url 'cliente_solicitar_reset' %}" class="forgot-link">¿Olvidó su contraseña?</a>
+        <button type="button" id="btn-show-recovery" class="forgot-link">¿Olvidó su contraseña?</button>
 
         <button type="submit" class="login-btn">Iniciar sesión</button>
         <p id="login-error" class="error-msg"></p>
@@ -217,6 +217,49 @@
       <h3>¿No tienes cuenta?</h3>
       <p>Crea tu cuenta en segundos y disfruta de una experiencia personalizada.</p>
       <button type="button" id="btn-show-register" class="register-btn">Crear cuenta</button>
+    </div>
+  </div>
+
+  <!-- Vista 3: RECUPERAR CONTRASEÑA -->
+  <div id="view-recovery" class="auth-view">
+    <div class="login-header">
+      <button type="button" id="btn-back-login-recovery" class="back-btn" aria-label="Volver al login">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <h2>Recuperar cuenta</h2>
+      <button type="button" class="close-btn close-login-generic" aria-label="Cerrar">×</button>
+    </div>
+    <div class="login-section">
+      <p class="recovery-subtitle">Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
+      <form id="recoveryForm" method="POST" action="#">
+        <label for="recovery-email">Correo electrónico*</label>
+        <input type="email" id="recovery-email" required placeholder="tu@correo.com" autocomplete="email">
+        <button type="submit" class="login-btn">
+          <span class="btn-text">Enviar enlace</span>
+          <span class="btn-loading" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> Enviando...</span>
+        </button>
+        <p id="recovery-error" class="error-msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vista 4: CORREO ENVIADO -->
+  <div id="view-recovery-sent" class="auth-view">
+    <div class="login-header">
+      <h2>Revisa tu correo</h2>
+      <button type="button" class="close-btn close-login-generic" aria-label="Cerrar">×</button>
+    </div>
+    <div class="login-section recovery-sent-section">
+      <div class="recovery-sent-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.2">
+          <rect x="2" y="4" width="20" height="16" rx="2"/>
+          <polyline points="22,4 12,13 2,4"/>
+        </svg>
+      </div>
+      <p>Te hemos enviado un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada o carpeta de spam.</p>
+      <button type="button" id="btn-back-login-sent" class="register-btn" style="margin-top:20px;">Volver al inicio de sesión</button>
     </div>
   </div>
 

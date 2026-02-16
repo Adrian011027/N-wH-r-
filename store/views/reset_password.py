@@ -6,8 +6,52 @@ from django.urls import reverse
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from store.models import Cliente
 import threading
+
+
+# ───────────────────────────────────────────────
+# API: Solicitar reset (AJAX desde panel cascada)
+# ───────────────────────────────────────────────
+@require_POST
+def solicitar_reset_api(request):
+    import json
+    try:
+        body = json.loads(request.body)
+        email = (body.get("email") or "").strip().lower()
+    except (json.JSONDecodeError, AttributeError):
+        email = (request.POST.get("email") or "").strip().lower()
+
+    if not email:
+        return JsonResponse({"ok": False, "error": "Introduce un correo electrónico."}, status=400)
+
+    cliente = Cliente.objects.filter(username=email).first()
+    if not cliente:
+        return JsonResponse({"ok": False, "error": "No encontramos una cuenta con ese correo."}, status=404)
+
+    uidb64 = urlsafe_base64_encode(force_bytes(cliente.pk))
+    token  = default_token_generator.make_token(cliente)
+    link   = request.build_absolute_uri(
+        reverse("cliente_reset_password_confirm",
+                kwargs={"uidb64": uidb64, "token": token})
+    )
+
+    context = {"nombre": getattr(cliente, "nombre", "Cliente"), "link": link}
+    text_body = render_to_string("public/emails/reset_password_email.txt", context)
+    html_body = render_to_string("public/emails/reset_password_email.html", context)
+
+    email_msg = EmailMultiAlternatives(
+        subject="Recuperación de contraseña – NöwHėrē",
+        body=text_body,
+        from_email=f"NöwHėrē <{settings.DEFAULT_FROM_EMAIL}>",
+        to=[email],
+    )
+    email_msg.attach_alternative(html_body, "text/html")
+    enviar_correo_async(email_msg)
+
+    return JsonResponse({"ok": True})
 
 
 # ───────────────────────────────────────────────

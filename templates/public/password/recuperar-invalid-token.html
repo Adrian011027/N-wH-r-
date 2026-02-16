@@ -1,9 +1,38 @@
-{% extends "public/base.html" %}
-{% block title %}Token inválido{% endblock %}
-{% block content %}
-<section class="recovery-section">
-  <h1>Token inválido o expirado</h1>
-  <p>❌ El enlace de recuperación no es válido o ha expirado.</p>
-  <a href="{% url 'cliente_solicitar_reset' %}" class="btn-primary">Intentar de nuevo</a>
-</section>
-{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token inválido</title>
+
+  <link rel="stylesheet" href="{% static 'public/recuperar-password/css/main.css' %}">
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="{% url 'index' %}">
+      <img src="{% static 'images/NowHere.svg' %}" id="Logo" alt="NöwHėrē">
+    </a>
+    <h2>| Recuperar contraseña</h2>
+  </div>
+</header>
+
+<main>
+  <section class="recovery-section recovery-invalid">
+    <div class="recovery-invalid-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <h1>Enlace no válido</h1>
+    <p>El enlace de recuperación ha expirado o no es válido. Solicita uno nuevo desde el inicio de sesión.</p>
+    <a href="{% url 'index' %}" class="btn-primary" style="display:inline-block; text-decoration:none;">Volver al inicio</a>
+  </section>
+</main>
+
+</body>
+</html>

@@ -433,24 +433,27 @@ export function setupHeaderPanels() {
       }
     });
 
-    // --- ï¿½ CASCADA LOGIN/REGISTRO ---
+    // --- CASCADA LOGIN/REGISTRO/RECOVERY ---
     const viewLogin = document.getElementById('view-login');
     const viewRegister = document.getElementById('view-register');
+    const viewRecovery = document.getElementById('view-recovery');
+    const viewRecoverySent = document.getElementById('view-recovery-sent');
     const btnShowRegister = document.getElementById('btn-show-register');
     const btnBackLogin = document.getElementById('btn-back-login');
     const closeRegisterPanel = document.getElementById('close-register-panel');
 
-    // Mostrar vista de registro
-    btnShowRegister?.addEventListener('click', () => {
-      viewLogin.classList.remove('active');
-      viewRegister.classList.add('active');
-    });
+    // Helper: desactiva todas las vistas y activa una
+    function switchView(target) {
+      [viewLogin, viewRegister, viewRecovery, viewRecoverySent].forEach(v => v?.classList.remove('active'));
+      target?.classList.add('active');
+    }
 
-    // Volver a login
+    // Mostrar vista de registro
+    btnShowRegister?.addEventListener('click', () => switchView(viewRegister));
+
+    // Volver a login desde registro
     btnBackLogin?.addEventListener('click', () => {
-      viewRegister.classList.remove('active');
-      viewLogin.classList.add('active');
-      // Limpiar mensajes
+      switchView(viewLogin);
       document.getElementById('register-error').textContent = '';
       document.getElementById('register-success').textContent = '';
     });
@@ -458,9 +461,69 @@ export function setupHeaderPanels() {
     // Cerrar panel desde registro
     closeRegisterPanel?.addEventListener('click', () => {
       closeAllPanels();
-      // Resetear a vista login
-      viewRegister.classList.remove('active');
-      viewLogin.classList.add('active');
+      switchView(viewLogin);
+    });
+
+    // Mostrar vista de recuperacion
+    document.getElementById('btn-show-recovery')?.addEventListener('click', () => switchView(viewRecovery));
+
+    // Volver a login desde recuperacion
+    document.getElementById('btn-back-login-recovery')?.addEventListener('click', () => {
+      switchView(viewLogin);
+      document.getElementById('recovery-error').textContent = '';
+    });
+
+    // Volver a login desde "correo enviado"
+    document.getElementById('btn-back-login-sent')?.addEventListener('click', () => switchView(viewLogin));
+
+    // Cerrar genericos (vistas de recovery)
+    document.querySelectorAll('.close-login-generic').forEach(btn => {
+      btn.addEventListener('click', () => {
+        closeAllPanels();
+        switchView(viewLogin);
+      });
+    });
+
+    // --- RECUPERAR CONTRASENA (AJAX) ---
+    document.getElementById('recoveryForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('recovery-email').value.trim().toLowerCase();
+      const errorEl = document.getElementById('recovery-error');
+      const submitBtn = e.target.querySelector('.login-btn');
+      const btnText = submitBtn.querySelector('.btn-text');
+      const btnLoading = submitBtn.querySelector('.btn-loading');
+
+      errorEl.textContent = '';
+
+      if (!email) { errorEl.textContent = 'Introduce tu correo.'; return; }
+
+      btnText.style.display = 'none';
+      btnLoading.style.display = 'inline';
+      submitBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/solicitar-reset/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Error al enviar el enlace.';
+          return;
+        }
+
+        switchView(viewRecoverySent);
+        document.getElementById('recovery-email').value = '';
+
+      } catch (err) {
+        errorEl.textContent = 'Error de conexion. Intenta de nuevo.';
+      } finally {
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+        submitBtn.disabled = false;
+      }
     });
 
     // --- ðŸ“ REGISTRO ---

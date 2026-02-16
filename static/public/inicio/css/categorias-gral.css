@@ -89,7 +89,7 @@
   text-align: center;
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 4s ease, transform 4s ease;
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
 .categorias-generales .categoria-card.visible {
