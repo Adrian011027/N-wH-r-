@@ -33,7 +33,7 @@ def search_products(request):
     
     # Iniciar queryset con prefetch para optimizar
     productos = Producto.objects.prefetch_related(
-        Prefetch('variantes', queryset=Variante.objects.filter(stock__gt=0).prefetch_related('imagenes')),
+        Prefetch('variantes', queryset=Variante.objects.prefetch_related('imagenes')),
         'categoria',
         'subcategorias'
     ).distinct()
@@ -115,29 +115,22 @@ def search_products(request):
     
     # ============ FILTRO: Tallas disponibles ============
     tallas = request.GET.get('tallas', '').strip()
+    tallas_filter_list = []
     if tallas:
-        tallas_list = [t.strip() for t in tallas.split(',') if t.strip()]
-        if tallas_list:
-            # Filtrar productos que tengan variantes con esas tallas
-            productos = productos.filter(
-                variantes__talla__in=tallas_list,
-                variantes__stock__gt=0
-            ).distinct()
+        tallas_filter_list = [t.strip() for t in tallas.split(',') if t.strip()]
     
     # ============ FILTRO: Colores disponibles (nuevo) ============
     colores = request.GET.get('colores', '').strip()
+    colores_filter_list = []
     if colores:
-        colores_list = [c.strip() for c in colores.split(',') if c.strip()]
-        if colores_list:
+        colores_filter_list = [c.strip() for c in colores.split(',') if c.strip()]
+        if colores_filter_list:
             productos = productos.filter(
-                variantes__color__in=colores_list,
-                variantes__stock__gt=0
+                variantes__color__in=colores_filter_list
             ).distinct()
     
-    # ============ FILTRO: Solo con stock ============
+    # ============ FILTRO: Solo con stock (se aplica post-query) ============
     solo_disponibles = request.GET.get('disponibles', 'true').strip().lower()
-    if solo_disponibles != 'false':
-        productos = productos.filter(variantes__stock__gt=0).distinct()
     
     # ============ ORDENAMIENTO ============
     ordenar = request.GET.get('ordenar', 'nuevo').strip()
@@ -175,22 +168,34 @@ def search_products(request):
         tallas_disponibles = set()
         colores_disponibles = set()
         variantes_data = []
+        tiene_stock = False
         
         for v in p.variantes.all():
-            if v.stock > 0:
-                if v.talla:
-                    tallas_disponibles.add(v.talla)
+            if v.stock_total_variante > 0:
+                tiene_stock = True
+                for talla_key, stock_val in v.tallas_stock.items():
+                    if stock_val > 0:
+                        tallas_disponibles.add(talla_key)
                 if v.color:
                     colores_disponibles.add(v.color)
                 
                 variantes_data.append({
                     'id': v.id,
-                    'talla': v.talla,
                     'color': v.color,
                     'otros': v.otros,
                     'precio': float(v.precio or p.precio),
-                    'stock': v.stock
+                    'tallas_stock': v.tallas_stock,
+                    'stock_total': v.stock_total_variante,
                 })
+        
+        # Filtrar por tallas si se solicitó
+        if tallas_filter_list:
+            if not tallas_disponibles.intersection(set(tallas_filter_list)):
+                continue
+        
+        # Filtrar por stock
+        if solo_disponibles != 'false' and not tiene_stock:
+            continue
         
         # Galería de imágenes de la variante principal
         variante_principal = p.variante_principal
@@ -210,11 +215,11 @@ def search_products(request):
             'marca': p.marca,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
-            'imagen': galeria[0] if galeria else '',  # La imagen principal es siempre la primera de la galería
+            'imagen': galeria[0] if galeria else '',
             'imagenes_galeria': galeria,
             'tallas_disponibles': sorted(list(tallas_disponibles), key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)),
             'colores_disponibles': sorted(list(colores_disponibles)),
-            'stock_total': sum(v['stock'] for v in variantes_data),
+            'stock_total': sum(v['stock_total'] for v in variantes_data),
             'variantes': variantes_data,
         })
     
@@ -267,24 +272,29 @@ def get_filter_options(request):
         max_precio=Max('precio')
     )
     
-    # Tallas disponibles
-    tallas_queryset = Variante.objects.filter(
-        stock__gt=0,
-        producto__in=productos_qs
-    ).exclude(talla='').values_list('talla', flat=True).distinct()
+    # Tallas disponibles (extraer de JSONField tallas_stock)
+    variantes_con_stock = Variante.objects.filter(producto__in=productos_qs)
+    tallas_set = set()
+    for v in variantes_con_stock:
+        for talla_key, stock_val in v.tallas_stock.items():
+            if stock_val > 0 and talla_key not in ('UNICA', 'N/A', ''):
+                tallas_set.add(talla_key)
     
     tallas = sorted(
-        list(set(tallas_queryset)),
+        list(tallas_set),
         key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)
     )
     
     # Colores disponibles
     colores_queryset = Variante.objects.filter(
-        stock__gt=0,
         producto__in=productos_qs
     ).exclude(color='').values_list('color', flat=True).distinct()
-    
-    colores = sorted(list(set(colores_queryset)))
+    # Solo incluir variantes con stock > 0
+    colores_set = set()
+    for v in variantes_con_stock:
+        if v.stock_total_variante > 0 and v.color and v.color != 'N/A':
+            colores_set.add(v.color)
+    colores = sorted(list(colores_set))
     
     # Marcas
     marcas_queryset = productos_qs.exclude(marca__isnull=True).exclude(marca='').values_list('marca', flat=True).distinct()
@@ -313,22 +323,25 @@ def search_page(request):
     # Obtener opciones de filtros para pasarlas al template
     categorias = Categoria.objects.all()
     
-    # Obtener tallas disponibles
-    tallas_queryset = Variante.objects.filter(
-        stock__gt=0
-    ).exclude(talla='').values_list('talla', flat=True).distinct()
+    # Obtener tallas disponibles (de JSONField tallas_stock)
+    todas_variantes = Variante.objects.all()
+    tallas_set = set()
+    for v in todas_variantes:
+        for talla_key, stock_val in v.tallas_stock.items():
+            if stock_val > 0 and talla_key not in ('UNICA', 'N/A', ''):
+                tallas_set.add(talla_key)
     
     tallas = sorted(
-        list(set(tallas_queryset)),
+        list(tallas_set),
         key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)
     )
     
     # Obtener colores disponibles
-    colores_queryset = Variante.objects.filter(
-        stock__gt=0
-    ).exclude(color='').values_list('color', flat=True).distinct()
-    
-    colores = sorted(list(set(colores_queryset)))
+    colores_set = set()
+    for v in todas_variantes:
+        if v.stock_total_variante > 0 and v.color and v.color not in ('N/A', ''):
+            colores_set.add(v.color)
+    colores = sorted(list(colores_set))
     
     # Rango de precios
     precios = Producto.objects.aggregate(

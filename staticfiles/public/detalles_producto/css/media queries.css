@@ -1,0 +1,120 @@
+/*  ========================================
+    📱  ADAPTACIÓN A PANTALLAS ≤ 768 px
+    ======================================== */
+@media (max-width: 768px) {
+
+  /* ----- 1. Layout general ----- */
+  .detalle-container {
+    flex-direction: column; /* imagen arriba, info abajo */
+    height: auto;           /* deja al contenedor crecer */
+  }
+
+  .detalle-imagen {
+    width: 100%;
+    height: 50vh;           /* ajusta si necesitas más/menos alto */
+  }
+
+  .detalle-info {
+    width: 100%;
+    margin-top: 0;
+    padding: 48px 24px 64px; /* menos padding lateral */
+  }
+
+  /* ----- 2. Fila “talla / cantidad / ✖” ----- */
+  /* ----- 2. Fila “talla / cantidad / ✖” ----- */
+  .linea-talla {
+    display: grid;
+    /* 1ª col = 70px (ancho real del <select>) 
+       2ª col = justo lo que ocupe qty-wrap 
+       3ª col = justo lo que ocupe ✖ */
+    grid-template-columns: 70px max-content max-content;
+    column-gap: 2px;       /* separación entre columnas */
+    align-items: center;
+    margin: 10px 0;
+    font-size: 13px;
+    overflow: visible;
+  }
+
+  .linea-talla select.talla-select {
+    width: 70px;      /* ancho fijo */
+    min-width: 70px;
+    max-width: 70px;
+    top: 7px;         /* ajuste vertical original */
+  }
+
+  .qty-wrap {
+    justify-self: end;      /* lo acerca a la ✖ */
+    margin-left: 0 !important;
+    gap: 2px;
+  }
+  .qty-wrap input.qty {
+    width: 42px;
+  }
+
+  .btn-minus,
+  .btn-plus,
+  .btn-remove {
+    width: 24px;        /* mayor ancho/alto para la ✖ */
+    height: 24px;
+    font-size: 16px;    /* opcional, ajusta para centrar mejor */
+  }
+
+  /* ----- 3. Controles iniciales / extra (selects sueltos) ----- */
+  #select-talla-inicial,
+  #select-talla-extra {
+    width: 120px;       /* mismo ancho que en escritorio */
+    min-width: 120px;
+    max-width: 120px;
+  }
+
+  /* ----- 4. Tipografía ligeramente menor ----- */
+  .detalle-info h2,
+  .detalle-info h3,
+  .detalle-info p {
+    font-size: 15px;
+  }
+
+  .detalle-info label,
+  .guia-tallas {
+     font-size: 10px;
+  }
+
+  /* Ajuste del botón principal */
+  .detalle-info .boton-contacto,
+  .btn-asesor {
+    font-size: 13px;
+    padding: 14px 0;
+  }
+}
+
+
+
+/*  ========================================
+    📱  MICRO-MÓVIL  (≤ 480 px)
+    Reduce un poco más tamaños y paddings
+    ======================================== */
+@media (max-width: 480px) {
+
+  .linea-talla {
+    grid-template-columns: 70px auto 26px; /* 26px para la ✖ */
+    font-size: 12px;
+  }
+
+  .linea-talla select.talla-select {
+    width: 70px;  /* ya está en 70px — se reafirma */
+  }
+
+  .qty-wrap input.qty {
+    width: 36px;
+  }
+
+  .btn-minus,
+  .btn-plus,
+  .btn-remove {
+    width: 26px;      /* ancho/alto para la ✖ y ± */
+    height: 26px;
+    font-size: 17px;  /* ajusta si lo deseas */
+  }
+}
+
+

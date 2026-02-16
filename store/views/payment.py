@@ -32,6 +32,7 @@ if not logger.handlers:
 
 # Configurar Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
+logger.debug(f"[INIT] stripe.api_key configurado: {stripe.api_key[:30] if stripe.api_key else 'NONE'}...")
 
 
 # ───────────────────────────────────────────────────────────────
@@ -174,7 +175,7 @@ def _calcular_items_carrito(carrito):
                 'currency': 'mxn',
                 'product_data': {
                     'name': producto.nombre,
-                    'description': f"Talla: {variante.talla}, Color: {variante.color}",
+                    'description': f"Talla: {cp.talla}, Color: {variante.color}",
                 },
                 'unit_amount': precio_centavos,
             },
@@ -186,6 +187,7 @@ def _calcular_items_carrito(carrito):
             'producto': producto,
             'cantidad': cp.cantidad,
             'precio_unitario': Decimal(str(precio)),
+            'talla': cp.talla,
         })
 
     return line_items, total_centavos, items_detalle, aplicar_mayoreo
@@ -213,6 +215,7 @@ def _crear_orden_local(carrito, cliente, total_centavos, items_detalle,
             variante=item['variante'],
             cantidad=item['cantidad'],
             precio_unitario=item['precio_unitario'],
+            talla=item.get('talla', 'UNICA'),
         )
 
     return orden
@@ -263,6 +266,13 @@ def crear_checkout_stripe(request):
             }, status=400)
 
         logger.info(f"Items: {len(line_items)} | Total: {total_centavos / 100} MXN | Mayoreo: {mayoreo}")
+
+        # Verificar que stripe.api_key esté configurado
+        if not stripe.api_key:
+            logger.error("❌ stripe.api_key está VACÍO")
+            return JsonResponse({'success': False, 'error': 'Error de configuración: API key de Stripe no configurada'}, status=500)
+        else:
+            logger.info(f"✅ stripe.api_key configurado: {stripe.api_key[:30]}...")
 
         # URL de retorno después del pago (Stripe redirige aquí)
         base_url = request.build_absolute_uri('/')[:-1]
@@ -370,7 +380,7 @@ def mostrar_formulario_pago_stripe(request, carrito_id):
 
             items_detalle.append({
                 'producto': producto.nombre,
-                'variante': f"{variante.talla} - {variante.color}",
+                'variante': f"{cp.talla} - {variante.color}",
                 'cantidad': cp.cantidad,
                 'precio_unitario': precio,
                 'subtotal': subtotal,

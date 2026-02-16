@@ -71,7 +71,7 @@ def get_all_ordenes(request):
                     'producto_nombre': producto.nombre,
                     'producto_imagen': galeria[0] if galeria else None,
                     'variante_id': variante.id,
-                    'talla': variante.talla,
+                    'talla': detalle.talla,
                     'color': variante.color,
                     'cantidad': detalle.cantidad,
                     'precio_unitario': float(detalle.precio_unitario),
@@ -183,7 +183,7 @@ def get_orden(request, id):
         data["items"].append({
             "producto":        variante.producto.nombre,
             "variante_id":     variante.id,
-            "talla":           variante.talla,
+            "talla":           det.talla,
             "color":           variante.color,
             "cantidad":        det.cantidad,
             "precio_unitario": float(det.precio_unitario),
@@ -229,6 +229,7 @@ def crear_orden_desde_payload(payload):
                 variante        = variante,
                 cantidad        = item["cantidad"],
                 precio_unitario = item["precio_unitario"],
+                talla           = item.get("talla", "UNICA"),
             )
 
         # 4. (Opcional) Actualizar el estado del carrito
@@ -306,7 +307,7 @@ def get_ordenes_cliente(request):
                     'producto_nombre': producto.nombre,
                     'producto_imagen': galeria[0] if galeria else None,
                     'variante_id': variante.id,
-                    'talla': variante.talla,
+                    'talla': detalle.talla,
                     'color': variante.color,
                     'cantidad': detalle.cantidad,
                     'precio_unitario': float(detalle.precio_unitario),

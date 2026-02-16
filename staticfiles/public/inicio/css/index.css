@@ -1,0 +1,73 @@
+
+
+/* ========== IMPORTS PRINCIPALES ========== */
+
+/* 1. Reset: normaliza márgenes y paddings */
+@import url('./reset.css');
+
+
+/* 2. Header: navegación superior y menú */
+@import url('./header.css');
+
+@import url('./login.css');
+
+
+@import url('./logged.css');
+
+/* 3. Banner principal de la página */
+@import url('./banners.css');
+
+/* 4. Categorias de productos destacados */
+@import url('./categorias-gral.css');
+
+/* 5. Categoria de dama*/
+@import url('./categorias-seccion.css');
+
+@import url('./wishlist.css');
+
+/* 6. Media queries: responsive adaptado */
+@import url('./pre-footer.css');
+
+/* 7. Media queries: responsive adaptado */
+@import url('./footer.css');
+
+/* ─── 0. Fuentes ─── */
+/* ─── Tempting ─── */
+@font-face {
+  font-family: 'Tempting';
+  src: url('/static/fonts/Tempting.woff2') format('woff2'),
+       url('/static/fonts/Tempting.woff')  format('woff'),
+       url('/static/fonts/Tempting.ttf')   format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Instrument Serif Regular ─── */
+@font-face {
+  font-family: 'InstrumentSerif';
+  src: url('/static/fonts/instrumentserif.woff2') format('woff2'),
+       url('/static/fonts/instrumentserif.woff')  format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Instrument Serif Italic ─── */
+@font-face {
+  font-family: 'InstrumentSerif';
+  src: url('/static/fonts/instrumentserif-italic-webfont.woff2') format('woff2'),
+       url('/static/fonts/instrumentserif-italic-webfont.woff')  format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'InstrumentSerif';
+  src: url('/static/fonts/librebaskerville-regular.woff2') format('woff2'),
+       url('/static/fonts/librebaskerville-regular.woff')  format('woff');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}

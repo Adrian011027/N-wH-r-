@@ -84,27 +84,78 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(dataProd.error || 'Error al actualizar producto');
       }
 
-      /* 2. Actualiza cada variante ------------------------------- */
+      /* 2. Procesar variantes (crear nuevas o actualizar existentes) */
       const variantes = form.querySelectorAll('input[name="variante_id"]');
 
       for (let input of variantes) {
         const vId = input.value;
-        const stock = form.querySelector(`[name="variante_stock_${vId}"]`)?.value;
+        const tallas_stock_raw = form.querySelector(`[name="variante_tallas_stock_${vId}"]`)?.value;
         const precio = form.querySelector(`[name="variante_precio_${vId}"]`)?.value;
         const precio_mayorista = form.querySelector(`[name="variante_precio_mayorista_${vId}"]`)?.value;
-        const talla = form.querySelector(`[name="variante_talla_${vId}"]`)?.value;
         const color = form.querySelector(`[name="variante_color_${vId}"]`)?.value;
 
-        const varRes = await authFetch(`/api/variantes/update/${vId}/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({ stock, precio, precio_mayorista, talla, color })
-        });
-        
-        if (!varRes.ok) {
-          console.error(`[ERROR] Error actualizando variante ${vId}:`, await varRes.json());
+        // Detectar si es variante nueva (ID temporal)
+        if (vId.startsWith('new-')) {
+          // CREAR NUEVA VARIANTE
+          const createFormData = new FormData();
+          createFormData.append('producto_id', productoId);
+          createFormData.append('color', color || 'N/A');
+          createFormData.append('precio', precio || '0');
+          createFormData.append('precio_mayorista', precio_mayorista || '0');
+          
+          if (tallas_stock_raw) {
+            createFormData.append('tallas_stock', tallas_stock_raw);
+          } else {
+            console.error(`[ERROR] Falta tallas_stock para variante nueva ${vId}`);
+            continue;
+          }
+
+          // Agregar imágenes de la variante nueva
+          if (window.variantGalleries && window.variantGalleries[vId]) {
+            const gallery = window.variantGalleries[vId];
+            if (gallery.newImages && gallery.newImages.length > 0) {
+              console.log(`[CREATE] Agregando ${gallery.newImages.length} imagen(es) para nueva variante ${vId}`);
+              gallery.newImages.forEach((imgData, idx) => {
+                createFormData.append(`imagenes_${idx}`, imgData.file);
+              });
+            }
+          }
+
+          const createRes = await authFetch('/api/variantes/create/', {
+            method: 'POST',
+            body: createFormData
+          });
+
+          if (!createRes.ok) {
+            const errorData = await createRes.json();
+            console.error(`[ERROR] Error creando variante nueva ${vId}:`, errorData);
+            throw new Error(`Error al crear variante: ${errorData.error || 'Error desconocido'}`);
+          } else {
+            const createData = await createRes.json();
+            console.log(`[SUCCESS] Variante creada con ID ${createData.id}`);
+          }
+
+        } else {
+          // ACTUALIZAR VARIANTE EXISTENTE
+          const params = new URLSearchParams({ precio, precio_mayorista, color });
+          if (tallas_stock_raw) {
+            params.set('tallas_stock', tallas_stock_raw);
+          }
+
+          const varRes = await authFetch(`/api/variantes/update/${vId}/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+          });
+          
+          if (!varRes.ok) {
+            const errorData = await varRes.json();
+            console.error(`[ERROR] Error actualizando variante ${vId}:`, errorData);
+          } else {
+            console.log(`[SUCCESS] Variante ${vId} actualizada correctamente`);
+          }
         }
       }
 

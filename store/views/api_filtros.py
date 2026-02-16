@@ -49,24 +49,28 @@ def get_filtros_disponibles(request):
         except (ValueError, TypeError):
             pass
     
-    # Solo productos con stock
-    productos_qs = productos_qs.filter(variantes__stock__gt=0).distinct()
+    # Solo productos con stock (filtrado Python-level, ya que stock está en JSONField)
+    # Primero obtenemos todos, luego filtramos
+    producto_ids_con_stock = []
+    for p in productos_qs.prefetch_related('variantes'):
+        for v in p.variantes.all():
+            if v.stock_total_variante > 0:
+                producto_ids_con_stock.append(p.id)
+                break
+    productos_qs = productos_qs.filter(id__in=producto_ids_con_stock)
     
     # IDs de productos filtrados
     producto_ids = list(productos_qs.values_list('id', flat=True))
     
-    # Obtener variantes con stock de estos productos
-    variantes_qs = Variante.objects.filter(
-        producto_id__in=producto_ids,
-        stock__gt=0
-    )
+    # Obtener variantes de estos productos
+    variantes_qs = Variante.objects.filter(producto_id__in=producto_ids)
     
-    # Obtener tallas únicas (ordenadas numéricamente si es posible)
-    tallas_raw = variantes_qs.values_list('talla', flat=True).distinct()
+    # Obtener tallas únicas (de JSONField tallas_stock)
     tallas = []
-    for t in tallas_raw:
-        if t and t not in ['UNICA', 'N/A', '']:
-            tallas.append(t)
+    for v in variantes_qs:
+        for talla_key, stock_val in v.tallas_stock.items():
+            if stock_val > 0 and talla_key not in ('UNICA', 'N/A', ''):
+                tallas.append(talla_key)
     
     # Intentar ordenar numéricamente
     def talla_sort_key(t):
@@ -77,11 +81,12 @@ def get_filtros_disponibles(request):
     
     tallas = sorted(set(tallas), key=talla_sort_key)
     
-    # Obtener colores únicos
-    colores_raw = variantes_qs.exclude(
-        Q(color__isnull=True) | Q(color='') | Q(color='N/A')
-    ).values_list('color', flat=True).distinct()
-    colores = sorted(set(colores_raw))
+    # Obtener colores únicos (solo de variantes con stock)
+    colores_set = set()
+    for v in variantes_qs:
+        if v.stock_total_variante > 0 and v.color and v.color != 'N/A':
+            colores_set.add(v.color)
+    colores = sorted(colores_set)
     
     # Obtener marcas únicas
     marcas_raw = productos_qs.exclude(
@@ -212,17 +217,17 @@ def get_productos_filtrados(request):
         except (ValueError, TypeError):
             pass
     
-    # Filtro: Tallas (productos que tienen variantes con esas tallas)
+    # Filtro: Tallas (productos que tienen variantes con esas tallas en tallas_stock)
+    # Se filtrará post-query ya que tallas están en JSONField
+    tallas_filter = []
     if tallas:
-        tallas_clean = [t.strip() for t in tallas if t.strip()]
-        if tallas_clean:
-            qs = qs.filter(variantes__talla__in=tallas_clean, variantes__stock__gt=0)
+        tallas_filter = [t.strip() for t in tallas if t.strip()]
     
     # Filtro: Colores
     if colores:
         colores_clean = [c.strip() for c in colores if c.strip()]
         if colores_clean:
-            qs = qs.filter(variantes__color__in=colores_clean, variantes__stock__gt=0)
+            qs = qs.filter(variantes__color__in=colores_clean)
     
     # Filtro: Marcas
     if marcas:
@@ -247,9 +252,10 @@ def get_productos_filtrados(request):
     if en_oferta:
         qs = qs.filter(en_oferta=True)
     
-    # Filtro: Solo disponibles (con stock)
+    # Filtro: Solo disponibles (con stock) - post-query filtering
+    # No podemos usar variantes__stock__gt=0 con JSONField
     if solo_disponible:
-        qs = qs.filter(variantes__stock__gt=0)
+        pass  # Se filtrará post-query
     
     # Búsqueda por nombre
     if busqueda:
@@ -280,7 +286,7 @@ def get_productos_filtrados(request):
     fin = inicio + por_pagina
     productos_pagina = qs[inicio:fin]
     
-    # Serializar productos
+    # Serializar productos (con filtrado post-query para tallas y stock)
     productos_data = []
     for p in productos_pagina:
         variante_principal = p.variante_principal
@@ -290,8 +296,25 @@ def get_productos_filtrados(request):
         else:
             imagen_url = None
         
-        # Verificar si tiene stock
-        tiene_stock = p.variantes.filter(stock__gt=0).exists()
+        # Verificar si tiene stock (de tallas_stock JSONField)
+        tiene_stock = any(v.stock_total_variante > 0 for v in p.variantes.all())
+        
+        # Filtrar por stock si es necesario
+        if solo_disponible and not tiene_stock:
+            continue
+        
+        # Filtrar por tallas si se solicitaron
+        if tallas_filter:
+            tiene_talla = False
+            for v in p.variantes.all():
+                for t in tallas_filter:
+                    if v.stock_de_talla(t) > 0:
+                        tiene_talla = True
+                        break
+                if tiene_talla:
+                    break
+            if not tiene_talla:
+                continue
         
         productos_data.append({
             'id': p.id,

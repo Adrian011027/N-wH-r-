@@ -10,16 +10,15 @@ import os
 def variante_imagen_upload_to(instance, filename):
     """
     Callback para generar la ruta de imágenes de galería de variante.
-    Formato: variantes/var-{prod-id}-{var-id}-{talla}-{color}/imagen-{numero}.{ext}
+    Formato: variantes/var-{prod-id}-{var-id}-{color}/imagen-{numero}.{ext}
     """
     if not instance.variante.id:
         return f'variantes/galeria/{filename}'
     
     ext = os.path.splitext(filename)[1].lower()
     producto_slug = slugify(instance.variante.producto.nombre)[:30]
-    talla_clean = slugify(instance.variante.talla or "unica")[:10]
     color_clean = slugify(instance.variante.color or "na")[:10]
-    return f'variantes/var-{instance.variante.producto_id}-{instance.variante.id}-{talla_clean}-{color_clean}/{filename}'
+    return f'variantes/var-{instance.variante.producto_id}-{instance.variante.id}-{color_clean}/{filename}'
 
 
 # ——————————————————————————————————————
@@ -214,10 +213,13 @@ class Producto(models.Model):
     @property
     def stock_total(self):
         """
-        Suma el stock de todas sus variantes.
+        Suma el stock de todas sus variantes (sumando todas las tallas).
         Útil para mostrar stock global de un producto con variantes.
         """
-        return sum( var.stock for var in self.variantes.all() )
+        return sum(
+            sum(var.tallas_stock.values()) if var.tallas_stock else 0
+            for var in self.variantes.all()
+        )
     
     @property
     def variante_principal(self):
@@ -242,9 +244,9 @@ class Variante(models.Model):
     Optimizado para e-commerce de moda, calzado y accesorios.
     
     Ejemplos:
-    - Zapatos: talla="38", color="Negro", otros={"material": "Piel", "suela": "Goma"}
-    - Bolsa: talla="UNICA", color="Rojo", otros={"dimensiones": "35x28x12cm"}
-    - Playera: talla="M", color="Blanco", otros={"material": "Algodón 100%"}
+    - Zapatos: color="Negro", tallas_stock={"38": 5, "39": 3, "40": 0}
+    - Bolsa: color="Rojo", tallas_stock={"UNICA": 10}
+    - Playera: color="Blanco", tallas_stock={"M": 5, "L": 3, "XL": 2}
     """
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="variantes")
     es_variante_principal = models.BooleanField(
@@ -259,26 +261,25 @@ class Variante(models.Model):
         help_text="Código interno o UPC (ej: NIKE-AIR-38-BLK)"
     )
     
-    # Campos directos para filtros rápidos
-    talla = models.CharField(
-        max_length=20, 
-        default="UNICA",
-        db_index=True,
-        help_text="Talla del producto (ej: 38, M, L, UNICA, N/A)"
-    )
+    # 1 variante = 1 color, con múltiples tallas y stock en JSON
     color = models.CharField(
         max_length=50, 
         default="N/A",
         db_index=True,
         help_text="Color principal del producto"
     )
+    tallas_stock = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Dict de talla→stock. Ej: {"38": 5, "39": 3, "40": 0}'
+    )
     
-    # Imagen específica de la variante
+    # Imagen específica de la variante (legacy, preferir VarianteImagen)
     imagen = models.ImageField(
         upload_to='variantes/', 
         blank=True, 
         null=True,
-        help_text="Imagen específica de esta variante (ej: talla 38 en color negro)"
+        help_text="Imagen específica de esta variante"
     )
     
     # Atributos adicionales en JSON (flexible, sin migraciones)
@@ -302,30 +303,20 @@ class Variante(models.Model):
         default=0,
         help_text="Precio para clientes mayoristas"
     )
-    stock = models.IntegerField(
-        default=0,
-        db_index=True,
-        help_text="Cantidad disponible en inventario"
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         indexes = [
-            models.Index(fields=['talla', 'color', 'stock']),
-            models.Index(fields=['producto', 'stock']),
+            models.Index(fields=['color']),
+            models.Index(fields=['producto']),
         ]
-        ordering = ['talla', 'color']
+        ordering = ['color']
     
     def __str__(self):
-        """Representación legible: Producto (Talla: X, Color: Y)"""
-        partes = []
-        if self.talla and self.talla != "UNICA":
-            partes.append(f"Talla: {self.talla}")
+        """Representación legible: Producto (Color: Y)"""
         if self.color and self.color != "N/A":
-            partes.append(f"Color: {self.color}")
-        
-        if partes:
-            return f"{self.producto.nombre} ({', '.join(partes)})"
+            tallas = ", ".join(self.tallas_stock.keys()) if self.tallas_stock else "sin tallas"
+            return f"{self.producto.nombre} (Color: {self.color}, Tallas: {tallas})"
         return f"{self.producto.nombre}"
     
     @property
@@ -339,21 +330,39 @@ class Variante(models.Model):
         return self.precio_mayorista if self.precio_mayorista else self.producto.precio_mayorista
     
     @property
-    def disponible(self):
-        """Indica si hay stock disponible"""
-        return self.stock > 0
+    def stock_total_variante(self):
+        """Suma total de stock de todas las tallas de esta variante"""
+        return sum(self.tallas_stock.values()) if self.tallas_stock else 0
     
-    def reducir_stock(self, cantidad):
-        """Reduce el stock de manera segura"""
-        if self.stock >= cantidad:
-            self.stock -= cantidad
+    @property
+    def tallas_stock_json(self):
+        """Retorna tallas_stock como JSON string para templates"""
+        import json
+        return json.dumps(self.tallas_stock or {}, ensure_ascii=False)
+    
+    @property
+    def disponible(self):
+        """Indica si hay stock disponible en alguna talla"""
+        return self.stock_total_variante > 0
+    
+    def stock_de_talla(self, talla):
+        """Retorna el stock de una talla específica"""
+        return self.tallas_stock.get(str(talla), 0)
+    
+    def reducir_stock(self, talla, cantidad):
+        """Reduce el stock de una talla específica de manera segura"""
+        talla = str(talla)
+        stock_actual = self.tallas_stock.get(talla, 0)
+        if stock_actual >= cantidad:
+            self.tallas_stock[talla] = stock_actual - cantidad
             self.save()
             return True
         return False
     
-    def aumentar_stock(self, cantidad):
-        """Aumenta el stock"""
-        self.stock += cantidad
+    def aumentar_stock(self, talla, cantidad):
+        """Aumenta el stock de una talla específica"""
+        talla = str(talla)
+        self.tallas_stock[talla] = self.tallas_stock.get(talla, 0) + cantidad
         self.save()
     
     def _generate_image_key(self, filename):
@@ -376,10 +385,9 @@ class Variante(models.Model):
         
         ext = os.path.splitext(filename)[1].lower()
         producto_slug = slugify(self.producto.nombre)[:30]
-        talla_clean = slugify(self.talla or "unica")[:10]
         color_clean = slugify(self.color or "na")[:10]
         
-        return f'variantes/var-{self.producto_id}-{self.id}-{talla_clean}-{color_clean}-{producto_slug}{ext}'
+        return f'variantes/var-{self.producto_id}-{self.id}-{color_clean}-{producto_slug}{ext}'
 
 
 class VarianteImagen(models.Model):
@@ -427,10 +435,9 @@ class VarianteImagen(models.Model):
         
         ext = os.path.splitext(filename)[1].lower()
         producto_slug = slugify(self.variante.producto.nombre)[:30]
-        talla_clean = slugify(self.variante.talla or "unica")[:10]
         color_clean = slugify(self.variante.color or "na")[:10]
         
-        return f'variantes/var-{self.variante.producto_id}-{self.variante.id}-{talla_clean}-{color_clean}/imagen-{imagen_numero}{ext}'
+        return f'variantes/var-{self.variante.producto_id}-{self.variante.id}-{color_clean}/imagen-{imagen_numero}{ext}'
     
     def clean(self):
         """
@@ -496,9 +503,10 @@ class Carrito(models.Model):
 class CarritoProducto(models.Model):
     carrito  = models.ForeignKey(Carrito, on_delete=models.CASCADE, related_name='items')
     variante = models.ForeignKey(Variante, on_delete=models.CASCADE)
+    talla    = models.CharField(max_length=20, default='UNICA', help_text='Talla seleccionada de tallas_stock')
     cantidad  = models.PositiveIntegerField(default=1)
     def __str__(self):
-        return f"{self.variante} en {self.carrito}"
+        return f"{self.variante} (Talla: {self.talla}) en {self.carrito}"
 
 class Wishlist(models.Model):
     cliente   = models.ForeignKey(Cliente, on_delete=models.CASCADE)
@@ -527,11 +535,12 @@ class Orden(models.Model):
 class OrdenDetalle(models.Model):
     order          = models.ForeignKey(Orden, on_delete=models.CASCADE, related_name="detalles")
     variante       = models.ForeignKey(Variante, on_delete=models.CASCADE)
+    talla          = models.CharField(max_length=20, default='UNICA', help_text='Talla que se compró')
     cantidad       = models.IntegerField()
     precio_unitario= models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.cantidad}×{self.variante} en Orden #{self.order.id}"
+        return f"{self.cantidad}×{self.variante} (Talla: {self.talla}) en Orden #{self.order.id}"
 
 
 # ——————————————————————————————————————
