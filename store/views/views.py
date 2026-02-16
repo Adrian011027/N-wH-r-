@@ -1,4 +1,3 @@
-from random import sample
 import json
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
@@ -14,25 +13,34 @@ from store.models import BlacklistedToken
 
 from ..models import Categoria, Cliente, Producto, Usuario, Variante
 from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, decode_jwt
+from store.utils.genero import normalize_genero, get_genero_filter, get_seccion, GENERO_FILTER_MAP
 from .decorators import jwt_role_required, login_required_user, admin_required, admin_required_hybrid
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 # ───────────────────────────────────────────────
 # Home pública
 # ───────────────────────────────────────────────
 def index(request):
-    # Productos Hombre (incluye Unisex)
-    qs_h = Producto.objects.filter(genero__in=["Hombre", "Unisex"], variantes__stock__gt=0) \
-        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
+    # Productos Hombre (incluye Unisex) — solo 4 aleatorios
+    cab_home = list(
+        Producto.objects.filter(genero__in=["Hombre", "Unisex"], variantes__stock__gt=0)
+        .distinct()
+        .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
+        .order_by('?')[:4]
+    )
     
-    # Productos Mujer (incluye Unisex)
-    qs_m = Producto.objects.filter(genero__in=["Mujer", "Unisex"], variantes__stock__gt=0) \
-        .distinct().prefetch_related(Prefetch("variantes", Variante.objects.all())) \
+    # Productos Mujer (incluye Unisex) — solo 4 aleatorios
+    dama_home = list(
+        Producto.objects.filter(genero__in=["Mujer", "Unisex"], variantes__stock__gt=0)
+        .distinct()
+        .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
-
-    cab_home  = sample(list(qs_h), min(4, qs_h.count()))
-    dama_home = sample(list(qs_m), min(4, qs_m.count()))
+        .order_by('?')[:4]
+    )
     
     # Agregar primera imagen (galería) a cada producto desde variante principal
     for p in cab_home + dama_home:
@@ -77,8 +85,7 @@ def genero_view(request, genero):
     from django.core.paginator import Paginator
     from django.db.models import Q
     
-    genero_map = {"dama": "Mujer", "mujer": "Mujer", "caballero": "Hombre", "hombre": "Hombre"}
-    genero_cod = genero_map.get(genero.lower())
+    genero_cod = normalize_genero(genero)
     if not genero_cod:
         return HttpResponseNotFound("Género no válido")
 
@@ -108,10 +115,6 @@ def genero_view(request, genero):
     # Base query: productos del género (+ Unisex)
     qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"]) \
         .select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
-    
-    # Debug: verificar cuántos productos hay con este género
-    print(f"[DEBUG FILTRO GÉNERO] Género solicitado: {genero} -> Código: {genero_cod}")
-    print(f"[DEBUG] Total productos con género '{genero_cod}' o 'Unisex': {qs.count()}")
     
     # Filtrar por categoría
     if categoria_id:
@@ -166,7 +169,6 @@ def genero_view(request, genero):
     
     # Solo productos con stock (por defecto)
     qs = qs.filter(variantes__stock__gt=0).distinct()
-    print(f"[DEBUG] Productos después de filtrar por stock > 0: {qs.count()}")
     
     # Ordenamiento
     orden_map = {
@@ -181,7 +183,7 @@ def genero_view(request, genero):
     paginator = Paginator(qs, 24)
     try:
         productos_pag = paginator.get_page(pagina)
-    except:
+    except (ValueError, TypeError):
         productos_pag = paginator.get_page(1)
     
     # Agregar primera imagen a cada producto de la página actual
@@ -197,13 +199,13 @@ def genero_view(request, genero):
     categorias = sorted({p.categoria.nombre for p in productos_pag if p.categoria})
     
     # Determinar título según filtros
-    titulo = "Mujer" if genero_cod == "M" else "Hombre"
+    titulo = "Mujer" if genero_cod == "Mujer" else "Hombre"
     if subcategoria_id:
         try:
             from ..models import Subcategoria
             subcat = Subcategoria.objects.get(id=subcategoria_id)
             titulo = f"{titulo} - {subcat.nombre}"
-        except:
+        except Exception:
             pass
     
     # Pasar parámetros actuales al template para mantener filtros
@@ -277,16 +279,7 @@ def catalogo_view(request):
     categoria_id = request.GET.get('categoria')
     subcategoria_id = request.GET.get('subcategoria')
     
-    # Mapeo de género (acepta versiones antiguas y nuevas)
-    genero_map = {
-        'hombre': 'Hombre',
-        'mujer': 'Mujer',
-        'unisex': 'Unisex',
-        'h': 'Hombre',
-        'm': 'Mujer',
-        'u': 'Unisex',
-    }
-    genero_normalizado = genero_map.get(genero.lower(), None)
+    genero_normalizado = normalize_genero(genero)
     
     # Base query
     qs = Producto.objects.select_related("categoria").prefetch_related("subcategorias", "variantes", "variantes__imagenes")
@@ -299,25 +292,22 @@ def catalogo_view(request):
     if subcategoria_id:
         try:
             subcat = Subcategoria.objects.get(id=subcategoria_id)
-            # Buscar el género predominante de los productos con esta subcategoría
             producto_ejemplo = Producto.objects.filter(subcategorias__id=subcategoria_id).first()
             if producto_ejemplo:
-                if producto_ejemplo.genero in ['M']:
+                if producto_ejemplo.genero == 'Mujer':
                     seccion = "dama"
-                    genero_filtro = ['M', 'U']
+                    genero_filtro = ['Mujer', 'Unisex']
                 else:
                     seccion = "caballero"
-                    genero_filtro = ['H', 'U']
+                    genero_filtro = ['Hombre', 'Unisex']
         except Subcategoria.DoesNotExist:
             pass
     
     # Filtrar por género desde params
-    genero_map = {
-        'hombre': (['Hombre', 'Unisex'], 'caballero'),
-        'mujer': (['Mujer', 'Unisex'], 'dama'),
-    }
-    if genero in genero_map:
-        genero_filtro, seccion = genero_map[genero]
+    _gf = get_genero_filter(genero)
+    if _gf:
+        genero_filtro = _gf
+        seccion = get_seccion(normalize_genero(genero) or 'Hombre')
     
     if genero_filtro:
         qs = qs.filter(genero__in=genero_filtro)
@@ -557,18 +547,7 @@ def categorias_por_genero(request):
     """
     genero_param = request.GET.get('genero', '').lower()
     
-    # Mapear parámetro a valores de BD
-    genero_map = {
-        'hombre': ['Hombre', 'Unisex'],  # Hombre + Unisex
-        'mujer': ['Mujer', 'Unisex'],    # Mujer + Unisex
-        'unisex': ['Unisex'],             # Solo unisex
-        'ambos': [],                       # Todos los géneros
-        'h': ['Hombre', 'Unisex'],
-        'm': ['Mujer', 'Unisex'],
-        'u': ['Unisex'],
-    }
-    
-    generos = genero_map.get(genero_param, [])
+    generos = get_genero_filter(genero_param)
     
     if not generos:
         # Sin filtro, devolver todas las categorías
@@ -644,10 +623,8 @@ def producto_aleatorio_subcategoria(request):
         return JsonResponse(data)
         
     except Exception as e:
-        import traceback
-        print(f"Error en producto_aleatorio_subcategoria: {str(e)}")
-        print(traceback.format_exc())
-        return JsonResponse({"error": str(e)}, status=500)
+        logger.error(f"Error en producto_aleatorio_subcategoria: {e}", exc_info=True)
+        return JsonResponse({"error": "Error interno del servidor"}, status=500)
 
 
 # ───────────────────────────────────────────────
@@ -756,10 +733,8 @@ def refresh_token(request):
         return JsonResponse({"access": new_access}, status=200)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-
-# ───────────────────────────────────────────────
+        logger.error("Error en refresh_token: %s", e)
+        return JsonResponse({"error": "Error al renovar token"}, status=400)
 # Logout Cliente con invalidación de Refresh Token
 # ───────────────────────────────────────────────
 @csrf_exempt
@@ -800,7 +775,8 @@ def logout_client(request):
         return JsonResponse({"error": "Refresh token inválido"}, status=401)
     except Exception as e:
         request.session.flush()
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.error("Error en logout_client: %s", e)
+        return JsonResponse({"error": "Error al cerrar sesión"}, status=400)
 
 
 # ───────────────────────────────────────────────
@@ -835,7 +811,8 @@ def logout_user(request):
     except jwt.InvalidTokenError:
         return JsonResponse({"error": "Refresh token inválido"}, status=401)
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.error("Error en logout_user: %s", e)
+        return JsonResponse({"error": "Error al cerrar sesión"}, status=400)
 
 
 # ───────────────────────────────────────────────

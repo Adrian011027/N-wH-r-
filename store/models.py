@@ -288,14 +288,6 @@ class Variante(models.Model):
         help_text="Atributos extras en JSON: material, dimensiones, peso, etc."
     )
     
-    # Imagen específica de la variante
-    imagen = models.ImageField(
-        upload_to='variantes/',
-        blank=True,
-        null=True,
-        help_text="Imagen específica de esta variante (color/talla específica)"
-    )
-    
     # Precio y stock
     precio = models.DecimalField(
         max_digits=10, 

@@ -139,14 +139,6 @@ urlpatterns = [
     path("auth/logout_client/", logout_client, name="logout_client"),   
     path("auth/logout_user/",   logout_user,   name="logout_user"),
 
-
-
-    # ---------- Categorías API ----------
-    path("api/categorias/",                     get_categorias,    name="get_categorias"),
-    path("api/categorias/crear/",               create_categoria,  name="create_categoria"),
-    path("api/categorias/actualizar/<int:id>/", update_categoria,  name="update_categoria"),
-    path("api/categorias/eliminar/<int:id>/",   delete_categoria,  name="delete_categoria"),
-
     # ---------- Carrito (páginas públicas) ----------
     path("carrito/",         carrito_publico,  name="ver_carrito"),
     path("carrito/cliente/", carrito_cliente,  name="carrito_cliente"),
@@ -228,26 +220,17 @@ urlpatterns = [
     path("api/orden/<int:carrito_id>/ticket/email/",    enviar_ticket_email,    name="enviar_ticket_email"),
 
     # ---------- Dashboard ----------
-    path("dashboard", lambda r: _redirect("login_user"), name="dashboard_home"),
-    path("dashboard/", lambda r: _redirect("login_user"), name="dashboard_home_slash"),
-    path("dashboard/login",                      login_user_page,           name="login_user"),
-    path("dashboard/login/",                     login_user_page,           name="login_user_slash"),
-    path("dashboard/productos",                  lista_productos,      name="dashboard_productos"),
-    path("dashboard/productos/",                 lista_productos,      name="dashboard_productos_slash"),
-    path("dashboard/productos/crear",            alta,                 name="dashboard_alta"),
-    path("dashboard/productos/crear/",           alta,                 name="dashboard_alta_slash"),
-    path("dashboard/productos/editar/<int:id>", editar_producto,      name="editar_producto"),
-    path("dashboard/productos/editar/<int:id>/", editar_producto,      name="editar_producto_slash"),
-    path("dashboard/clientes",                   dashboard_clientes,   name="dashboard_clientes"),
-    path("dashboard/clientes/",                  dashboard_clientes,   name="dashboard_clientes_slash"),
-    path("dashboard/clientes/editar/<int:id>",  editar_cliente,       name="editar_cliente"),
-    path("dashboard/clientes/editar/<int:id>/",  editar_cliente,       name="editar_cliente_slash"),
-    path("dashboard/categorias",                 dashboard_categorias, name="dashboard_categorias"),
-    path("dashboard/categorias/",                dashboard_categorias, name="dashboard_categorias_slash"),
-    path("dashboard/subcategorias",              dashboard_subcategorias, name="dashboard_subcategorias"),
-    path("dashboard/subcategorias/",             dashboard_subcategorias, name="dashboard_subcategorias_slash"),
-    path("dashboard/ordenes",                    dashboard_ordenes, name="dashboard_ordenes"),
-    path("dashboard/ordenes/",                   dashboard_ordenes, name="dashboard_ordenes_slash"),
+    # Django APPEND_SLASH handles redirection from non-slash to slash URLs
+    path("dashboard/",                             lambda r: _redirect("login_user"), name="dashboard_home"),
+    path("dashboard/login/",                       login_user_page,           name="login_user"),
+    path("dashboard/productos/",                   lista_productos,           name="dashboard_productos"),
+    path("dashboard/productos/crear/",             alta,                      name="dashboard_alta"),
+    path("dashboard/productos/editar/<int:id>/",   editar_producto,           name="editar_producto"),
+    path("dashboard/clientes/",                    dashboard_clientes,        name="dashboard_clientes"),
+    path("dashboard/clientes/editar/<int:id>/",    editar_cliente,            name="editar_cliente"),
+    path("dashboard/categorias/",                  dashboard_categorias,      name="dashboard_categorias"),
+    path("dashboard/subcategorias/",               dashboard_subcategorias,   name="dashboard_subcategorias"),
+    path("dashboard/ordenes/",                     dashboard_ordenes,         name="dashboard_ordenes"),
 ]
 
 if settings.DEBUG:

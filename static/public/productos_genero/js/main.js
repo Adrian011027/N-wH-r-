@@ -1,6 +1,10 @@
 // static/shared/js/productos_genero.js
 
 window.addEventListener('load', () => {
+  // Fade-in dinámico de sección (dama/caballero) - MUST run before any early returns
+  document.querySelectorAll('.dama-section, .caballero-section')
+          .forEach(sec => sec.classList.add('fade-in'));
+
   const dropdown     = document.getElementById('dropdown');
   const selectedDiv  = dropdown?.querySelector('.selected');
   const optionsList  = dropdown?.querySelector('.options');
@@ -40,9 +44,7 @@ window.addEventListener('load', () => {
     dropdown.classList.remove('open');
   });
 
-  // 3. Fade-in dinámico de sección (dama/caballero)
-  document.querySelectorAll('.dama-section, .caballero-section')
-          .forEach(sec => sec.classList.add('fade-in'));
+  // 3. (fade-in moved to top of load handler)
 
   // 4. Guardar en localStorage
   allCards.forEach(card => {

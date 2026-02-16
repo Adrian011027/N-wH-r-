@@ -31,7 +31,20 @@
   text-decoration: none;
   font-size: 13px;
   margin-bottom: 12px;
-  transition: color 0.2s;
+  transition: color 0.2s, opacity 0.2s;
+  opacity: 0;
+  animation: fadeInLink 0.3s ease-out 0.1s forwards;
+}
+
+@keyframes fadeInLink {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .carrito-back-link:hover {
@@ -287,39 +300,43 @@
   text-decoration: line-through;
 }
 
-/* Control de cantidad - Estilo moderno */
+/* Control de cantidad - Estilo minimalista sin fondo */
 .item-cantidad {
   display: flex;
   align-items: center;
-  gap: 2px;
-  background: #f5f5f5;
-  border-radius: 50px;
-  padding: 3px;
+  gap: 6px;
+  background: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .item-cantidad .btn-minus,
 .item-cantidad .btn-plus {
-  width: 26px;
-  height: 26px;
+  width: auto;
+  height: auto;
   border: none;
-  background: #fff;
-  border-radius: 50%;
+  background: none;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 300;
+  font-size: 18px;
+  font-weight: 400;
   color: #333;
-  transition: all 0.2s ease;
+  transition: color 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  box-shadow: none;
+  line-height: 1;
+  padding: 2px 6px;
+  min-width: 24px;
+  text-align: center;
 }
 
 .item-cantidad .btn-minus:hover,
 .item-cantidad .btn-plus:hover {
-  background: #1a1a1a;
-  color: #fff;
-  transform: scale(1.05);
+  color: #1a1a1a;
+  background: none;
+  transform: none;
 }
 
 .item-cantidad .btn-minus:active,
@@ -337,10 +354,10 @@
 }
 
 .item-cantidad input.qty {
-  width: 28px;
-  height: 26px;
+  width: 24px;
+  height: 28px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   border: none;
   background: transparent;
@@ -605,12 +622,16 @@
 /* ========== Responsive ========== */
 @media (max-width: 900px) {
   .carrito-page {
-    padding: 70px 12px 16px;
+    padding: 70px 16px 16px;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .carrito-layout.visible {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .carrito-items-list {
@@ -622,6 +643,8 @@
   .carrito-productos-col {
     order: 1;
     padding: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   /* Resumen al final */
@@ -629,9 +652,11 @@
     order: 2;
     position: static;
     background: #fff;
-    padding: 16px;
+    padding: 16px 0;
     margin-top: 16px;
     border-top: 1px solid #eee;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .carrito-resumen-card {
@@ -644,7 +669,7 @@
   .carrito-resumen-card {
     border: none;
     border-radius: 0;
-    padding: 14px 16px;
+    padding: 14px 0;
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
   
@@ -658,6 +683,8 @@
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .resumen-row {
@@ -672,25 +699,11 @@
     border: none;
     padding: 0;
     margin: 0;
+    flex-shrink: 0;
   }
   
   .carrito-seguridad {
     display: none;
-  }
-  
-  /* Estilo del resumen en m├│vil */
-  .carrito-resumen-content {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-  
-  .resumen-row.resumen-total {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
   }
   
   .resumen-total span {
@@ -705,7 +718,7 @@
   
   .carrito-resumen-content .btn-checkout {
     flex: 1;
-    max-width: 220px;
+    max-width: none;
     padding: 16px 24px;
     border-radius: 12px;
   }
@@ -713,11 +726,14 @@
 
 @media (max-width: 600px) {
   .carrito-page {
-    padding: 65px 0 0 0;
+    padding: 65px 12px 0 12px;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
   }
   
   .carrito-page-header {
-    padding: 0 12px;
+    padding: 0;
     margin-bottom: 6px;
   }
   
@@ -726,9 +742,10 @@
   }
   
   .carrito-alert {
-    margin: 0 12px 6px;
+    margin: 0 0 6px 0;
     padding: 8px 12px;
     font-size: 12px;
+    box-sizing: border-box;
   }
   
   .carrito-section-card {
@@ -738,17 +755,24 @@
   }
   
   .carrito-section-header {
-    padding-bottom: 8px;
+    padding: 0 4px 8px 4px;
     margin-bottom: 8px;
   }
   
-  /* Items m├ís compactos en m├│vil */
+  .carrito-productos-col {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Items más compactos en móvil */
   .carrito-item {
     grid-template-columns: 70px 1fr 24px;
     gap: 10px;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 0;
+    box-sizing: border-box;
+    width: 100%;
   }
   
   .item-imagen {
@@ -781,21 +805,23 @@
   }
   
   .item-cantidad {
-    padding: 2px;
-    border-radius: 20px;
+    padding: 0;
+    border-radius: 0;
+    gap: 4px;
   }
   
   .item-cantidad .btn-minus,
   .item-cantidad .btn-plus {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
+    width: auto;
+    height: auto;
+    font-size: 16px;
+    padding: 2px 4px;
   }
   
   .item-cantidad input.qty {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
+    width: 22px;
+    height: 26px;
+    font-size: 13px;
   }
   
   .item-subtotal {
@@ -815,11 +841,49 @@
     display: none;
   }
   
-  /* Estado vac├¡o en m├│vil */
+  /* Resumen (barra inferior) centrada en móvil */
+  .carrito-resumen-col {
+    width: 100%;
+    padding: 14px 0;
+    margin-top: 12px;
+    box-sizing: border-box;
+  }
+  
+  .carrito-resumen-card {
+    padding: 14px 4px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  
+  .carrito-resumen-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .carrito-resumen-content .btn-checkout {
+    flex: 1;
+    max-width: none;
+    min-width: 0;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .resumen-row.resumen-total {
+    flex-shrink: 0;
+  }
+  
+  /* Estado vacío en móvil */
   .carrito-empty-state {
-    margin: 12px;
+    margin: 12px 0;
     padding: 40px 16px;
     flex: 1;
+    box-sizing: border-box;
   }
   
   .carrito-empty-state h2 {
@@ -835,7 +899,7 @@
 /* ========== Extra small screens ========== */
 @media (max-width: 360px) {
   .carrito-page {
-    padding: 60px 0 0 0;
+    padding: 60px 8px 0 8px;
   }
   
   .carrito-item {

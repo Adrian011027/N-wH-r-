@@ -1,5 +1,6 @@
 
 import json
+import logging
 from django.forms import model_to_dict
 from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404, render
@@ -8,6 +9,7 @@ from django.db import models, transaction
 from django.views.decorators.http import require_http_methods, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from .decorators import jwt_role_required, admin_required, login_required_user, admin_required_hybrid
+logger = logging.getLogger(__name__)
 
 
 # ───────────────────────────────────────────────
@@ -232,7 +234,7 @@ def crear_orden_desde_payload(payload):
         # 4. (Opcional) Actualizar el estado del carrito
         carrito.save()
         data = model_to_dict(carrito, fields=['id','status','created_at','cliente','session_key'])
-        print(json.dumps(data, indent=2, default=str))
+        logger.debug("Carrito actualizado: %s", json.dumps(data, indent=2, default=str))
         
     return orden
 
@@ -328,9 +330,7 @@ def get_ordenes_cliente(request):
         }, status=200)
         
     except Exception as e:
-        print(f"[ERROR] get_ordenes_cliente: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error("get_ordenes_cliente: %s", e, exc_info=True)
         return JsonResponse({
             'success': False,
             'error': 'Error al obtener órdenes'
@@ -371,7 +371,7 @@ def eliminar_producto(request, orden_id, producto_id):
     det = qs.first()
     if det:
         det.delete()
-        print(f"Eliminé el detalle de orden con id={det.id}.")
+        logger.debug("Eliminé el detalle de orden con id=%s", det.id)
         return JsonResponse(
 
         {"mensaje": f"Orden {qs.first().variante_id} eliminada correctamente."},

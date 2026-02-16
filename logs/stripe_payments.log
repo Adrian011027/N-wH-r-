@@ -6,3 +6,11 @@
 [INFO] 2026-02-12 15:43:51 - stripe_payments - crear_checkout_stripe:187 - Client Secret: cs_test_a15TKlXJ24yAoOwwWfcUy7...
 [INFO] 2026-02-12 15:43:51 - stripe_payments - crear_checkout_stripe:195 - Orden local #18 creada (pendiente_pago)
 [INFO] 2026-02-12 15:43:51 - stripe_payments - crear_checkout_stripe:201 - Carrito #34 vaciado
+[INFO] 2026-02-13 20:49:10 - stripe_payments - crear_checkout_stripe:127 - ================================================================================
+[INFO] 2026-02-13 20:49:10 - stripe_payments - crear_checkout_stripe:128 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-13 20:49:11 - stripe_payments - crear_checkout_stripe:149 - Carrito #35 | Cliente: zem1r (jona.emir@hotmail.com)
+[INFO] 2026-02-13 20:49:11 - stripe_payments - crear_checkout_stripe:160 - Items: 1 | Total: 5400.0 MXN | Mayoreo: True
+[INFO] 2026-02-13 20:49:12 - stripe_payments - crear_checkout_stripe:186 - Stripe Session creada: cs_test_a1qwdc8rLDv1ReWrKOyQJUR98FgIHU1qRaDpHaOfSgWfKu84yeiZ56NPaZ
+[INFO] 2026-02-13 20:49:12 - stripe_payments - crear_checkout_stripe:187 - Client Secret: cs_test_a1qwdc8rLDv1ReWrKOyQJU...
+[INFO] 2026-02-13 20:49:12 - stripe_payments - crear_checkout_stripe:195 - Orden local #19 creada (pendiente_pago)
+[INFO] 2026-02-13 20:49:13 - stripe_payments - crear_checkout_stripe:201 - Carrito #35 vaciado
