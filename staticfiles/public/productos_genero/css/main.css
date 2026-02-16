@@ -1,0 +1,11 @@
+
+/*---Seccion PostHeader para filtrar---*/
+@import url('/static/public/productos_genero/css/post\ header.css');
+
+
+/*---Seccion para mostrar los productos---*/
+@import url('/static/public/productos_genero/css/productos.css');
+
+
+@import url('/static/public/productos_genero/css/media\ queries.css');
+/*---*/

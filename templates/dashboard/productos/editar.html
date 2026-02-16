@@ -129,13 +129,6 @@
                 
                 <div class="variante-fields-full">
                   <div class="variante-field">
-                    <label>Talla</label>
-                    <input type="text" name="variante_talla_{{ variante.id }}" 
-                           value="{{ variante.talla|default:'Única' }}" 
-                           placeholder="Ej: 38, M, L, XL">
-                  </div>
-                  
-                  <div class="variante-field">
                     <label>Color</label>
                     <input type="text" name="variante_color_{{ variante.id }}" 
                            value="{{ variante.color|default:'Sin especificar' }}" 
@@ -160,10 +153,12 @@
                     </div>
                   </div>
                   
-                  <div class="variante-field">
-                    <label>Stock</label>
-                    <input type="number" name="variante_stock_{{ variante.id }}" min="0"
-                           value="{{ variante.stock }}" class="stock-input">
+                  <div class="variante-field" style="grid-column: 1 / -1;">
+                    <label>Tallas y Stock <small style="font-weight:normal;color:#6b7280;">(formato: {"talla": stock})</small></label>
+                    <textarea name="variante_tallas_stock_{{ variante.id }}" 
+                              rows="2" style="font-family: monospace; font-size: 13px; width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"
+                              placeholder='{"38": 5, "39": 10}'>{{ variante.tallas_stock_json }}</textarea>
+                    <small style="color: #6b7280;">Stock total: {{ variante.stock_total_variante }}</small>
                   </div>
                 </div>
 

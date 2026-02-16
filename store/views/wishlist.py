@@ -226,18 +226,14 @@ def producto_tallas(request, id_producto):
     if not producto:
         raise Http404("Producto no encontrado")
 
-    tallas_qs = (
-        Variante.objects
-        .filter(
-            producto=producto,
-            stock__gt=0
-        )
-        .exclude(talla='')
-        .values_list("talla", flat=True)
-        .distinct()
-    )
+    # Extraer tallas disponibles del JSONField tallas_stock
+    tallas_set = set()
+    for v in Variante.objects.filter(producto=producto):
+        for talla_key, stock_val in v.tallas_stock.items():
+            if stock_val > 0 and talla_key:
+                tallas_set.add(talla_key)
 
-    tallas = sorted(tallas_qs) or ["Única"]
+    tallas = sorted(tallas_set) or ["Única"]
     return JsonResponse({"tallas": tallas})
 
 

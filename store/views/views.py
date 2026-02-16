@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 def index(request):
     # Productos Hombre (incluye Unisex) — solo 4 aleatorios
     cab_home = list(
-        Producto.objects.filter(genero__in=["Hombre", "Unisex"], variantes__stock__gt=0)
+        Producto.objects.filter(genero__in=["Hombre", "Unisex"])
         .distinct()
         .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
@@ -35,7 +35,7 @@ def index(request):
     
     # Productos Mujer (incluye Unisex) — solo 4 aleatorios
     dama_home = list(
-        Producto.objects.filter(genero__in=["Mujer", "Unisex"], variantes__stock__gt=0)
+        Producto.objects.filter(genero__in=["Mujer", "Unisex"])
         .distinct()
         .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
@@ -130,13 +130,12 @@ def genero_view(request, genero):
         except ValueError:
             pass
     
-    # Filtrar por tallas (productos que tienen variantes con esas tallas)
-    if tallas:
-        qs = qs.filter(variantes__talla__in=tallas, variantes__stock__gt=0)
+    # Filtrar por tallas (post-query, ya que tallas están en JSONField)
+    tallas_filter = tallas  # se usa después del queryset
     
     # Filtrar por colores
     if colores:
-        qs = qs.filter(variantes__color__in=colores, variantes__stock__gt=0)
+        qs = qs.filter(variantes__color__in=colores)
     
     # Filtrar por marcas
     if marcas:
@@ -167,8 +166,19 @@ def genero_view(request, genero):
             Q(marca__icontains=busqueda)
         )
     
-    # Solo productos con stock (por defecto)
-    qs = qs.filter(variantes__stock__gt=0).distinct()
+    # Solo productos con stock (filtrado post-query)
+    qs = qs.distinct()
+
+    # Filtrar por tallas (post-query, JSONField)
+    if tallas_filter:
+        tallas_set = set(tallas_filter)
+        qs_ids = []
+        for p in qs.prefetch_related('variantes'):
+            for v in p.variantes.all():
+                if v.tallas_stock and tallas_set & set(v.tallas_stock.keys()):
+                    qs_ids.append(p.id)
+                    break
+        qs = qs.filter(id__in=qs_ids)
     
     # Ordenamiento
     orden_map = {
@@ -320,8 +330,8 @@ def catalogo_view(request):
     if subcategoria_id:
         qs = qs.filter(subcategorias__id=subcategoria_id)
     
-    # Solo productos con stock
-    qs = qs.filter(variantes__stock__gt=0).distinct()
+    # Solo productos con stock (post-query filtering)
+    qs = qs.distinct()
     
     # Obtener info para el título
     titulo = "Catálogo"
@@ -586,10 +596,9 @@ def producto_aleatorio_subcategoria(request):
         from random import randint
         from django.db.models import Count
         
-        # Obtener productos con stock de esta subcategoría específica
+        # Obtener productos de esta subcategoría específica
         productos = Producto.objects.filter(
-            subcategorias__id=subcategoria_id,
-            variantes__stock__gt=0
+            subcategorias__id=subcategoria_id
         ).distinct().prefetch_related('variantes__imagenes')
         
         if not productos.exists():

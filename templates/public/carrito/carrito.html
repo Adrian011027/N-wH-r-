@@ -865,8 +865,17 @@
       
       console.log('[Stripe] Client Secret recibido');
       
+      // Debug: Verificar que tengamos la public key
+      const publicKey = '{{ stripe_public_key }}';
+      console.log('[Stripe] Public key desde template:', publicKey);
+      console.log('[Stripe] Public key length:', publicKey.length);
+      
+      if (!publicKey) {
+        throw new Error('Stripe Public Key no está configurada en el servidor. Verifica la configuración en .env y settings.py');
+      }
+      
       // Inicializar Stripe.js
-      const stripe = Stripe('{{ stripe_public_key }}');
+      const stripe = Stripe(publicKey);
       
       // Preparar contenedor
       if (loading) loading.style.display = 'none';

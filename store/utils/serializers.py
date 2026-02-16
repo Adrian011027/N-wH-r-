@@ -1,50 +1,35 @@
 """
-Utilidades para serializar productos y variantes con URLs canónicas de imágenes
+Utilidades para serializar productos y variantes con URLs canónicas de imágenes.
+Sistema: 1 variante = 1 color, con tallas_stock JSONField {"talla": stock}
 """
 
 def serializar_producto_completo(producto):
     """
-    Serializa un producto con todas sus variantes e imágenes
-    
-    Formato:
-    {
-        "id": 42,
-        "nombre": "Nike Air Force",
-        "descripcion": "...",
-        "categoria": "Zapatos",
-        "genero": "U",
-        "precio": 150.00,
-        "precio_mayorista": 100.00,
-        "en_oferta": false,
-        "imagen": "https://bucket.s3.us-east-1.amazonaws.com/media/productos/prod-42-nike-air-force.jpg",
-        "variantes": [
-            {
-                "id": 156,
-                "sku": "NIKE-AIR-38-BLK",
-                "talla": "38",
-                "color": "Negro",
-                "imagen": "https://bucket.s3.us-east-1.amazonaws.com/media/variantes/var-42-156-38-negro-nike-air-force.jpg",
-                "precio": 150.00,
-                "precio_mayorista": 100.00,
-                "stock": 5
-            },
-            ...
-        ]
-    }
+    Serializa un producto con todas sus variantes e imágenes.
+    Cada variante es 1 color con múltiples tallas en tallas_stock.
     """
     variantes = []
     for v in producto.variantes.all():
+        # Obtener imágenes de galería
+        imagenes = [img.imagen.url for img in v.imagenes.all().order_by('orden') if img.imagen]
         variantes.append({
             'id': v.id,
             'sku': v.sku,
-            'talla': v.talla,
             'color': v.color,
+            'tallas_stock': v.tallas_stock or {},
             'otros': v.otros,
-            'imagen': v.imagen.url if v.imagen else None,  # URL de S3 automática
+            'imagen': imagenes[0] if imagenes else (v.imagen.url if v.imagen else None),
+            'imagenes': imagenes,
             'precio': float(v.precio or producto.precio),
             'precio_mayorista': float(v.precio_mayorista or producto.precio_mayorista),
-            'stock': v.stock,
+            'stock_total': v.stock_total_variante,
         })
+
+    # Imagen principal desde variante principal
+    variante_principal = producto.variante_principal
+    galeria = []
+    if variante_principal:
+        galeria = [img.imagen.url for img in variante_principal.imagenes.all().order_by('orden') if img.imagen]
 
     return {
         'id': producto.id,
@@ -53,7 +38,8 @@ def serializar_producto_completo(producto):
         'categoria': producto.categoria.nombre,
         'genero': producto.genero,
         'en_oferta': producto.en_oferta,
-        'imagen': producto.imagen.url if producto.imagen else None,  # URL de S3 automática
+        'imagen': galeria[0] if galeria else None,
+        'imagenes': galeria,
         'precio': float(producto.precio),
         'precio_mayorista': float(producto.precio_mayorista),
         'stock_total': producto.stock_total,
@@ -63,31 +49,33 @@ def serializar_producto_completo(producto):
 
 def serializar_variante_con_imagen(variante):
     """
-    Serializa una variante individual con su imagen
+    Serializa una variante individual con su imagen.
     """
+    imagenes = [img.imagen.url for img in variante.imagenes.all().order_by('orden') if img.imagen]
     return {
         'id': variante.id,
         'producto_id': variante.producto.id,
         'producto_nombre': variante.producto.nombre,
         'sku': variante.sku,
-        'talla': variante.talla,
         'color': variante.color,
+        'tallas_stock': variante.tallas_stock or {},
         'otros': variante.otros,
-        'imagen': variante.imagen.url if variante.imagen else variante.producto.imagen.url if variante.producto.imagen else None,
+        'imagen': imagenes[0] if imagenes else (variante.imagen.url if variante.imagen else None),
+        'imagenes': imagenes,
         'precio': float(variante.precio or variante.producto.precio),
         'precio_mayorista': float(variante.precio_mayorista or variante.producto.precio_mayorista),
-        'stock': variante.stock,
+        'stock_total': variante.stock_total_variante,
     }
 
 
 def obtener_imagen_variante(variante):
     """
-    Obtiene la imagen de la variante.
-    Si no tiene, devuelve la imagen del producto.
-    Si tampoco, devuelve None.
+    Obtiene la primera imagen de galería de la variante.
+    Si no tiene galería, intenta la imagen directa.
     """
+    primera_img = variante.imagenes.all().order_by('orden').first()
+    if primera_img and primera_img.imagen:
+        return primera_img.imagen.url
     if variante.imagen:
         return variante.imagen.url
-    elif variante.producto.imagen:
-        return variante.producto.imagen.url
     return None

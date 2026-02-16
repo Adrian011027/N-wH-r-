@@ -57,7 +57,7 @@ def get_ordenes_cliente(request):
                     'producto_nombre': producto.nombre,
                     'producto_imagen': producto.imagen.url if producto.imagen else None,
                     'variante_id': variante.id,
-                    'talla': variante.talla,
+                    'talla': detalle.talla,
                     'color': variante.color,
                     'cantidad': detalle.cantidad,
                     'precio_unitario': float(detalle.precio_unitario),
