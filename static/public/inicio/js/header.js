@@ -502,9 +502,17 @@ export function setupHeaderPanels() {
       submitBtn.disabled = true;
 
       try {
+        // Obtener token CSRF
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                         getCookie('csrftoken');
+
         const res = await fetch('/api/auth/solicitar-reset/', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken || ''
+          },
           body: JSON.stringify({ email })
         });
         const data = await res.json();
@@ -525,6 +533,22 @@ export function setupHeaderPanels() {
         submitBtn.disabled = false;
       }
     });
+
+    // Helper: obtener cookie por nombre
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
 
     // --- ðŸ“ REGISTRO ---
     document.getElementById('registerForm')?.addEventListener('submit', async (e) => {

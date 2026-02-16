@@ -8,6 +8,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 from store.models import Cliente
 import threading
 
@@ -27,7 +28,10 @@ def solicitar_reset_api(request):
     if not email:
         return JsonResponse({"ok": False, "error": "Introduce un correo electrónico."}, status=400)
 
-    cliente = Cliente.objects.filter(username=email).first()
+    # Buscar por username o correo (case-insensitive)
+    cliente = Cliente.objects.filter(
+        Q(username__iexact=email) | Q(correo__iexact=email)
+    ).first()
     if not cliente:
         return JsonResponse({"ok": False, "error": "No encontramos una cuenta con ese correo."}, status=404)
 
@@ -61,7 +65,10 @@ def solicitar_reset(request):
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
 
-        cliente = Cliente.objects.filter(username=email).first()
+        # Buscar por username o correo (case-insensitive)
+        cliente = Cliente.objects.filter(
+            Q(username__iexact=email) | Q(correo__iexact=email)
+        ).first()
         if not cliente:
             return render(
                 request,
