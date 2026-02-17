@@ -558,22 +558,21 @@
 
     const html = productos.map(p => `
       <div class="producto-card">
-        <div class="imagen-zoom">
+        <div class="thumb">
           <a href="/producto/${p.id}/?from=${state.genero}">
             <img src="${p.imagen || 'https://via.placeholder.com/250?text=Sin+Imagen'}" 
                  alt="${p.nombre}" 
-                 class="zoomable" 
                  loading="lazy">
           </a>
-          <button class="wishlist-btn" aria-label="Añadir a favoritos" data-product-id="${p.id}">
-            <i class="fa-regular fa-heart"></i>
-          </button>
-          ${p.en_oferta ? '<span class="badge-oferta">Oferta</span>' : ''}
         </div>
-        <div class="info">
+        <button class="wishlist-btn" aria-label="Añadir a favoritos" data-product-id="${p.id}">
+          <i class="fa-regular fa-heart"></i>
+        </button>
+        ${p.en_oferta ? '<span class="badge-oferta">OFERTA</span>' : ''}
+        <div class="card-info">
           <h4>${p.nombre}</h4>
           ${p.marca ? `<p class="producto-marca">${p.marca}</p>` : ''}
-          <p class="precio">$${Number(p.precio).toLocaleString()}</p>
+          <span class="card-price">$${Number(p.precio).toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})} <small>MXN</small></span>
         </div>
       </div>
     `).join('');

@@ -1,7 +1,7 @@
 /* ——— Sección Dama y Caballero ——— */
 .caballero-section,
 .dama-section {
-  padding: 60px 0;
+  padding: 180px 0 0px;
   background: #fff;
   font-family: 'Helvetica Neue', sans-serif;
   opacity: 0;
@@ -133,12 +133,21 @@
 
 /* ——— Media Queries Unificadas ——— */
 @media (max-width: 768px) {
+  .caballero-section,
+  .dama-section {
+    padding: 130px 0 40px;
+  }
+
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 480px) {
+  .caballero-section,
+  .dama-section {
+    padding: 120px 0 30px;
+  }
 
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

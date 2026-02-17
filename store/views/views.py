@@ -582,24 +582,33 @@ def categorias_por_genero(request):
 @require_GET
 def producto_aleatorio_subcategoria(request):
     """
-    Devuelve un producto aleatorio de una subcategoría específica.
+    Devuelve un producto aleatorio de una subcategoría o categoría específica.
     Usado para mostrar imágenes en el menú de navegación.
     
     GET /api/producto-aleatorio-subcategoria/?subcategoria_id=X
+    GET /api/producto-aleatorio-subcategoria/?categoria_id=X
     """
     subcategoria_id = request.GET.get('subcategoria_id')
+    categoria_id = request.GET.get('categoria_id')
     
-    if not subcategoria_id:
-        return JsonResponse({"error": "subcategoria_id requerido"}, status=400)
+    if not subcategoria_id and not categoria_id:
+        return JsonResponse({"error": "subcategoria_id o categoria_id requerido"}, status=400)
     
     try:
         from random import randint
         from django.db.models import Count
         
-        # Obtener productos de esta subcategoría específica
-        productos = Producto.objects.filter(
-            subcategorias__id=subcategoria_id
-        ).distinct().prefetch_related('variantes__imagenes')
+        # Obtener productos según el parámetro proporcionado
+        if subcategoria_id:
+            # Productos de subcategoría específica
+            productos = Producto.objects.filter(
+                subcategorias__id=subcategoria_id
+            ).distinct().prefetch_related('variantes__imagenes')
+        else:
+            # Productos de toda la categoría
+            productos = Producto.objects.filter(
+                categoria_id=categoria_id
+            ).distinct().prefetch_related('variantes__imagenes')
         
         if not productos.exists():
             return JsonResponse({"producto": None})

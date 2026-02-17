@@ -1,0 +1,23 @@
+[Unit]
+Description=Gunicorn service for Django (nowheremx)
+After=network.target
+
+[Service]
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/nowheremx
+ExecStart=/home/ec2-user/nowheremx/venv/bin/gunicorn \
+    --config /home/ec2-user/nowheremx/gunicorn_config.py \
+    ecommerce.wsgi:application
+
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Protección
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
