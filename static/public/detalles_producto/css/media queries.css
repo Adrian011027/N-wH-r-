@@ -3,6 +3,12 @@
     ======================================== */
 @media (max-width: 768px) {
 
+  /* ----- 0. Flecha de volver ----- */
+  .volver-atras {
+    top: 80px;
+    left: 15px;
+  }
+
   /* ----- 1. Layout general ----- */
   .detalle-container {
     flex-direction: column; /* imagen arriba, info abajo */
@@ -11,7 +17,25 @@
 
   .detalle-imagen {
     width: 100%;
-    height: 50vh;           /* ajusta si necesitas más/menos alto */
+    height: 55vh;           /* ajusta si necesitas más/menos alto */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carrusel-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carrusel-slide .slide-img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
   }
 
   .detalle-info {
@@ -62,16 +86,25 @@
   /* ----- 3. Controles iniciales / extra (selects sueltos) ----- */
   #select-talla-inicial,
   #select-talla-extra {
-    width: 120px;       /* mismo ancho que en escritorio */
-    min-width: 120px;
-    max-width: 120px;
+    width: 100%;       /* ancho completo en móvil */
+    max-width: 280px;
+    min-width: auto;
+  }
+
+  .detalle-info label {
+    font-size: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px;
   }
 
   /* ----- 4. Tipografía ligeramente menor ----- */
   .detalle-info h2,
-  .detalle-info h3,
+  .detalle-info h3 {
+    font-size: 14px;
+  }
+
   .detalle-info p {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   .detalle-info label,
@@ -85,6 +118,12 @@
     font-size: 13px;
     padding: 14px 0;
   }
+
+  /* ----- 5. Toast overlay ----- */
+  .toast-content span {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
 }
 
 
@@ -94,6 +133,16 @@
     Reduce un poco más tamaños y paddings
     ======================================== */
 @media (max-width: 480px) {
+
+  /* ----- Flecha de volver en móvil muy pequeño ----- */
+  .volver-atras {
+    top: 70px;
+    left: 10px;
+  }
+
+  .detalle-imagen {
+    height: 50vh;
+  }
 
   .linea-talla {
     grid-template-columns: 70px auto 26px; /* 26px para la ✖ */
@@ -114,6 +163,15 @@
     width: 26px;      /* ancho/alto para la ✖ y ± */
     height: 26px;
     font-size: 17px;  /* ajusta si lo deseas */
+  }
+
+  /* ----- Toast en micro-móvil ----- */
+  .toast-content span {
+    font-size: 12px;
+    letter-spacing: 0.8px;
+  }
+  .toast-content {
+    padding: 0 24px;
   }
 }
 

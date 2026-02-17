@@ -135,34 +135,34 @@
         <div class="productos-grid" id="productos-grid">
           {% for p in productos %}
             <div class="producto-card" data-categoria="{{ p.categoria|slugify }}">
-              <div class="imagen-zoom">
+              <div class="thumb">
                 <a href="{% url 'detalle_producto' p.id %}?from={{ seccion }}">
                   {% if p.imagen %}
-                    <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" class="zoomable" loading="lazy">
+                    <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" loading="lazy">
                   {% else %}
-                    <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="{{ p.nombre }}" class="zoomable">
+                    <img src="https://via.placeholder.com/250?text=Sin+Imagen" alt="{{ p.nombre }}">
                   {% endif %}
                 </a>
-
-                {# ♥ Botón wishlist #}
-                <button class="wishlist-btn"
-                        aria-label="Añadir a favoritos"
-                        data-product-id="{{ p.id }}">
-                  <i class="fa-regular fa-heart"></i>
-                </button>
-                
-                {# Badge de oferta #}
-                {% if p.en_oferta %}
-                  <span class="badge-oferta">🔥 Oferta</span>
-                {% endif %}
               </div>
 
-              <div class="info">
+              {# ♥ Botón wishlist #}
+              <button class="wishlist-btn"
+                      aria-label="Añadir a favoritos"
+                      data-product-id="{{ p.id }}">
+                <i class="fa-regular fa-heart"></i>
+              </button>
+              
+              {# Badge de oferta #}
+              {% if p.en_oferta %}
+                <span class="badge-oferta">OFERTA</span>
+              {% endif %}
+
+              <div class="card-info">
                 <h4>{{ p.nombre }}</h4>
                 {% if p.marca %}
                   <p class="producto-marca">{{ p.marca }}</p>
                 {% endif %}
-                <h5>${{ p.precio|floatformat:2 }}</h5>
+                <span class="card-price">${{ p.precio|floatformat:2 }} <small>MXN</small></span>
               </div>
             </div>
           {% empty %}

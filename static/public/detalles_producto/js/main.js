@@ -1,6 +1,15 @@
 /* main.js – ES module (smooth expand / collapse + JWT) */
 /* Actualizado para modelo: 1 variante = 1 color con tallas_stock JSONField */
+
+// Las funciones fetchPost, fetchWithAuth, etc. están disponibles globalmente desde fetch-helper.js
+
 document.addEventListener('DOMContentLoaded', async () => {
+
+  // Verificar que fetch-helper.js esté cargado
+  if (typeof window.fetchPost === 'undefined') {
+    console.error('Error: fetch-helper.js no está cargado. Las funciones fetchPost no están disponibles.');
+    return;
+  }
 
   /* ====== elementos base ====== */
   const selInicial  = document.getElementById('select-talla-inicial');
@@ -9,7 +18,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const selExtra    = document.getElementById('select-talla-extra');
   const wrapExtra   = document.getElementById('wrapper-select-extra');
   const btnAddCart   = document.getElementById('btn-agregar-carrito');
-  const msg         = document.getElementById('mensaje-carrito');
   const stockInfo   = document.getElementById('info-stock');
   const variantes   = JSON.parse(document.getElementById('variantes-data').textContent);
 
@@ -127,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (producto_id === prodId && Array.isArray(items)) {
         let total = 0;
         for (const item of items) {
-          const res = await fetchPost(`/api/carrito/create/${CLIENTE_ID}/`, {
+          const res = await window.fetchPost(`/api/carrito/create/${CLIENTE_ID}/`, {
             producto_id,
             talla: item.talla,
             variante_id: item.variante_id,
@@ -136,8 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (res.ok) total += item.cantidad;
         }
         if (total > 0) {
-          msg.style.color = 'green';
-          msg.textContent = `✔️ Se agregaron ${total} unidades al carrito tras iniciar sesión.`;
+          mostrarToast(`${total} ${total === 1 ? 'artículo agregado' : 'artículos agregados'}`, 'success');
         }
       }
     } catch (err) {
@@ -279,19 +286,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* ====== botón agregar al carrito ====== */
   btnAddCart.addEventListener('click', async () => {
     const seleccion = [];
+    const varActiva = getVarianteActiva();
+    
     contLineas.querySelectorAll('.linea-talla').forEach(fila => {
+      const talla = fila.dataset.talla;
+      const cantidad = +fila.querySelector('.qty').value;
+      
       seleccion.push({
-        talla: fila.dataset.talla,
-        variante_id: fila.dataset.varianteId ? +fila.dataset.varianteId : undefined,
-        cantidad: +fila.querySelector('.qty').value
+        talla: talla,
+        variante_id: varActiva ? varActiva.id : null,
+        cantidad: cantidad
       });
     });
 
-    msg.textContent = '';
+    if (seleccion.length === 0) {
+      mostrarToast('Selecciona al menos una talla', 'error');
+      return;
+    }
+
     let total = 0;
+    let errores = [];
+
+    console.log('Procesando selección:', seleccion);
 
     for (const item of seleccion) {
       try {
+        // Validar stock antes de enviar
+        const stockDisp = getStockTalla(item.talla);
+        if (stockDisp < item.cantidad) {
+          errores.push(`Talla ${item.talla}: solo hay ${stockDisp} unidades disponibles`);
+          continue;
+        }
+
         let endpoint = '';
         if (CLIENTE_ID) {
           endpoint = `/api/carrito/create/${CLIENTE_ID}/`;
@@ -306,23 +332,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         if (item.variante_id) body.variante_id = item.variante_id;
 
-        const res = await fetchPost(endpoint, body);
+        console.log('Enviando al carrito:', body);
+        const res = await window.fetchPost(endpoint, body);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error al agregar producto');
+        console.log('Respuesta del servidor:', res.status, data);
+        
+        if (!res.ok) {
+          errores.push(data.error || 'Error al agregar producto');
+          continue;
+        }
 
         total += item.cantidad;
 
       } catch (e) {
-        msg.style.color = 'red';
-        msg.textContent = '❌ ' + e.message;
-        return;
+        console.error('Error al procesar item:', e);
+        errores.push(e.message);
       }
     }
 
-    msg.style.color = 'green';
-    msg.textContent = `✔️ Se agregaron ${total} unidades al carrito.`;
-    document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+    console.log('Total agregado:', total, 'Errores:', errores);
+
+    // Mostrar resultados
+    if (errores.length > 0 && total === 0) {
+      mostrarToast(errores[0], 'error');
+    } else if (errores.length > 0 && total > 0) {
+      mostrarToast(`${total} ${total === 1 ? 'artículo agregado' : 'artículos agregados'}`, 'success');
+      document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+    } else if (total > 0) {
+      mostrarToast(`${total} ${total === 1 ? 'artículo agregado' : 'artículos agregados'}`, 'success');
+      document.dispatchEvent(new CustomEvent('carrito-actualizado'));
+    }
   });
+
+  /* ====== toast overlay ====== */
+  const toastOverlay = document.getElementById('toast-overlay');
+  const toastText    = document.getElementById('toast-text');
+  let toastTimer     = null;
+
+  function mostrarToast(texto, tipo = 'success') {
+    if (!toastOverlay || !toastText) return;
+
+    clearTimeout(toastTimer);
+    toastText.textContent = texto;
+    toastOverlay.className = 'toast-overlay';
+    if (tipo === 'error') toastOverlay.classList.add('toast-error');
+
+    // Forzar reflow para reiniciar animación
+    void toastOverlay.offsetWidth;
+    toastOverlay.classList.add('visible');
+
+    toastTimer = setTimeout(() => {
+      toastOverlay.classList.remove('visible');
+    }, 1800);
+  }
 
   /* animación de secciones */
   document.querySelectorAll('.detalle-section')

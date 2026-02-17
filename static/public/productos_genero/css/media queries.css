@@ -2,6 +2,29 @@
 
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .producto-card .card-info {
+    padding: 10px 4px 8px;
+    gap: 3px;
+  }
+
+  .producto-card .card-info h4 {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .producto-card .card-price {
+    font-size: 12.5px;
+  }
+
+  .producto-card .card-price small {
+    font-size: 9px;
+  }
+
+  .producto-card .thumb {
+    aspect-ratio: 3 / 4;
   }
 }
 
@@ -9,5 +32,24 @@
 @media (max-width: 480px) {
   .productos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .producto-card .badge-oferta {
+    font-size: 8px;
+    padding: 4px 8px;
+    top: 8px;
+    left: 8px;
+  }
+
+  .producto-card .wishlist-btn {
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .producto-card .wishlist-btn i {
+    font-size: 15px;
   }
 }

@@ -315,15 +315,10 @@
   function renderSubcategorias(subcategorias, genero) {
     dom.subcategoriesContent.innerHTML = '';
 
-    if (!subcategorias || subcategorias.length === 0) {
-      dom.subcategoriesContent.innerHTML = '<div class="lv-loading"><div class="lv-loading-text">No hay subcategorías disponibles</div></div>';
-      return;
-    }
-
     const list = document.createElement('ul');
     list.className = 'lv-subcategories-list';
 
-    // Agregar opción "TODO" al inicio
+    // Agregar opción "TODO" al inicio (siempre)
     const todoItem = document.createElement('li');
     todoItem.className = 'lv-subcategory-item lv-subcategory-todo';
     
@@ -334,7 +329,7 @@
     const todoGrid = document.createElement('div');
     todoGrid.className = 'lv-subcat-products-grid';
     
-    // Crear 2 productos aleatorios de todas las subcategorías
+    // Crear 2 links a la categoría completa
     for (let i = 0; i < 2; i++) {
       const link = document.createElement('a');
       link.href = '/coleccion/' + genero + '/?categoria=' + state.currentCategoria;
@@ -348,9 +343,15 @@
         </div>
       `;
       
-      // Cargar producto aleatorio de cualquier subcategoría
-      const randomSub = subcategorias[Math.floor(Math.random() * subcategorias.length)];
-      loadRandomProductImage(randomSub.id, link);
+      // Cargar producto aleatorio de la categoría o de sus subcategorías
+      if (subcategorias && subcategorias.length > 0) {
+        // Si hay subcategorías, tomar una aleatoria
+        const randomSub = subcategorias[Math.floor(Math.random() * subcategorias.length)];
+        loadRandomProductImage(randomSub.id, link);
+      } else {
+        // Si no hay subcategorías, cargar de toda la categoría
+        loadRandomProductImageByCategoria(state.currentCategoria, link);
+      }
       
       link.addEventListener('click', function() {
         closeAllPanels();
@@ -362,6 +363,12 @@
     todoItem.appendChild(todoTitle);
     todoItem.appendChild(todoGrid);
     list.appendChild(todoItem);
+
+    // Si no hay subcategorías, solo mostrar TODO
+    if (!subcategorias || subcategorias.length === 0) {
+      dom.subcategoriesContent.appendChild(list);
+      return;
+    }
 
     subcategorias.forEach((sub) => {
       const item = document.createElement('li');
@@ -409,12 +416,34 @@
     dom.subcategoriesContent.appendChild(list);
   }
 
-  // Función para cargar imagen de producto aleatorio
+  // Función para cargar imagen de producto aleatorio por subcategoría
   async function loadRandomProductImage(subcategoriaId, linkElement) {
     try {
       const response = await fetch(`/api/producto-aleatorio-subcategoria/?subcategoria_id=${subcategoriaId}`);
       if (!response.ok) {
         // Si no hay endpoint, usar una imagen placeholder
+        updateProductImage(linkElement, null);
+        return;
+      }
+      
+      const data = await response.json();
+      const producto = data.producto;
+      
+      if (producto && producto.imagen) {
+        updateProductImage(linkElement, producto.imagen);
+      } else {
+        updateProductImage(linkElement, null);
+      }
+    } catch (error) {
+      updateProductImage(linkElement, null);
+    }
+  }
+
+  // Función para cargar imagen de producto aleatorio por categoría
+  async function loadRandomProductImageByCategoria(categoriaId, linkElement) {
+    try {
+      const response = await fetch(`/api/producto-aleatorio-subcategoria/?categoria_id=${categoriaId}`);
+      if (!response.ok) {
         updateProductImage(linkElement, null);
         return;
       }

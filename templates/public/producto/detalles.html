@@ -110,12 +110,18 @@
       <br>
       <!-- Botón acción -->
       <button class="btn-asesor" id="btn-agregar-carrito"> Agregar al carrito</button>
-      <p id="mensaje-carrito" class="msg"></p>
 
     </div>
 
   </div>
 </section>
+
+<!-- Toast overlay minimalista -->
+<div id="toast-overlay" class="toast-overlay">
+  <div class="toast-content">
+    <span id="toast-text"></span>
+  </div>
+</div>
 
 <!-- Datos para JS -->
 <div id="detalles-datos"
@@ -132,6 +138,6 @@
   <script>
     window.SESSION_KEY = "{{ request.session.session_key|default:'' }}";
   </script>
-  <script src="{% static 'public/detalles_producto/js/carrusel.js' %}" defer></script>
-  <script type="module" src="{% static 'public/detalles_producto/js/main.js' %}" defer></script>
+  <script src="{% static 'public/detalles_producto/js/carrusel.js' %}"></script>
+  <script src="{% static 'public/detalles_producto/js/main.js' %}"></script>
 {% endblock %}

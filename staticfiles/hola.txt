@@ -1,2 +1,0 @@
-/*---Con este comando inicializamos el servidor---*/
-python manage.py runserver
