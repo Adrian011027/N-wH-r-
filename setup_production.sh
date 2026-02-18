@@ -3,23 +3,24 @@
 # ============================================================
 # Script de instalación de nginx + Gunicorn en AWS para Django
 # Dominio: nowheremx.com
-# Usuario: ec2-user (cambiar si es diferente)
+# Usuario: ubuntu (EC2 con Ubuntu)
+# Proyecto: /home/ubuntu/n_wh_r
 # ============================================================
 
 echo "🚀 Iniciando configuración de nginx + Gunicorn..."
 
 # Variables
 DOMAIN="nowheremx.com"
-USER="ec2-user"
-PROJECT_DIR="/home/$USER/nowheremx"
+USER="ubuntu"
+PROJECT_DIR="/home/$USER/n_wh_r"
 VENV_DIR="$PROJECT_DIR/venv"
 
 # ============================================================
-# 1. ACTUALIZAR SISTEMA
+# 1. ACTUALIZAR SISTEMA (Ubuntu/Debian)
 # ============================================================
 echo "📦 Actualizando sistema..."
-sudo yum update -y
-sudo yum install -y python3-pip nginx certbot python3-certbot-nginx git
+sudo apt update -y
+sudo apt install -y python3-pip nginx certbot python3-certbot-nginx git
 
 # ============================================================
 # 2. CREAR DIRECTORIOS DE LOGS

@@ -3,17 +3,20 @@ Description=Gunicorn service for Django (nowheremx)
 After=network.target
 
 [Service]
-User=ec2-user
-Group=ec2-user
-WorkingDirectory=/home/ec2-user/nowheremx
-ExecStart=/home/ec2-user/nowheremx/venv/bin/gunicorn \
-    --config /home/ec2-user/nowheremx/gunicorn_config.py \
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/n_wh_r
+ExecStart=/home/ubuntu/n_wh_r/venv/bin/gunicorn \
+    --config /home/ubuntu/n_wh_r/gunicorn_config.py \
     ecommerce.wsgi:application
 
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
+
+# Variables de entorno (apunta al .env del proyecto)
+EnvironmentFile=/home/ubuntu/n_wh_r/.env
 
 # Protección
 NoNewPrivileges=true

@@ -101,7 +101,7 @@
                 <div class="summary-items">
                     {% for item in items %}
                     <div class="summary-item">
-                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/static/images/no-image.jpg'">
+                        <img src="{{ item.imagen }}" alt="{{ item.nombre }}" onerror="this.src='/static/images/no-image.png'">
                         <div class="item-info">
                             <p class="item-name">{{ item.nombre }}</p>
                             <p class="item-details">Talla: {{ item.talla }} {% if item.color and item.color != 'N/A' %}| Color: {{ item.color }}{% endif %}</p>
