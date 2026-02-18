@@ -13,7 +13,7 @@
   <header>
     <div class="header-left">
       <a href="{% url 'index' %}">
-        <img src="/static/images/NowHere.svg" id="Logo" class="fade-in" alt="NöwHėrē">
+        <img src="{% static 'images/NowHere.svg' %}" id="Logo" class="fade-in" alt="NöwHėrē">
       </a>
       <h2>| Creación de cuenta N:</h2>
     </div>
@@ -144,7 +144,7 @@
       <div class="footer-links">
         <a href="#">Avisos Legales</a>
       </div>
-      <img src="/static/images/NowHere.svg" id="Logo-footer" class="fade-in" alt="NöwHėrē">
+      <img src="{% static 'images/NowHere.svg' %}" id="Logo-footer" class="fade-in" alt="NöwHėrē">
       <div class="footer-social">
         <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
         <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>

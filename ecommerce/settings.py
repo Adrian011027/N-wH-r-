@@ -33,7 +33,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Las páginas de error personalizadas siempre se usarán
 DEBUG_PROPAGATE_EXCEPTIONS = False
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.1.68,.ngrok.io,.ngrok-free.app', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.1.68,.ngrok.io,.ngrok-free.app,nowheremx.com,www.nowheremx.com,3.14.88.137', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Google Maps API Key (obtener en https://console.cloud.google.com/)
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
@@ -152,7 +152,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # <-- aquí estás apuntando a tu carpeta static/
 ]
@@ -217,9 +217,9 @@ else:
             'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         }
     }
-    
-    # STATIC_ROOT para collectstatic en desarrollo
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# STATIC_ROOT siempre debe estar definido (para collectstatic en producción)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # ───────── Configuración de Sesiones Separadas ──────────
 CLIENT_SESSION_COOKIE_NAME = 'sessionid_cliente'
@@ -337,6 +337,13 @@ CORS_ALLOW_HEADERS = [
 
 # Permitir credenciales (cookies, headers de autorización)
 CORS_ALLOW_CREDENTIALS = True
+
+# ───────── CSRF Trusted Origins (necesario para Gunicorn + Nginx) ─────────
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://nowheremx.com,http://www.nowheremx.com,https://nowheremx.com,https://www.nowheremx.com,http://3.14.88.137',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
 
 

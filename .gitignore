@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 .env
 .vscode/
+
+# collectstatic output (se genera en el servidor con: python manage.py collectstatic)
+staticfiles/
