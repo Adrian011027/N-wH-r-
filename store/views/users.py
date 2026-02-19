@@ -6,6 +6,9 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ───────────────────────────────────────────────
@@ -40,7 +43,8 @@ def get_user(request):
             'total': len(data)
         }, safe=False)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.exception(f'Error en get_user: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 # ───────────────────────────────────────────────
@@ -79,10 +83,8 @@ def create_user(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
-# ───────────────────────────────────────────────
-# Actualizar usuario (solo admin)
+        logger.exception(f'Error en create_user: {e}')
+        return JsonResponse({'error': 'Error al crear usuario'}, status=500)
 # ───────────────────────────────────────────────
 @csrf_exempt
 @admin_required()
@@ -118,7 +120,8 @@ def update_user(request, id):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as err:
-        return JsonResponse({'error': str(err)}, status=400)
+        logger.exception(f'Error en update_user: {err}')
+        return JsonResponse({'error': 'Error al actualizar usuario'}, status=500)
 
 
 # ───────────────────────────────────────────────
@@ -138,5 +141,6 @@ def delete_user(request, id):
     except Usuario.DoesNotExist:
         return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.exception(f'Error en delete_user: {e}')
+        return JsonResponse({'error': 'Error al eliminar usuario'}, status=500)
 

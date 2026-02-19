@@ -108,10 +108,10 @@ class Cliente(AbstractBaseUser):
         return self.username
 
     def has_perm(self, perm, obj=None):
-        return True
+        return self.is_admin
 
     def has_module_perms(self, app_label):
-        return True
+        return self.is_admin
 
     @property
     def is_staff(self):

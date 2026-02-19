@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from store.views.decorators      import login_required_client, jwt_role_required
+from store.utils.jwt_helpers import _get_jwt_secret
 from store.views.orden import crear_orden_desde_payload
 from ..models import (
     Cliente, Carrito, Producto,
@@ -48,7 +49,7 @@ def validate_jwt_token(request):
             parts = auth_header.split(' ')
             if len(parts) == 2 and parts[0].lower() == 'bearer':
                 token = parts[1]
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                 
                 if payload.get('type') == 'access':
                     token_user_id = payload.get('user_id')
@@ -133,6 +134,15 @@ def create_carrito(request, cliente_id):
         cliente     = None
         session_key = request.session.session_key
     else:                                                     # ← logueado
+        # Verificar autenticación para clientes registrados
+        token_user_id, token_user_role = validate_jwt_token(request)
+        session_cliente_id = request.session.get('cliente_id')
+        if not token_user_id and not session_cliente_id:
+            return JsonResponse({"error": "Autenticación requerida"}, status=401)
+        # Verificar propiedad
+        auth_id = token_user_id or session_cliente_id
+        if token_user_role != 'admin' and auth_id != cliente_id:
+            return JsonResponse({"error": "No autorizado"}, status=403)
         cliente     = get_object_or_404(Cliente, id=cliente_id)
         session_key = None
 
@@ -865,7 +875,25 @@ def mostrar_confirmacion_compra(request, carrito_id):
 
 @require_http_methods(["GET"])
 def mostrar_formulario_confirmacion(request, carrito_id):
+    # ── Autenticación ──
+    token_user_id, token_user_role = validate_jwt_token(request)
+    session_cliente_id = request.session.get('cliente_id')
+    if not token_user_id and not session_cliente_id:
+        from django.shortcuts import redirect
+        return redirect('index')
+
     carrito = get_object_or_404(Carrito, id=carrito_id)
+    cliente = carrito.cliente
+
+    if not cliente:
+        from django.shortcuts import redirect
+        return redirect('index')
+
+    # Verificar propiedad del carrito
+    auth_user_id = token_user_id or session_cliente_id
+    if token_user_role != 'admin' and auth_user_id != cliente.id:
+        from django.shortcuts import redirect
+        return redirect('index')
 
     qs = (
         carrito.items
@@ -1063,7 +1091,7 @@ def enviar_ticket_whatsapp(request, carrito_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            "error": f"Error al enviar WhatsApp: {str(e)}"
+            "error": "Error al enviar WhatsApp"
         }, status=500)
 
 
@@ -1192,5 +1220,5 @@ Link de seguimiento: {link}
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            "error": f"Error al enviar email: {str(e)}"
+            "error": "Error al enviar email"
         }, status=500)

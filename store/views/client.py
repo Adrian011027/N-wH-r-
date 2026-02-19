@@ -19,6 +19,9 @@ from ..utils.security import (
     get_client_ip,
     send_verification_email
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Regex simple y seguro para validar correos
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
@@ -33,7 +36,7 @@ def mis_pedidos(request):
 
 # ========= API: OBTENER ÓRDENES DEL CLIENTE ========= #
 @csrf_exempt
-@jwt_role_required()
+@jwt_role_required(['cliente'])
 @require_GET
 def get_ordenes_cliente(request):
     """API para obtener las órdenes del cliente autenticado"""
@@ -82,7 +85,8 @@ def get_ordenes_cliente(request):
         })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.exception(f'Error en get_ordenes_cliente: {e}')
+        return JsonResponse({'success': False, 'error': 'Error interno del servidor'}, status=500)
 
 
 def get_status_display(status):
@@ -240,7 +244,8 @@ def editar_perfil(request, id):
             return redirect('editar_perfil', id=id)
             
         except Exception as e:
-            messages.error(request, f'Error al actualizar el perfil: {str(e)}')
+            logger.exception(f'Error en editar_perfil: {e}')
+            messages.error(request, 'Error al actualizar el perfil')
             return render(request, 'public/cliente/perfil.html', {'cliente': cliente})
 
 # ========= GET ALL CLIENTS ========= #
@@ -257,7 +262,8 @@ def get_all_clients(request):
         } for c in clientes]
         return JsonResponse(data, safe=False)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.exception(f'Error en get_all_clients: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 # ========= GET CLIENT BY ID ========= #
 @jwt_role_required()
@@ -427,6 +433,13 @@ def update_client(request, id):
             cliente.correo = correo
 
         if password:
+            # Requerir contraseña actual para cambiar la contraseña
+            current_password = data.get('current_password')
+            if request.user_role != 'admin':
+                if not current_password:
+                    return JsonResponse({'error': 'Debes proporcionar tu contraseña actual para cambiarla'}, status=400)
+                if not check_password(current_password, cliente.password):
+                    return JsonResponse({'error': 'Contraseña actual incorrecta'}, status=401)
             if len(password) < 8:
                 return JsonResponse({'error': 'La nueva contraseña debe tener al menos 8 caracteres'}, status=400)
             cliente.password = make_password(password)
@@ -480,7 +493,8 @@ def update_client(request, id):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as err:
-        return JsonResponse({'error': str(err)}, status=500)
+        logger.exception(f'Error en update_client: {err}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 # ========= DELETE CLIENT ========= #
 @csrf_exempt
@@ -500,7 +514,8 @@ def delete_client(request, id):
     except Cliente.DoesNotExist:
         return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.exception(f'Error en delete_client: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 # ========= SEND CONTACT ========= #
 @csrf_exempt
@@ -537,7 +552,8 @@ def send_contact(request, id):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.exception(f'Error en send_contact: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 # ========= API CONTACTO (Panel Cliente) ========= #
@@ -581,4 +597,5 @@ def api_contacto(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.exception(f'Error en api_contacto: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)

@@ -112,9 +112,12 @@ def genero_view(request, genero):
     orden = request.GET.get('orden', 'nuevo')
     pagina = request.GET.get('pagina', 1)
 
-    # Base query: productos del género (+ Unisex)
-    qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"]) \
-        .select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
+    # Base query: cuando genero_cod es 'Todo' se muestran todos los productos
+    if genero_cod == 'Todo':
+        qs = Producto.objects.all()
+    else:
+        qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"])
+    qs = qs.select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
     
     # Filtrar por categoría
     if categoria_id:
@@ -209,7 +212,13 @@ def genero_view(request, genero):
     categorias = sorted({p.categoria.nombre for p in productos_pag if p.categoria})
     
     # Determinar título según filtros
-    titulo = "Mujer" if genero_cod == "Mujer" else "Hombre"
+    if genero_cod == 'Todo':
+        if busqueda:
+            titulo = f'Resultados para "{busqueda}"'
+        else:
+            titulo = 'Todos los productos'
+    else:
+        titulo = "Mujer" if genero_cod == "Mujer" else "Hombre"
     if subcategoria_id:
         try:
             from ..models import Subcategoria
@@ -263,7 +272,7 @@ def genero_view(request, genero):
     
     # Renderizado HTML normal
     return render(request, "public/catalogo/productos_genero.html", {
-        "seccion": genero,
+        "seccion": genero.lower(),
         "titulo": titulo,
         "genero_cod": genero_cod,
         "categorias": categorias,

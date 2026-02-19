@@ -115,7 +115,8 @@ def get_all_ordenes(request):
         })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.exception(f'Error en get_ordenes: {e}')
+        return JsonResponse({'success': False, 'error': 'Error interno del servidor'}, status=500)
 
 
 @csrf_exempt
@@ -150,7 +151,8 @@ def cambiar_estado_orden(request, id):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.exception(f'Error en cambiar_estado_orden: {e}')
+        return JsonResponse({'success': False, 'error': 'Error interno del servidor'}, status=500)
 
 @csrf_exempt
 @jwt_role_required()
@@ -159,7 +161,12 @@ def get_orden(request, id):
     # 1. Recuperar la orden o devolver 404
     orden = get_object_or_404(Orden, id=id)
 
-    # 2. Armar la respuesta
+    # 2. Verificar autorización horizontal (el cliente solo ve sus propias órdenes)
+    if getattr(request, 'user_role', 'cliente') != 'admin':
+        if request.user_id != orden.cliente_id:
+            return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    # 3. Armar la respuesta
     data = {
         "id": orden.id,
         "cliente": {
@@ -254,6 +261,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 
 signer = TimestampSigner()
 
+@require_http_methods(["GET", "POST"])
 def procesar_por_link(request, token):
     try:
         id_orden = signer.unsign(token, max_age=86400)  # link válido 24 h
@@ -263,6 +271,14 @@ def procesar_por_link(request, token):
         return HttpResponseForbidden("Enlace inválido.")
 
     orden = get_object_or_404(Orden, id=id_orden)
+
+    if request.method == "GET":
+        # Mostrar página de confirmación en lugar de modificar estado directamente
+        return render(request, 'public/orden/confirmar_procesamiento.html', {
+            'orden': orden, 'token': token
+        })
+
+    # POST — modificar estado
     orden.status = 'procesando'
     orden.save(update_fields=['status'])
     return HttpResponse("✅ ¡Tu orden ha sido actualizada a 'procesando'!")

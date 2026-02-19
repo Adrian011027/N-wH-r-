@@ -4,13 +4,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
 from ..models import Usuario, Cliente
 import json
+import logging
 import jwt
 from django.conf import settings
-from store.utils.jwt_helpers import generate_access_token, generate_refresh_token
+from store.utils.jwt_helpers import generate_access_token, generate_refresh_token, _get_jwt_secret
+from store.utils.security import login_limiter, get_client_ip, rate_limit
+
+logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@rate_limit(login_limiter)
 def login(request):
     """Autenticación de usuario y generación de tokens JWT"""
     try:
@@ -33,7 +38,7 @@ def login(request):
 
         # Generar tokens usando jwt_helpers
         access_token = generate_access_token(user.id, user.role, user.username)
-        refresh_token = generate_refresh_token(user.id)
+        refresh_token = generate_refresh_token(user.id, role=user.role)
 
         return JsonResponse({
             'access': access_token,
@@ -49,7 +54,8 @@ def login(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
+        logger.error(f'Error en login: {e}', exc_info=True)
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 @csrf_exempt
@@ -73,8 +79,8 @@ def refresh_token(request):
                 'detail': 'Este token ha sido revocado. Por favor, inicia sesión nuevamente.'
             }, status=401)
 
-        # Verificar refresh token usando settings.SECRET_KEY
-        payload = jwt.decode(refresh_token_str, settings.SECRET_KEY, algorithms=['HS256'])
+        # Verificar refresh token usando JWT_SECRET_KEY
+        payload = jwt.decode(refresh_token_str, _get_jwt_secret(), algorithms=['HS256'])
         
         # Verificar que sea un refresh token
         if payload.get('type') != 'refresh':
@@ -118,7 +124,8 @@ def refresh_token(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
+        logger.exception(f'Error en refresh_token: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 @csrf_exempt
@@ -133,7 +140,7 @@ def logout(request):
             from ..models import BlacklistedToken
             # Decodificar para verificar que es válido antes de añadir a blacklist
             try:
-                payload = jwt.decode(refresh, settings.SECRET_KEY, algorithms=["HS256"])
+                payload = jwt.decode(refresh, _get_jwt_secret(), algorithms=["HS256"])
                 if payload.get("type") == "refresh":
                     BlacklistedToken.objects.create(token=refresh)
             except jwt.InvalidTokenError:
@@ -143,7 +150,8 @@ def logout(request):
             'message': 'Sesión cerrada exitosamente.'
         }, status=200)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.exception(f'Error en logout: {e}')
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 @csrf_exempt
@@ -157,7 +165,7 @@ def verify_token(request):
             return JsonResponse({'valid': False, 'error': 'Token no proporcionado'}, status=401)
         
         token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
         
         if payload.get('type') != 'access':
             return JsonResponse({'valid': False, 'error': 'Token inválido'}, status=401)
@@ -187,4 +195,5 @@ def verify_token(request):
     except (Usuario.DoesNotExist, Cliente.DoesNotExist):
         return JsonResponse({'valid': False, 'error': 'Usuario no encontrado'}, status=404)
     except Exception as e:
-        return JsonResponse({'valid': False, 'error': str(e)}, status=500)
+        logger.exception(f'Error en verify_token: {e}')
+        return JsonResponse({'valid': False, 'error': 'Error interno del servidor'}, status=500)

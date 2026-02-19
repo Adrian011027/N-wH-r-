@@ -15,6 +15,8 @@ GENERO_MAP = {
     'h': 'Hombre',
     'm': 'Mujer',
     'u': 'Unisex',
+    'todo': 'Todo',      # Todas las colecciones sin filtro de género
+    'todos': 'Todo',
 }
 
 # Mapeo de sección URL → código de género en BD

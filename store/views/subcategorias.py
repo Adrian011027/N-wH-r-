@@ -9,6 +9,9 @@ from ..models import Subcategoria, Categoria
 from store.utils.genero import get_genero_filter
 from .decorators import admin_required
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @require_GET
@@ -130,7 +133,8 @@ def create_subcategoria(request):
         }, status=201)
     
     except Exception as e:
-        return JsonResponse({"error": f"Error al crear subcategoría: {str(e)}"}, status=500)
+        logger.exception(f'Error en create_subcategoria: {e}')
+        return JsonResponse({"error": "Error al crear subcategoría"}, status=500)
 
 
 @csrf_exempt

@@ -79,7 +79,7 @@ def estado_verificacion(request):
     Requiere JWT token
     """
     import jwt
-    from django.conf import settings
+    from store.utils.jwt_helpers import _get_jwt_secret
     
     auth_header = request.headers.get('Authorization', '')
     
@@ -88,7 +88,7 @@ def estado_verificacion(request):
     
     try:
         token = auth_header.split(' ')[1]
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
         
         cliente_id = payload.get('user_id')
         if not cliente_id:
