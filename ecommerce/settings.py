@@ -33,7 +33,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Las páginas de error personalizadas siempre se usarán
 DEBUG_PROPAGATE_EXCEPTIONS = False
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.1.68,.ngrok.io,.ngrok-free.app,nowheremx.com,www.nowheremx.com,3.14.88.137', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.73,192.168.1.68,.ngrok.io,.ngrok-free.app,nowheremx.com,www.nowheremx.com,3.138.41.66', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Google Maps API Key (obtener en https://console.cloud.google.com/)
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
