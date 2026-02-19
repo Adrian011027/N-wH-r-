@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from ..models import Usuario, Cliente
 import jwt
 from django.conf import settings
+from store.utils.jwt_helpers import _get_jwt_secret
 
 
 # ───────────────────────────────────────────────
@@ -83,11 +84,11 @@ def jwt_role_required(allowed_roles=None):
                     }, status=401)
                 
                 token = parts[1]
-                # Usar la misma SECRET_KEY que jwt_helpers.py
-                SECRET_KEY = settings.SECRET_KEY
+                # Usar la misma clave JWT centralizada
+                jwt_secret = _get_jwt_secret()
                 
                 # Decodificar token
-                payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
                 
                 # Verificar que sea un access token
                 if payload.get('type') != 'access':
@@ -142,12 +143,12 @@ def jwt_role_required(allowed_roles=None):
             except jwt.InvalidTokenError as e:
                 return JsonResponse({
                     'error': 'Token inválido',
-                    'detail': str(e)
+                    'detail': 'El token proporcionado no es válido'
                 }, status=401)
             except Exception as e:
                 return JsonResponse({
                     'error': 'Error de autenticación',
-                    'detail': str(e)
+                    'detail': 'No se pudo verificar la autenticación'
                 }, status=401)
         
         return wrapped_view
@@ -176,8 +177,7 @@ def admin_required_hybrid():
                     parts = auth_header.split(' ')
                     if len(parts) == 2 and parts[0].lower() == 'bearer':
                         token = parts[1]
-                        SECRET_KEY = settings.SECRET_KEY
-                        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                        payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                         
                         if payload.get('type') != 'access':
                             return JsonResponse({'error': 'Tipo de token inválido'}, status=401)
@@ -202,7 +202,7 @@ def admin_required_hybrid():
                 except jwt.ExpiredSignatureError:
                     return JsonResponse({'error': 'Token expirado'}, status=401)
                 except jwt.InvalidTokenError as e:
-                    return JsonResponse({'error': 'Token inválido', 'detail': str(e)}, status=401)
+                    return JsonResponse({'error': 'Token inválido', 'detail': 'El token proporcionado no es válido'}, status=401)
             
             # Intento 2: Sesión Django
             user_id = request.session.get("user_id")
@@ -252,8 +252,7 @@ def auth_required_hybrid(allowed_roles=None):
                     parts = auth_header.split(' ')
                     if len(parts) == 2 and parts[0].lower() == 'bearer':
                         token = parts[1]
-                        SECRET_KEY = settings.SECRET_KEY
-                        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+                        payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                         
                         if payload.get('type') != 'access':
                             return JsonResponse({'error': 'Tipo de token inválido'}, status=401)
@@ -285,6 +284,13 @@ def auth_required_hybrid(allowed_roles=None):
                                 'error': 'Permisos insuficientes',
                                 'detail': f'Se requiere uno de los siguientes roles: {", ".join(allowed_roles)}'
                             }, status=403)
+                        
+                        # SEGURIDAD: Verificar autorización horizontal (JWT)
+                        # El cliente solo puede acceder a su propio recurso
+                        if user_role == 'cliente':
+                            url_id = kwargs.get('id')
+                            if url_id and int(url_id) != user_id:
+                                return JsonResponse({'error': 'No autorizado'}, status=403)
                         
                         return view_func(request, *args, **kwargs)
                         

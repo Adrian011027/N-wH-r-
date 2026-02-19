@@ -8,15 +8,24 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from store.models import Cliente
+from store.utils.security import password_reset_limiter, rate_limit
 import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ───────────────────────────────────────────────
 # API: Solicitar reset (AJAX desde panel cascada)
 # ───────────────────────────────────────────────
+@csrf_exempt
 @require_POST
+@rate_limit(password_reset_limiter)
 def solicitar_reset_api(request):
     import json
     try:
@@ -32,8 +41,10 @@ def solicitar_reset_api(request):
     cliente = Cliente.objects.filter(
         Q(username__iexact=email) | Q(correo__iexact=email)
     ).first()
+
+    # Siempre retornar éxito para prevenir enumeración de emails
     if not cliente:
-        return JsonResponse({"ok": False, "error": "No encontramos una cuenta con ese correo."}, status=404)
+        return JsonResponse({"ok": True})
 
     uidb64 = urlsafe_base64_encode(force_bytes(cliente.pk))
     token  = default_token_generator.make_token(cliente)
@@ -69,12 +80,10 @@ def solicitar_reset(request):
         cliente = Cliente.objects.filter(
             Q(username__iexact=email) | Q(correo__iexact=email)
         ).first()
+
+        # Siempre mostrar confirmación para prevenir enumeración
         if not cliente:
-            return render(
-                request,
-                "public/password/recuperar-password.html",
-                {"error": "❌ Correo no registrado."}
-            )
+            return render(request, "public/password/confirmacion-envio-correo.html")
 
         uidb64 = urlsafe_base64_encode(force_bytes(cliente.pk))
         token  = default_token_generator.make_token(cliente)
@@ -147,6 +156,15 @@ def reset_password_submit(request, uidb64, token):
                               "public/password/recuperar-nuevo-password.html",
                               {"uidb64": uidb64, "token": token,
                                "error": "Las contraseñas no coinciden."})
+
+            # Validar complejidad de contraseña
+            try:
+                validate_password(pass1, cliente)
+            except ValidationError as e:
+                return render(request,
+                              "public/password/recuperar-nuevo-password.html",
+                              {"uidb64": uidb64, "token": token,
+                               "error": e.messages[0]})
 
             cliente.set_password(pass1)
             cliente.save()
