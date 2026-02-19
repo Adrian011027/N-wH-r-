@@ -10,6 +10,7 @@ from django.views.decorators.http  import require_http_methods
 from django.utils.decorators       import method_decorator
 from django.conf import settings
 from .decorators import jwt_role_required
+from store.utils.jwt_helpers import _get_jwt_secret
 
 from ..models import Cliente, Wishlist, Producto, Variante
 
@@ -62,7 +63,7 @@ def wishlist_detail(request, id_cliente):
             parts = auth_header.split(' ')
             if len(parts) == 2 and parts[0].lower() == 'bearer':
                 token = parts[1]
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                 
                 if payload.get('type') == 'access':
                     token_user_id = payload.get('user_id')
@@ -172,7 +173,7 @@ def wishlist_all(request, id_cliente):
             parts = auth_header.split(' ')
             if len(parts) == 2 and parts[0].lower() == 'bearer':
                 token = parts[1]
-                payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                 
                 if payload.get('type') == 'access':
                     token_user_id = payload.get('user_id')

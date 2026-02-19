@@ -318,48 +318,13 @@ def get_filter_options(request):
 @require_GET
 def search_page(request):
     """
-    Página HTML de búsqueda avanzada con filtros
+    Redirige a /coleccion/todo/ reutilizando el diseño de las colecciones.
+    El parámetro ?q= se pasa como filtro de búsqueda.
     """
-    # Obtener opciones de filtros para pasarlas al template
-    categorias = Categoria.objects.all()
-    
-    # Obtener tallas disponibles (de JSONField tallas_stock)
-    todas_variantes = Variante.objects.all()
-    tallas_set = set()
-    for v in todas_variantes:
-        for talla_key, stock_val in v.tallas_stock.items():
-            if stock_val > 0 and talla_key not in ('UNICA', 'N/A', ''):
-                tallas_set.add(talla_key)
-    
-    tallas = sorted(
-        list(tallas_set),
-        key=lambda x: (float(x) if x.replace('.','').isdigit() else float('inf'), x)
-    )
-    
-    # Obtener colores disponibles
-    colores_set = set()
-    for v in todas_variantes:
-        if v.stock_total_variante > 0 and v.color and v.color not in ('N/A', ''):
-            colores_set.add(v.color)
-    colores = sorted(list(colores_set))
-    
-    # Rango de precios
-    precios = Producto.objects.aggregate(
-        min_precio=Min('precio'),
-        max_precio=Max('precio')
-    )
-    
-    # Obtener marcas
-    marcas_queryset = Producto.objects.exclude(marca__isnull=True).exclude(marca='').values_list('marca', flat=True).distinct()
-    marcas = sorted(list(set(marcas_queryset)))
-    
-    context = {
-        'categorias': categorias,
-        'tallas': tallas,
-        'colores': colores,
-        'marcas': marcas,
-        'precio_min': precios['min_precio'] or 0,
-        'precio_max': precios['max_precio'] or 0,
-    }
-    
-    return render(request, 'public/busqueda/search.html', context)
+    from django.shortcuts import redirect as _redir
+    q = request.GET.get('q', '').strip()
+    url = '/coleccion/todo/'
+    if q:
+        from urllib.parse import urlencode
+        url += '?' + urlencode({'q': q})
+    return _redir(url)

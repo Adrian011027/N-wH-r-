@@ -16,6 +16,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 from ..models import Carrito, Orden, OrdenDetalle, Cliente
+from store.views.decorators import admin_required
+from store.views.carrito import validate_jwt_token
 
 # ───────────────────────────────────────────────────────────────
 # Logger
@@ -32,7 +34,7 @@ if not logger.handlers:
 
 # Configurar Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
-logger.debug(f"[INIT] stripe.api_key configurado: {stripe.api_key[:30] if stripe.api_key else 'NONE'}...")
+logger.debug("[INIT] stripe.api_key configurado: %s", "***" if stripe.api_key else "NONE")
 
 
 # ───────────────────────────────────────────────────────────────
@@ -231,9 +233,16 @@ def crear_checkout_stripe(request):
     Crea una Stripe Checkout Session en modo embebido.
     Retorna el client_secret para montar el Embedded Checkout
     en el frontend con Stripe.js.
+    Requiere autenticación JWT o sesión activa.
     """
     logger.info("=" * 80)
     logger.info("[CREAR_CHECKOUT_STRIPE] INICIANDO")
+
+    # ── Autenticación ──
+    token_user_id, token_user_role = validate_jwt_token(request)
+    session_cliente_id = request.session.get('cliente_id')
+    if not token_user_id and not session_cliente_id:
+        return JsonResponse({'success': False, 'error': 'Autenticación requerida'}, status=401)
 
     try:
         data = json.loads(request.body)
@@ -254,6 +263,11 @@ def crear_checkout_stripe(request):
                 'error': 'Carrito sin cliente asociado'
             }, status=400)
 
+        # Verificar propiedad del carrito
+        auth_user_id = token_user_id or session_cliente_id
+        if token_user_role != 'admin' and auth_user_id != cliente.id:
+            return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+
         logger.info(f"Carrito #{carrito_id} | Cliente: {cliente.username} ({cliente.correo})")
 
         # Calcular items
@@ -272,7 +286,7 @@ def crear_checkout_stripe(request):
             logger.error("❌ stripe.api_key está VACÍO")
             return JsonResponse({'success': False, 'error': 'Error de configuración: API key de Stripe no configurada'}, status=500)
         else:
-            logger.info(f"✅ stripe.api_key configurado: {stripe.api_key[:30]}...")
+            logger.info("✅ stripe.api_key configurado")
 
         # URL de retorno después del pago (Stripe redirige aquí)
         base_url = request.build_absolute_uri('/')[:-1]
@@ -322,11 +336,10 @@ def crear_checkout_stripe(request):
         })
 
     except stripe.error.StripeError as e:
-        msg = e.user_message if hasattr(e, 'user_message') and e.user_message else str(e)
-        logger.error(f"Stripe Error: {msg}")
+        logger.error(f"Stripe Error: {e}")
         return JsonResponse({
             'success': False,
-            'error': f'Error de Stripe: {msg}'
+            'error': 'Error al procesar el pago'
         }, status=400)
 
     except json.JSONDecodeError:
@@ -340,7 +353,7 @@ def crear_checkout_stripe(request):
         logger.exception(f"Error general: {e}")
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': 'Error interno del servidor'
         }, status=500)
 
 
@@ -355,12 +368,23 @@ def mostrar_formulario_pago_stripe(request, carrito_id):
     """
     logger.info(f"[FORMULARIO_PAGO_STRIPE] Carrito #{carrito_id}")
 
+    # ── Autenticación ──
+    token_user_id, token_user_role = validate_jwt_token(request)
+    session_cliente_id = request.session.get('cliente_id')
+    if not token_user_id and not session_cliente_id:
+        return JsonResponse({'error': 'Autenticación requerida'}, status=401)
+
     try:
         carrito = get_object_or_404(Carrito, id=carrito_id)
         cliente = carrito.cliente
 
         if not cliente:
             return JsonResponse({'error': 'Carrito sin cliente asociado'}, status=400)
+
+        # Verificar propiedad del carrito
+        auth_user_id = token_user_id or session_cliente_id
+        if token_user_role != 'admin' and auth_user_id != cliente.id:
+            return JsonResponse({'error': 'No autorizado'}, status=403)
 
         total = Decimal('0.00')
         items_detalle = []
@@ -399,7 +423,7 @@ def mostrar_formulario_pago_stripe(request, carrito_id):
 
     except Exception as e:
         logger.exception(f"Error en formulario_pago_stripe: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
 
 
 # ───────────────────────────────────────────────────────────────
@@ -522,7 +546,13 @@ def verificar_orden_creada(request):
     """
     Verifica si la orden fue creada y su estado actual.
     Acepta: session_id o orden_id como query param.
+    Requiere autenticación.
     """
+    token_user_id, token_user_role = validate_jwt_token(request)
+    session_cliente_id = request.session.get('cliente_id')
+    if not token_user_id and not session_cliente_id:
+        return JsonResponse({'success': False, 'error': 'Autenticación requerida'}, status=401)
+
     session_id = request.GET.get('session_id')
     orden_id = request.GET.get('orden_id')
 
@@ -536,6 +566,11 @@ def verificar_orden_creada(request):
                 'success': False,
                 'error': 'session_id u orden_id requerido'
             }, status=400)
+
+        # Verificar propiedad de la orden
+        auth_user_id = token_user_id or session_cliente_id
+        if token_user_role != 'admin' and orden.cliente_id != auth_user_id:
+            return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
 
         return JsonResponse({
             'success': True,
@@ -553,19 +588,19 @@ def verificar_orden_creada(request):
         }, status=404)
     except Exception as e:
         logger.exception(f"Error verificando orden: {e}")
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        return JsonResponse({'success': False, 'error': 'Error interno del servidor'}, status=500)
 
 
 # ───────────────────────────────────────────────────────────────
 # 5. Sincronizar estado con Stripe (para dev local)
 # ───────────────────────────────────────────────────────────────
 @csrf_exempt
-@require_http_methods(["POST", "GET"])
+@admin_required()
+@require_http_methods(["POST"])
 def sincronizar_orden_stripe(request):
     """
     Consulta el estado de un PaymentIntent o Session en Stripe
-    y actualiza la BD local. Útil en desarrollo local donde
-    los webhooks no llegan.
+    y actualiza la BD local. Solo accesible para admins.
     """
     orden_id = request.GET.get('orden_id') or request.POST.get('orden_id')
 
@@ -630,10 +665,10 @@ def sincronizar_orden_stripe(request):
         }, status=404)
     except stripe.error.StripeError as e:
         logger.error(f"[SYNC] Stripe Error: {e}")
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        return JsonResponse({'success': False, 'error': 'Error al sincronizar con Stripe'}, status=400)
     except Exception as e:
         logger.exception(f"[SYNC] Error: {e}")
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        return JsonResponse({'success': False, 'error': 'Error interno del servidor'}, status=500)
 
 
 # ───────────────────────────────────────────────────────────────
@@ -698,13 +733,19 @@ def pago_cancelado(request):
 # ───────────────────────────────────────────────────────────────
 # 7. API - Estado de sesión de Stripe (para polling del frontend)
 # ───────────────────────────────────────────────────────────────
-@csrf_exempt
 @require_http_methods(["GET"])
 def session_status(request):
     """
     El frontend puede consultar este endpoint para verificar el estado
     de la sesión de Stripe Checkout.
+    Requiere autenticación.
     """
+    # ── Autenticación ──
+    token_user_id, token_user_role = validate_jwt_token(request)
+    session_cliente_id = request.session.get('cliente_id')
+    if not token_user_id and not session_cliente_id:
+        return JsonResponse({'success': False, 'error': 'Autenticación requerida'}, status=401)
+
     session_id = request.GET.get('session_id')
 
     if not session_id:
@@ -720,12 +761,9 @@ def session_status(request):
             'success': True,
             'status': session.status,
             'payment_status': session.payment_status,
-            'customer_email': (
-                session.customer_details.email
-                if session.customer_details else None
-            ),
+            # customer_email eliminado — no exponer PII
         })
 
     except stripe.error.StripeError as e:
         logger.error(f"Error consultando session: {e}")
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        return JsonResponse({'success': False, 'error': 'Error al consultar estado de la sesión'}, status=400)

@@ -223,7 +223,7 @@ class SearchOverlay {
     this.resultsCount.textContent = `${total} resultado${total !== 1 ? 's' : ''}`;
     
     // Actualizar link de ver todos
-    this.viewAllLink.href = `/buscar/?q=${encodeURIComponent(this.currentQuery)}`;
+    this.viewAllLink.href = `/coleccion/todo/?q=${encodeURIComponent(this.currentQuery)}`;
     
     // Limpiar grid
     this.resultsGrid.innerHTML = '';
@@ -248,7 +248,7 @@ class SearchOverlay {
     
     card.innerHTML = `
       <div class="search-product-image">
-        <img src="${producto.imagen || '/static/images/no-image.jpg'}" 
+        <img src="${producto.imagen || '/static/images/no-image.png'}" 
              alt="${producto.nombre}" 
              loading="lazy">
         ${producto.en_oferta ? '<span class="search-product-badge">Oferta</span>' : ''}
@@ -265,7 +265,7 @@ class SearchOverlay {
   
   goToSearchPage() {
     if (this.currentQuery.length >= this.minChars) {
-      window.location.href = `/buscar/?q=${encodeURIComponent(this.currentQuery)}`;
+      window.location.href = `/coleccion/todo/?q=${encodeURIComponent(this.currentQuery)}`;
     }
   }
 }

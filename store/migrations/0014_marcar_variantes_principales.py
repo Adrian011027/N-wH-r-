@@ -24,7 +24,7 @@ def marcar_variantes_principales(apps, schema_editor):
             variantes_marcadas += 1
             productos_actualizados += 1
     
-    print(f"\n✓ Migración completada:")
+    print(f"\n[OK] Migracion completada:")
     print(f"  - Productos procesados: {productos_actualizados}")
     print(f"  - Variantes marcadas como principales: {variantes_marcadas}")
 

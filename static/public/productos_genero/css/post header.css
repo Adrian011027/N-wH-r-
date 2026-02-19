@@ -1,6 +1,7 @@
-/* ——— Sección Dama y Caballero ——— */
+/* ——— Sección Dama, Caballero y Todo (búsqueda) ——— */
 .caballero-section,
-.dama-section {
+.dama-section,
+.todo-section {
   padding: 180px 0 0px;
   background: #fff;
   font-family: 'Helvetica Neue', sans-serif;
@@ -10,14 +11,16 @@
 }
 
 .caballero-section.fade-in,
-.dama-section.fade-in {
+.dama-section.fade-in,
+.todo-section.fade-in {
   opacity: 1;
   transform: none;
 }
 
 /* ——— Cabecera ——— */
 .caballero-header,
-.dama-header {
+.dama-header,
+.todo-header {
   display: flex;
   flex-direction: row-reverse;
   justify-content: space-between;
@@ -30,7 +33,8 @@
 }
 
 .caballero-header h2,
-.dama-header h2 {
+.dama-header h2,
+.todo-header h2 {
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
@@ -134,7 +138,8 @@
 /* ——— Media Queries Unificadas ——— */
 @media (max-width: 768px) {
   .caballero-section,
-  .dama-section {
+  .dama-section,
+  .todo-section {
     padding: 130px 0 40px;
   }
 
@@ -145,7 +150,8 @@
 
 @media (max-width: 480px) {
   .caballero-section,
-  .dama-section {
+  .dama-section,
+  .todo-section {
     padding: 120px 0 30px;
   }
 

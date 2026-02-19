@@ -266,6 +266,7 @@
 /* Header */
 .coleccion-main .dama-header,
 .coleccion-main .caballero-header,
+.coleccion-main .todo-header,
 .coleccion-main .hombre-header,
 .coleccion-main .mujer-header {
   display: flex;
@@ -505,6 +506,7 @@
   /* Mantener FILTRAR y título en la misma línea */
   .coleccion-main .dama-header,
   .coleccion-main .caballero-header,
+  .coleccion-main .todo-header,
   .coleccion-main .hombre-header,
   .coleccion-main .mujer-header {
     flex-direction: row;

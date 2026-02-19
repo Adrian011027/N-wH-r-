@@ -128,10 +128,8 @@
      data-cliente-id="{{ request.session.cliente_id }}"
      data-producto-id="{{ producto.id }}"></div>
 
-<!-- Variantes JSON -->
-<script id="variantes-data" type="application/json">
-  {{ variantes_json|safe }}
-</script>
+<!-- Variantes JSON (escapado de forma segura) -->
+{{ variantes_json|json_script:"variantes-data" }}
 {% endblock %}
 
 {% block extra_js %}
