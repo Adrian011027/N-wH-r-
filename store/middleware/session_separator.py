@@ -16,6 +16,8 @@ class SessionTypeValidator(MiddlewareMixin):
             '/auth/login_client/',
             '/registrarse/',
             '/recuperar/',
+            '/inventario/login/',
+            '/inventario/auth/login/',
         ]
         
         # Si es ruta pública, permitir
@@ -28,6 +30,14 @@ class SessionTypeValidator(MiddlewareMixin):
             if not user_id:
                 # El decorator login_required_user se encargará de redirigir
                 logger.warning(f"Acceso sin autorización a {path}")
+                return None
+        
+        # Si es ruta /inventario/*, validar que tenga user_id
+        if path.startswith('/inventario/'):
+            user_id = request.session.get('user_id')
+            if not user_id:
+                # El decorator login_required_inventario se encargará de redirigir
+                logger.warning(f"Acceso sin sesión a inventario: {path}")
                 return None
         
         return None

@@ -100,7 +100,9 @@ DATABASES = {
         'PORT': config('DB_PORT', default='5432'),
         'OPTIONS': {
             'client_encoding': 'UTF8',
+            'connect_timeout': 10,
         },
+        'CONN_MAX_AGE': 0,  # Cerrar conexiones después de cada request para evitar timeouts
     }
 }
 

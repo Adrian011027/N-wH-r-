@@ -1,0 +1,103 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+
+{% block title %}Categorías y Subcategorías{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'inventario/css/categorias.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="inv-container">
+  <div class="inv-page-header">
+    <div class="inv-title-section">
+      <h1>Categorías y Subcategorías</h1>
+      <p class="inv-subtitle">Gestiona las categorías y subcategorías de tu catálogo.</p>
+    </div>
+    <a href="{% url 'inventario_panel' %}" class="btn btn-outline">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Volver al inventario
+    </a>
+  </div>
+
+  <!-- Formulario crear categoría -->
+  <div class="form-section">
+    <h2 class="section-title">Nueva Categoría</h2>
+    <form id="formCategoria" class="inline-form">
+      <input type="text" id="catNombre" placeholder="Nombre de la categoría" required>
+      <input type="file" id="catImagen" accept="image/*">
+      <button type="submit" class="btn btn-primary">Crear Categoría</button>
+    </form>
+  </div>
+
+  <!-- Formulario crear subcategoría -->
+  <div class="form-section">
+    <h2 class="section-title">Nueva Subcategoría</h2>
+    <form id="formSubcategoria" class="inline-form">
+      <select id="subCatCategoria" required>
+        <option value="">Seleccionar categoría padre</option>
+        {% for cat in categorias %}
+          <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" id="subCatNombre" placeholder="Nombre de la subcategoría" required>
+      <input type="text" id="subCatDescripcion" placeholder="Descripción (opcional)">
+      <button type="submit" class="btn btn-primary">Crear Subcategoría</button>
+    </form>
+  </div>
+
+  <!-- Listado de categorías con subcategorías -->
+  <div class="form-section">
+    <h2 class="section-title">Categorías existentes</h2>
+    <div class="cat-list" id="catList">
+      {% for cat in categorias %}
+      <div class="cat-card" data-cat-id="{{ cat.id }}">
+        <div class="cat-card-header">
+          {% if cat.imagen %}
+            <img src="{{ cat.imagen.url }}" alt="{{ cat.nombre }}" class="cat-img">
+          {% else %}
+            <div class="cat-img-placeholder">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+          {% endif %}
+          <div class="cat-info">
+            <h3>{{ cat.nombre }}</h3>
+            <span class="badge badge-gray">{{ cat.subcategorias.count }} subcategorías</span>
+          </div>
+          <div class="cat-actions">
+            <button class="btn-icon btn-delete" title="Eliminar categoría" onclick="eliminarCategoria({{ cat.id }}, '{{ cat.nombre|escapejs }}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        {% if cat.subcategorias.all %}
+        <div class="subcat-list">
+          {% for sub in cat.subcategorias.all %}
+          <div class="subcat-item">
+            <span>{{ sub.nombre }}</span>
+            {% if sub.descripcion %}<small>{{ sub.descripcion }}</small>{% endif %}
+            <button class="btn-icon btn-delete-sm" title="Eliminar subcategoría" onclick="eliminarSubcategoria({{ sub.id }}, '{{ sub.nombre|escapejs }}')">✕</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p class="text-muted">No hay categorías creadas aún.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'inventario/js/categorias.js' %}"></script>
+{% endblock %}

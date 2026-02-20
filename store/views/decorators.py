@@ -6,6 +6,9 @@ from ..models import Usuario, Cliente
 import jwt
 from django.conf import settings
 from store.utils.jwt_helpers import _get_jwt_secret
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # ───────────────────────────────────────────────
@@ -222,6 +225,90 @@ def admin_required_hybrid():
             return JsonResponse({
                 'error': 'Autenticación requerida',
                 'detail': 'Inicie sesión como administrador'
+            }, status=401)
+        
+        return wrapped_view
+    return decorator
+
+
+def inventory_manager_required():
+    """
+    Decorador híbrido para APIs de gestión de inventario que acepta:
+    1. JWT en header Authorization con roles 'admin' o 'inventario'
+    2. Sesión Django con roles 'admin' o 'inventario'
+    
+    Usado por el módulo de inventario para permitir editar productos/variantes.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped_view(request, *args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            
+            # Intento 1: JWT
+            if auth_header:
+                try:
+                    parts = auth_header.split(' ')
+                    if len(parts) == 2 and parts[0].lower() == 'bearer':
+                        token = parts[1]
+                        payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
+                        
+                        if payload.get('type') != 'access':
+                            return JsonResponse({'error': 'Tipo de token inválido'}, status=401)
+                        
+                        user_role = payload.get('role', 'cliente')
+                        # Permitir 'admin' o 'inventario'
+                        if user_role not in ['admin', 'inventario']:
+                            return JsonResponse({'error': 'Se requiere rol de administrador o inventario'}, status=403)
+                        
+                        user_id = payload['user_id']
+                        try:
+                            user = Usuario.objects.get(id=user_id)
+                            request.jwt_user = user
+                        except Usuario.DoesNotExist:
+                            return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+                        except Exception as db_err:
+                            # Manejo de errores de BD (timeout, conexión perdida, etc.)
+                            logger.error(f"Error de BD al verificar usuario en inventory_manager: {db_err}")
+                            return JsonResponse({
+                                'error': 'Error de conexión a la base de datos',
+                                'detail': 'Por favor, intente nuevamente'
+                            }, status=503)
+                        
+                        request.user_id = user_id
+                        request.user_role = user_role
+                        request.username = payload.get('username', '')
+                        
+                        return view_func(request, *args, **kwargs)
+                        
+                except jwt.ExpiredSignatureError:
+                    return JsonResponse({'error': 'Token expirado'}, status=401)
+                except jwt.InvalidTokenError as e:
+                    return JsonResponse({'error': 'Token inválido', 'detail': 'El token proporcionado no es válido'}, status=401)
+            
+            # Intento 2: Sesión Django
+            user_id = request.session.get("user_id")
+            if user_id:
+                try:
+                    user = Usuario.objects.get(id=user_id)
+                    if user.role in ['admin', 'inventario']:
+                        request.user_id = user_id
+                        request.user_role = user.role
+                        request.username = user.username
+                        request.jwt_user = user
+                        return view_func(request, *args, **kwargs)
+                except Usuario.DoesNotExist:
+                    pass
+                except Exception as db_err:
+                    logger.error(f"Error de BD al verificar sesión en inventory_manager: {db_err}")
+                    return JsonResponse({
+                        'error': 'Error de conexión a la base de datos',
+                        'detail': 'Por favor, intente nuevamente'
+                    }, status=503)
+            
+            # No autenticado
+            return JsonResponse({
+                'error': 'Autenticación requerida',
+                'detail': 'Inicie sesión como administrador o gestor de inventario'
             }, status=401)
         
         return wrapped_view

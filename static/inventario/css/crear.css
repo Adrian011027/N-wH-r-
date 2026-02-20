@@ -1,0 +1,43 @@
+/* ========================================
+   INVENTARIO - CREAR PRODUCTO
+   ======================================== */
+
+.subcategorias-checks {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 12px; background: #f9fafb; border-radius: 8px;
+  border: 1px solid #e5e7eb; max-height: 200px; overflow-y: auto;
+}
+
+.check-label {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 6px; font-size: 13px; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.check-label:hover { border-color: #2563eb; background: #eff6ff; }
+.check-label input[type="checkbox"] { accent-color: #2563eb; }
+.check-label small { color: #9ca3af; }
+
+/* Tallas stock inputs */
+.tallas-stock-inputs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+.talla-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.input-talla {
+  width: 120px; padding: 8px 12px; border: 1px solid #d1d5db;
+  border-radius: 6px; font-size: 14px;
+}
+.input-stock {
+  width: 100px; padding: 8px 12px; border: 1px solid #d1d5db;
+  border-radius: 6px; font-size: 14px; text-align: center;
+}
+
+/* Image preview */
+.img-preview-grid {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+}
+.img-preview-grid img {
+  width: 80px; height: 80px; object-fit: cover;
+  border-radius: 8px; border: 1px solid #e5e7eb;
+}
