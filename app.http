@@ -1,4 +1,4 @@
-@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNjAxMjEzLCJpYXQiOjE3NzA1OTk0MTMsInVzZXJuYW1lIjoiYWRtaW4ifQ.28-B39C-6l-eQN_8RqV8PJqRvFJFKEw_FdF5NoCudPw
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNTY2OTYyLCJpYXQiOjE3NzE1NjUxNjIsInVzZXJuYW1lIjoiYWRtaW4ifQ.bj4Sh0_3dli0QkbcyKIrd7O6KmiLmjeTBtDDMhb3NIY
 POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
@@ -68,11 +68,7 @@ nombre=AirForce&stock=30
 ### DELETE
 DELETE http://127.0.0.1:8000/api/productos/delete/2/
 
-### GET clientes
-GET http://127.0.0.1:8000/user/get/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NTY2Mjg2OTcsImlhdCI6MTc1NjYyMTQ5N30.yXxecQtsaQNd3hZSs1rqmBhwmdJgfTQTzYGqA7Moh6k
-
-### GET clientes
+### GET clientes### GET clientes
 GET http://127.0.0.1:8000/clientes/
 Authorization: Bearer {{token_admin}}
 

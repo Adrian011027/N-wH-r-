@@ -1,0 +1,38 @@
+/* ========================================
+   INVENTARIO - CATEGORÍAS
+   ======================================== */
+
+.cat-list { display: flex; flex-direction: column; gap: 12px; }
+
+.cat-card {
+  background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 10px; overflow: hidden;
+}
+.cat-card-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px;
+}
+.cat-img {
+  width: 48px; height: 48px; border-radius: 8px;
+  object-fit: cover; border: 1px solid #e5e7eb;
+}
+.cat-img-placeholder {
+  width: 48px; height: 48px; border-radius: 8px;
+  border: 1px dashed #d1d5db; display: flex;
+  align-items: center; justify-content: center;
+  background: #fff;
+}
+.cat-info { flex: 1; }
+.cat-info h3 { font-size: 16px; font-weight: 600; color: #1a1a1a; margin: 0; }
+.cat-actions { display: flex; gap: 6px; }
+
+.subcat-list {
+  padding: 0 20px 16px; display: flex; flex-wrap: wrap; gap: 8px;
+}
+.subcat-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: #fff;
+  border: 1px solid #e5e7eb; border-radius: 20px;
+  font-size: 13px; color: #374151;
+}
+.subcat-item small { color: #9ca3af; }

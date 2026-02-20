@@ -1,0 +1,125 @@
+{% extends "inventario/base.html" %}
+{% load static %}
+
+{% block title %}Nuevo Producto{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'inventario/css/crear.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="inv-container">
+  <div class="inv-page-header">
+    <div class="inv-title-section">
+      <h1>Crear Nuevo Producto</h1>
+      <p class="inv-subtitle">Registra un nuevo producto con sus variantes e imágenes.</p>
+    </div>
+    <a href="{% url 'inventario_panel' %}" class="btn btn-outline">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Volver al inventario
+    </a>
+  </div>
+
+  <form id="formCrearProducto" class="inv-form" enctype="multipart/form-data">
+    <!-- Datos del producto -->
+    <div class="form-section">
+      <h2 class="section-title">Información del producto</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nombre">Nombre del producto *</label>
+          <input type="text" id="nombre" name="nombre" required placeholder="Ej: Nike Air Force 1">
+        </div>
+        <div class="form-group">
+          <label for="marca">Marca</label>
+          <input type="text" id="marca" name="marca" placeholder="Ej: Nike, Adidas">
+        </div>
+        <div class="form-group full-width">
+          <label for="descripcion">Descripción *</label>
+          <textarea id="descripcion" name="descripcion" required rows="3" placeholder="Descripción detallada del producto"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="categoria">Categoría *</label>
+          <select id="categoria" name="categoria_id" required>
+            <option value="">Seleccionar categoría</option>
+            {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="genero">Género *</label>
+          <select id="genero" name="genero" required>
+            <option value="">Seleccionar</option>
+            <option value="Hombre">Hombre</option>
+            <option value="Mujer">Mujer</option>
+            <option value="Unisex">Unisex</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="precio">Precio *</label>
+          <input type="number" id="precio" name="precio" required min="0" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label for="precio_mayorista">Precio Mayorista</label>
+          <input type="number" id="precio_mayorista" name="precio_mayorista" min="0" step="0.01" placeholder="0.00" value="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Subcategorías</label>
+        <div class="subcategorias-checks" id="subcategoriasContainer">
+          {% for sub in subcategorias %}
+            <label class="check-label" data-cat="{{ sub.categoria_id }}">
+              <input type="checkbox" name="subcategorias" value="{{ sub.id }}">
+              {{ sub.nombre }} <small>({{ sub.categoria.nombre }})</small>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Variante principal -->
+    <div class="form-section">
+      <h2 class="section-title">Variante principal</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="var_color">Color</label>
+          <input type="text" id="var_color" name="var_color" placeholder="Ej: Negro, Blanco" value="N/A">
+        </div>
+        <div class="form-group">
+          <label for="var_sku">SKU</label>
+          <input type="text" id="var_sku" name="var_sku" placeholder="Ej: NIKE-AF1-38-BLK">
+        </div>
+      </div>
+      <!-- Tallas y stock -->
+      <div class="form-group">
+        <label>Tallas y Stock</label>
+        <div id="tallasStockContainer" class="tallas-stock-inputs">
+          <div class="talla-row">
+            <input type="text" name="talla[]" placeholder="Talla (ej: 38, M)" class="input-talla">
+            <input type="number" name="stock[]" placeholder="Stock" min="0" value="0" class="input-stock">
+            <button type="button" class="btn-icon btn-delete-sm" onclick="this.closest('.talla-row').remove()">✕</button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="agregarFilaTalla()">+ Agregar talla</button>
+      </div>
+      <!-- Imágenes -->
+      <div class="form-group">
+        <label>Imágenes de la variante (máx. 5)</label>
+        <input type="file" id="var_imagenes" name="imagenes" accept="image/*" multiple>
+        <div id="previewImagenes" class="img-preview-grid"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg" id="btnCrear">Crear Producto</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'inventario/js/crear.js' %}"></script>
+{% endblock %}

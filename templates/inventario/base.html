@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Inventario{% endblock %} - NöwHėrē</title>
+  <link rel="stylesheet" href="{% static 'inventario/css/main.css' %}">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <script src="{% static 'inventario/js/auth-helper.js' %}"></script>
+  <script>
+    if (!document.cookie.includes('csrftoken')) {
+      document.cookie = "csrftoken={{ csrf_token }}; path=/";
+    }
+  </script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% include 'inventario/includes/header.html' %}
+  <main class="inv-main">
+    {% block content %}{% endblock %}
+  </main>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

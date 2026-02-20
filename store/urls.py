@@ -90,6 +90,14 @@ from .views.api_filtros import (
     get_filtros_disponibles, get_productos_filtrados
 )
 
+# ─────────── Inventario ───────────
+from .views.inventario import (
+    inventario_login_page, inventario_login, inventario_panel,
+    inventario_crear_producto, inventario_categorias,
+    inventario_api_update_stock, inventario_api_delete_variante,
+    inventario_api_data, inventario_api_producto_detalle,
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -219,6 +227,17 @@ urlpatterns = [
     # ---------- Envío de Tickets ----------
     path("api/orden/<int:carrito_id>/ticket/whatsapp/", enviar_ticket_whatsapp, name="enviar_ticket_whatsapp"),
     path("api/orden/<int:carrito_id>/ticket/email/",    enviar_ticket_email,    name="enviar_ticket_email"),
+
+    # ---------- Inventario ----------
+    path("inventario/",                                    inventario_panel,              name="inventario_panel"),
+    path("inventario/login/",                               inventario_login_page,         name="inventario_login"),
+    path("inventario/auth/login/",                          inventario_login,              name="inventario_auth_login"),
+    path("inventario/crear/",                               inventario_crear_producto,     name="inventario_crear_producto"),
+    path("inventario/categorias/",                          inventario_categorias,         name="inventario_categorias"),
+    path("inventario/api/stock/<int:variante_id>/",         inventario_api_update_stock,    name="inventario_api_update_stock"),
+    path("inventario/api/variante/<int:variante_id>/",      inventario_api_delete_variante, name="inventario_api_delete_variante"),
+    path("inventario/api/data/",                            inventario_api_data,           name="inventario_api_data"),
+    path("inventario/api/producto/<int:producto_id>/",      inventario_api_producto_detalle, name="inventario_api_producto_detalle"),
 
     # ---------- Dashboard ----------
     # Django APPEND_SLASH handles redirection from non-slash to slash URLs

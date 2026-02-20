@@ -3,7 +3,7 @@ from django.shortcuts import render,get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods, require_GET
 from ..models import Producto, Categoria, Variante, Subcategoria
-from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required
+from .decorators import login_required_user, login_required_client, jwt_role_required, admin_required, inventory_manager_required
 from django.db.models import Prefetch, Q
 from django.db import models
 from decimal import Decimal, InvalidOperation
@@ -326,7 +326,7 @@ def create_product(request):
     )
 
 @csrf_exempt
-@admin_required()
+@inventory_manager_required()
 @require_http_methods(["POST", "PUT"])
 def update_productos(request, id):
     try:
@@ -604,7 +604,7 @@ def create_variant(request):
 
 
 @csrf_exempt
-@admin_required()
+@inventory_manager_required()
 @require_http_methods(["POST"])
 def update_variant(request, variante_id):
 
@@ -667,7 +667,7 @@ def update_variant(request, variante_id):
     )
 
 @csrf_exempt
-@admin_required()
+@inventory_manager_required()
 @require_http_methods(["DELETE", "POST"])
 def delete_productos(request, id):
     producto = get_object_or_404(Producto, id=id)
