@@ -33,10 +33,11 @@ def login_required_inventario(view_func):
     """
     Decorador de sesión que permite acceso a usuarios con role 'inventario' o 'admin'.
     Redirige a la página de login de inventario si no cumple.
+    Usa claves de sesión específicas del inventario (independientes del dashboard).
     """
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
-        user_id = request.session.get("user_id")
+        user_id = request.session.get("inventario_user_id")
         if not user_id:
             return redirect("inventario_login")
         try:
@@ -106,10 +107,11 @@ def inventario_login(request):
     access = generate_access_token(user.id, user.role, user.username)
     refresh = generate_refresh_token(user.id)
 
+    # Establecer sesión Django para INVENTARIO (independiente de dashboard)
     request.session.set_expiry(60 * 60 * 4)  # 4 horas
-    request.session["user_id"] = user.id
-    request.session["username"] = user.username
-    request.session["role"] = user.role
+    request.session["inventario_user_id"] = user.id
+    request.session["inventario_username"] = user.username
+    request.session["inventario_role"] = user.role
     request.session.save()
 
     return JsonResponse({
@@ -221,8 +223,8 @@ def inventario_categorias(request):
 @require_http_methods(["POST"])
 def inventario_api_update_stock(request, variante_id):
     """Actualiza el stock de una talla específica de una variante."""
-    # Verificar sesión
-    user_id = request.session.get("user_id")
+    # Verificar sesión del inventario
+    user_id = request.session.get("inventario_user_id")
     if not user_id:
         return JsonResponse({"error": "No autenticado"}, status=401)
     try:
@@ -275,7 +277,7 @@ def inventario_api_update_stock(request, variante_id):
 @require_http_methods(["DELETE"])
 def inventario_api_delete_variante(request, variante_id):
     """Elimina una variante (solo si el producto tiene más de 1 variante)."""
-    user_id = request.session.get("user_id")
+    user_id = request.session.get("inventario_user_id")
     if not user_id:
         return JsonResponse({"error": "No autenticado"}, status=401)
     try:
@@ -313,7 +315,7 @@ def inventario_api_delete_variante(request, variante_id):
 @require_GET
 def inventario_api_data(request):
     """API JSON del inventario completo, para búsquedas/filtros AJAX."""
-    user_id = request.session.get("user_id")
+    user_id = request.session.get("inventario_user_id")
     if not user_id:
         return JsonResponse({"error": "No autenticado"}, status=401)
     try:

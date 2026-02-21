@@ -170,8 +170,14 @@ if USE_S3:
     AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
     
-    # S3 Settings
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    # S3 Settings - Usar CloudFront si está configurado, sino S3 directo
+    AWS_CLOUDFRONT_DOMAIN = config('AWS_CLOUDFRONT_DOMAIN', default='')
+    if AWS_CLOUDFRONT_DOMAIN:
+        # Usar CloudFront CDN (más rápido, gratis con Free Tier)
+        AWS_S3_CUSTOM_DOMAIN = AWS_CLOUDFRONT_DOMAIN
+    else:
+        # Usar S3 directo (funciona, pero más lento)
+        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',  # 1 día de cache
     }

@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SessionTypeValidator(MiddlewareMixin):
-    """Valida que rutas /dashboard/* tengan sesión de admin"""
+    """Valida que rutas /dashboard/* y /inventario/* tengan sus sesiones respectivas"""
     
     def process_request(self, request):
         path = request.path
@@ -24,20 +24,20 @@ class SessionTypeValidator(MiddlewareMixin):
         if path in public_routes:
             return None
         
-        # Si es ruta /dashboard/*, validar que tenga user_id
+        # Si es ruta /dashboard/*, validar que tenga sesión del DASHBOARD
         if path.startswith('/dashboard/'):
-            user_id = request.session.get('user_id')
+            user_id = request.session.get('dashboard_user_id')
             if not user_id:
                 # El decorator login_required_user se encargará de redirigir
-                logger.warning(f"Acceso sin autorización a {path}")
+                logger.warning(f"Acceso sin autorización del dashboard a {path}")
                 return None
         
-        # Si es ruta /inventario/*, validar que tenga user_id
+        # Si es ruta /inventario/*, validar que tenga sesión del INVENTARIO
         if path.startswith('/inventario/'):
-            user_id = request.session.get('user_id')
+            user_id = request.session.get('inventario_user_id')
             if not user_id:
                 # El decorator login_required_inventario se encargará de redirigir
-                logger.warning(f"Acceso sin sesión a inventario: {path}")
+                logger.warning(f"Acceso sin sesión del inventario: {path}")
                 return None
         
         return None

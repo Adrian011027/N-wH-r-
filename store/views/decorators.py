@@ -29,12 +29,13 @@ def login_required_client(view_func):
 
 def login_required_user(view_func):
     """
-    Asegura que haya un usuario admin logueado en sesión.
+    Asegura que haya un usuario admin logueado en sesión DEL DASHBOARD.
     Si no existe sesión o el rol no es 'admin', redirige al login de dashboard.
+    Usa claves de sesión específicas del dashboard (independientes del inventario).
     """
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
-        user_id = request.session.get("user_id")
+        user_id = request.session.get("dashboard_user_id")
         if not user_id:
             return redirect("login_user")
 
@@ -207,8 +208,8 @@ def admin_required_hybrid():
                 except jwt.InvalidTokenError as e:
                     return JsonResponse({'error': 'Token inválido', 'detail': 'El token proporcionado no es válido'}, status=401)
             
-            # Intento 2: Sesión Django
-            user_id = request.session.get("user_id")
+            # Intento 2: Sesión Django del DASHBOARD
+            user_id = request.session.get("dashboard_user_id")
             if user_id:
                 try:
                     user = Usuario.objects.get(id=user_id)
@@ -285,8 +286,8 @@ def inventory_manager_required():
                 except jwt.InvalidTokenError as e:
                     return JsonResponse({'error': 'Token inválido', 'detail': 'El token proporcionado no es válido'}, status=401)
             
-            # Intento 2: Sesión Django
-            user_id = request.session.get("user_id")
+            # Intento 2: Sesión Django del INVENTARIO
+            user_id = request.session.get("inventario_user_id")
             if user_id:
                 try:
                     user = Usuario.objects.get(id=user_id)
