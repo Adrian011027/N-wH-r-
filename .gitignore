@@ -8,3 +8,8 @@ __pycache__/
 
 # collectstatic output (se genera en el servidor con: python manage.py collectstatic)
 staticfiles/
+
+# Local media files (en producción con S3, esto no se sube)
+media/productos/
+media/variantes/
+media/categorias/

@@ -1,4 +1,4 @@
-@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNTY2OTYyLCJpYXQiOjE3NzE1NjUxNjIsInVzZXJuYW1lIjoiYWRtaW4ifQ.bj4Sh0_3dli0QkbcyKIrd7O6KmiLmjeTBtDDMhb3NIY
+@token_admin= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoiYWRtaW4iLCJ0eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNjk3MTU2LCJpYXQiOjE3NzE2OTUzNTYsInVzZXJuYW1lIjoiYWRtaW4ifQ.lVXYlwRiX_XCcAEKBMzAvV1Vh3uAXUlmdyRhnyPRWs4
 POST http://127.0.0.1:8000/auth/login_user/
 Content-Type: application/json
 
@@ -76,6 +76,18 @@ Authorization: Bearer {{token_admin}}
 ### GET clientes
 GET http://127.0.0.1:8000/api/users/
 Authorization: Bearer {{token_admin}}
+
+
+### Actualizar usuario
+POST http://127.0.0.1:8000/api/users/update/16/
+Content-Type: application/json
+Authorization: Bearer {{token_admin}}
+
+{
+  "password": "Caudillo13."
+}
+
+
 
 ### Crear cliente
 

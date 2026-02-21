@@ -443,11 +443,11 @@ def login_user(request):
     access  = generate_access_token(user.id, user.role, user.username)
     refresh = generate_refresh_token(user.id)
     
-    # Establecer sesión Django para vistas HTML
+    # Establecer sesión Django para vistas HTML del DASHBOARD (independiente de inventario)
     request.session.set_expiry(60 * 60 * 4)  # 4 horas timeout
-    request.session["user_id"] = user.id
-    request.session["username"] = user.username
-    request.session["role"] = user.role
+    request.session["dashboard_user_id"] = user.id
+    request.session["dashboard_username"] = user.username
+    request.session["dashboard_role"] = user.role
     request.session.save()  # ← CRÍTICO: Guardar en RDS
     
     return JsonResponse({
