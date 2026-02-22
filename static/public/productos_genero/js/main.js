@@ -1,8 +1,8 @@
 // static/shared/js/productos_genero.js
 
 window.addEventListener('load', () => {
-  // Fade-in dinámico de sección (dama/caballero) - MUST run before any early returns
-  document.querySelectorAll('.dama-section, .caballero-section')
+  // Fade-in dinámico de sección (dama/caballero/todo) - MUST run before any early returns
+  document.querySelectorAll('.dama-section, .caballero-section, .todo-section')
           .forEach(sec => sec.classList.add('fade-in'));
 
   const dropdown     = document.getElementById('dropdown');

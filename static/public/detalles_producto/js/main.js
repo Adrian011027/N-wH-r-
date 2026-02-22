@@ -19,7 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const wrapExtra   = document.getElementById('wrapper-select-extra');
   const btnAddCart   = document.getElementById('btn-agregar-carrito');
   const stockInfo   = document.getElementById('info-stock');
-  const variantes   = JSON.parse(document.getElementById('variantes-data').textContent);
+  
+  // Obtener variantes desde el script tag generado por json_script
+  const variantesElement = document.getElementById('variantes-data');
+  if (!variantesElement) {
+    console.error('Elemento variantes-data no encontrado en el DOM');
+  }
+  const variantes = variantesElement ? JSON.parse(variantesElement.textContent) : [];
 
   const datos = document.getElementById('detalles-datos');
   const prodId = +datos?.dataset.productoId;
@@ -307,7 +313,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     let total = 0;
     let errores = [];
 
-    console.log('Procesando selección:', seleccion);
 
     for (const item of seleccion) {
       try {
@@ -332,10 +337,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         if (item.variante_id) body.variante_id = item.variante_id;
 
-        console.log('Enviando al carrito:', body);
         const res = await window.fetchPost(endpoint, body);
         const data = await res.json();
-        console.log('Respuesta del servidor:', res.status, data);
         
         if (!res.ok) {
           errores.push(data.error || 'Error al agregar producto');
@@ -350,7 +353,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    console.log('Total agregado:', total, 'Errores:', errores);
 
     // Mostrar resultados
     if (errores.length > 0 && total === 0) {

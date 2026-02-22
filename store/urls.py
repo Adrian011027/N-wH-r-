@@ -98,6 +98,12 @@ from .views.inventario import (
     inventario_api_data, inventario_api_producto_detalle,
 )
 
+# ─────────── Páginas legales / estáticas ───────────
+from .views.paginas import (
+    aviso_privacidad, terminos_condiciones, politica_cambios,
+    preguntas_frecuentes, sobre_nosotros, guia_tallas, metodos_pago,
+)
+
 # ───────────────────────── URLPATTERNS ─────────────────────────
 urlpatterns = [
     # ---------- Recuperación de contraseña ----------
@@ -115,7 +121,17 @@ urlpatterns = [
     path("",                           index,          name="index"),
     path("coleccion/<str:genero>/",    genero_view,    name="coleccion_genero"),
     path("registrarse/",               registrarse,    name="registrarse"),
+    # ---------- Búsqueda ----------
     path("buscar/",                    search_page,    name="search_page"),
+
+    # ---------- Páginas legales / estáticas ----------
+    path("aviso-privacidad/",          aviso_privacidad,      name="aviso_privacidad"),
+    path("terminos-y-condiciones/",    terminos_condiciones,  name="terminos_condiciones"),
+    path("politica-cambios/",          politica_cambios,      name="politica_cambios"),
+    path("preguntas-frecuentes/",      preguntas_frecuentes,  name="preguntas_frecuentes"),
+    path("sobre-nosotros/",           sobre_nosotros,         name="sobre_nosotros"),
+    path("guia-de-tallas/",           guia_tallas,            name="guia_tallas"),
+    path("metodos-de-pago/",          metodos_pago,           name="metodos_pago"),
 
     # ---------- Categorías y Subcategorías API ----------
     path("api/categorias-por-genero/",           categorias_por_genero,    name="categorias_por_genero"),

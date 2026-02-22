@@ -50,3 +50,10 @@
 [DEBUG] 2026-02-21 12:05:05 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
 [DEBUG] 2026-02-21 12:05:21 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
 [DEBUG] 2026-02-21 12:05:59 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-21 21:48:41 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-21 22:06:04 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-21 22:06:56 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-21 22:16:35 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-22 00:27:37 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-22 00:27:58 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[DEBUG] 2026-02-22 00:37:27 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***

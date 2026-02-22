@@ -1,0 +1,92 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Guía de Tallas — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">Ayuda</span>
+  <h1 class="legal-page__title">Guía de Tallas</h1>
+  <hr class="legal-page__divider">
+
+  <p>Encuentre su talla perfecta con nuestras tablas de equivalencia. Si tiene dudas, no dude en contactarnos — le ayudamos a elegir la talla ideal.</p>
+
+  <h2>Calzado Mujer</h2>
+  <table class="tallas-table">
+    <thead>
+      <tr>
+        <th>MX</th>
+        <th>US</th>
+        <th>EU</th>
+        <th>CM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>22</td><td>5</td><td>35</td><td>22.0</td></tr>
+      <tr><td>22.5</td><td>5.5</td><td>35.5</td><td>22.5</td></tr>
+      <tr><td>23</td><td>6</td><td>36</td><td>23.0</td></tr>
+      <tr><td>23.5</td><td>6.5</td><td>36.5</td><td>23.5</td></tr>
+      <tr><td>24</td><td>7</td><td>37</td><td>24.0</td></tr>
+      <tr><td>24.5</td><td>7.5</td><td>37.5</td><td>24.5</td></tr>
+      <tr><td>25</td><td>8</td><td>38</td><td>25.0</td></tr>
+      <tr><td>25.5</td><td>8.5</td><td>39</td><td>25.5</td></tr>
+      <tr><td>26</td><td>9</td><td>39.5</td><td>26.0</td></tr>
+      <tr><td>26.5</td><td>9.5</td><td>40</td><td>26.5</td></tr>
+      <tr><td>27</td><td>10</td><td>41</td><td>27.0</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Calzado Hombre</h2>
+  <table class="tallas-table">
+    <thead>
+      <tr>
+        <th>MX</th>
+        <th>US</th>
+        <th>EU</th>
+        <th>CM</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>25</td><td>7</td><td>39</td><td>25.0</td></tr>
+      <tr><td>25.5</td><td>7.5</td><td>40</td><td>25.5</td></tr>
+      <tr><td>26</td><td>8</td><td>40.5</td><td>26.0</td></tr>
+      <tr><td>26.5</td><td>8.5</td><td>41</td><td>26.5</td></tr>
+      <tr><td>27</td><td>9</td><td>42</td><td>27.0</td></tr>
+      <tr><td>27.5</td><td>9.5</td><td>42.5</td><td>27.5</td></tr>
+      <tr><td>28</td><td>10</td><td>43</td><td>28.0</td></tr>
+      <tr><td>28.5</td><td>10.5</td><td>44</td><td>28.5</td></tr>
+      <tr><td>29</td><td>11</td><td>44.5</td><td>29.0</td></tr>
+      <tr><td>29.5</td><td>11.5</td><td>45</td><td>29.5</td></tr>
+      <tr><td>30</td><td>12</td><td>46</td><td>30.0</td></tr>
+    </tbody>
+  </table>
+
+  <h2>¿Cómo medir tu pie?</h2>
+  <ol>
+    <li>Coloque una hoja de papel en el piso contra una pared.</li>
+    <li>Párese sobre la hoja con el talón tocando la pared.</li>
+    <li>Marque con un lápiz la punta de su dedo más largo.</li>
+    <li>Mida la distancia desde el borde de la hoja (pared) hasta la marca en centímetros.</li>
+    <li>Compare la medida con las tablas anteriores.</li>
+  </ol>
+
+  <h2>Recomendaciones</h2>
+  <ul>
+    <li>Mida sus pies al final del día, cuando están ligeramente más grandes.</li>
+    <li>Si su medida está entre dos tallas, le recomendamos elegir la talla mayor.</li>
+    <li>Considere que el calzado de piel tiende a ceder ligeramente con el uso.</li>
+    <li>Si tiene pie ancho, puede necesitar media talla más de lo indicado.</li>
+  </ul>
+
+  <h2>¿Necesita ayuda?</h2>
+  <p>Contáctenos y le orientamos con la talla ideal para el modelo que le interesa:</p>
+  <ul>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+    <li><strong>Correo:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+  </ul>
+</article>
+{% endblock %}

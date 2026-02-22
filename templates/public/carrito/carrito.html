@@ -707,7 +707,6 @@
         if (cliente.referencias) document.getElementById('referencias').value = cliente.referencias;
       }
     } catch (e) {
-      console.log('[Checkout] No se pudieron cargar datos del cliente');
     }
   }
 
@@ -832,7 +831,6 @@
     if (loading) loading.style.display = 'flex';
     
     try {
-      console.log('[Stripe] Iniciando creación de checkout para carrito:', window.CARRITO_ID);
       
       // Crear Checkout Session en el servidor
       const response = await fetch('/pago/crear-checkout/', {
@@ -845,9 +843,7 @@
         })
       });
       
-      console.log('[Stripe] Respuesta del servidor:', response.status);
       const data = await response.json();
-      console.log('[Stripe] Datos recibidos:', data);
       
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Error al crear checkout: ' + response.status);
@@ -859,12 +855,9 @@
         throw new Error('Respuesta del servidor incompleta: falta client_secret');
       }
       
-      console.log('[Stripe] Client Secret recibido');
       
       // Debug: Verificar que tengamos la public key
       const publicKey = '{{ stripe_public_key }}';
-      console.log('[Stripe] Public key desde template:', publicKey);
-      console.log('[Stripe] Public key length:', publicKey.length);
       
       if (!publicKey) {
         throw new Error('Stripe Public Key no está configurada en el servidor. Verifica la configuración en .env y settings.py');
@@ -878,7 +871,6 @@
       container.innerHTML = '';
       container.style.minHeight = '700px';
       
-      console.log('[Stripe] Inicializando Embedded Checkout...');
       
       // Montar Stripe Embedded Checkout
       const checkout = await stripe.initEmbeddedCheckout({
@@ -888,7 +880,6 @@
       stripeCheckoutInstance = checkout;
       checkout.mount('#stripeCheckoutContainer');
       
-      console.log('[Stripe] Checkout embebido montado correctamente');
       
     } catch (error) {
       console.error('❌ Error cargando Stripe:', error);

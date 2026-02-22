@@ -2,7 +2,7 @@
 .caballero-section,
 .dama-section,
 .todo-section {
-  padding: 180px 0 0px;
+  padding: 80px 0 0px;
   background: #fff;
   font-family: 'Helvetica Neue', sans-serif;
   opacity: 0;
@@ -140,7 +140,7 @@
   .caballero-section,
   .dama-section,
   .todo-section {
-    padding: 130px 0 40px;
+    padding: 0px 0 20px;
   }
 
   .productos-grid {
@@ -152,7 +152,7 @@
   .caballero-section,
   .dama-section,
   .todo-section {
-    padding: 120px 0 30px;
+    padding: 0px 0 20px;
   }
 
   .productos-grid {

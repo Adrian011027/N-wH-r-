@@ -242,7 +242,6 @@ def crear_orden_desde_payload(payload):
         # 4. (Opcional) Actualizar el estado del carrito
         carrito.save()
         data = model_to_dict(carrito, fields=['id','status','created_at','cliente','session_key'])
-        logger.debug("Carrito actualizado: %s", json.dumps(data, indent=2, default=str))
         
     return orden
 
@@ -400,11 +399,9 @@ def eliminar_producto(request, orden_id, producto_id):
 
     #Agarro todo el objeto filtrando el id de interes con variante id
     qs = (orden.detalles.select_related("variante", "variante__producto").filter(variante_id=producto_id))
-    #print(f"qs: {qs[0].id}")
     det = qs.first()
     if det:
         det.delete()
-        logger.debug("Eliminé el detalle de orden con id=%s", det.id)
         return JsonResponse(
 
         {"mensaje": f"Orden {qs.first().variante_id} eliminada correctamente."},

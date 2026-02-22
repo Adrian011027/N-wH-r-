@@ -16,9 +16,12 @@
 <!-- BANNER PRINCIPAL -->
 <section class="hero-banner">
   <div class="banner-text">
-    <p class="linea-1">Presenta</p>
-    <h1 class="linea-2">LUJO QUE DEJA HUELLA</h1>
-    <p class="linea-3">Colección Exclusiva 2025</p>
+    <p class="banner-tag">Calzado de Lujo</p>
+    <h1 class="banner-title">Colección Exclusiva</h1>
+    <div class="banner-links">
+      <a href="{% url 'coleccion_genero' 'dama' %}" class="banner-link">Descubrir Mujer</a>
+      <a href="{% url 'coleccion_genero' 'caballero' %}" class="banner-link">Descubrir Hombre</a>
+    </div>
   </div>
 
   <video autoplay muted loop playsinline preload="auto" class="banner-video">
@@ -38,25 +41,40 @@
   <div class="categoria-grid categoria-grid-generales">
     <div class="categoria-card">
       <a href="{% url 'coleccion_genero' 'dama' %}">
-        <img src="{% static 'images/20250604_1519_Tenis Louis Vuitton Elegante_simple_compose_01jwycyeyherft32svj1stky60.png' %}" alt="">
+        {% if cat_img_dama %}
+          <img src="{{ cat_img_dama }}" alt="Dama">
+        {% else %}
+          <img src="{% static 'images/20250604_1519_Tenis Louis Vuitton Elegante_simple_compose_01jwycyeyherft32svj1stky60.png' %}" alt="Dama">
+        {% endif %}
         <div class="overlay-text">Dama</div>
       </a>
     </div>
 
     <div class="categoria-card">
-      <img src="{% static 'images/20250604_1618_Accesorios de Lujo_remix_01jwygahkcf4vbmzebmxb45t1e.png' %}" alt="">
+      {% if cat_img_ofertas %}
+        <img src="{{ cat_img_ofertas }}" alt="Ofertas">
+      {% else %}
+        <img src="{% static 'images/20250604_1618_Accesorios de Lujo_remix_01jwygahkcf4vbmzebmxb45t1e.png' %}" alt="Ofertas">
+      {% endif %}
       <div class="overlay-text">Ofertas</div>
     </div>
 
     <div class="categoria-card">
-      <img src="{% static 'images/20250604_1536_Zapatilla Azul Diseño Lujo_remix_01jwydy3axff7v2jyac9mzvk94.png' %}" alt="">
+      {% if cat_img_accesorios %}
+        <img src="{{ cat_img_accesorios }}" alt="Accesorios">
+      {% else %}
+        <img src="{% static 'images/20250604_1536_Zapatilla Azul Diseño Lujo_remix_01jwydy3axff7v2jyac9mzvk94.png' %}" alt="Accesorios">
+      {% endif %}
       <div class="overlay-text">Accesorios</div>
     </div>
 
     <div class="categoria-card">
-
       <a href="{% url 'coleccion_genero' 'caballero' %}">
-        <img src="{% static 'images/20250604_1524_Zapatillas de Caballero_remix_01jwyd7hfeegt92gnagk5vm9nb.png' %}" alt="">
+        {% if cat_img_caballero %}
+          <img src="{{ cat_img_caballero }}" alt="Caballero">
+        {% else %}
+          <img src="{% static 'images/20250604_1524_Zapatillas de Caballero_remix_01jwyd7hfeegt92gnagk5vm9nb.png' %}" alt="Caballero">
+        {% endif %}
         <div class="overlay-text">Caballero</div>
       </a>
     </div>

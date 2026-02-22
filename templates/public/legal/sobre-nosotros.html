@@ -1,0 +1,39 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Sobre Nosotros — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">NöwHėrē</span>
+  <h1 class="legal-page__title">Sobre Nosotros</h1>
+  <hr class="legal-page__divider">
+
+  <p>NöwHėrē nació de la convicción de que el estilo no tiene fronteras. Somos una plataforma mexicana de comercio electrónico dedicada a acercar calzado y accesorios de diseño a quienes buscan piezas que trascienden tendencias.</p>
+
+  <h2>Nuestra filosofía</h2>
+  <p>Creemos en la intersección entre calidad, diseño y accesibilidad. Cada producto en nuestro catálogo es seleccionado bajo criterios exigentes de materiales, acabados y estética. No seguimos modas efímeras — privilegiamos piezas con identidad que acompañen a nuestros clientes en su día a día.</p>
+
+  <h2>Lo que nos define</h2>
+  <ul>
+    <li><strong>Curaduría rigurosa.</strong> Seleccionamos cada pieza garantizando estándares de calidad en materiales y construcción.</li>
+    <li><strong>Experiencia sin fricciones.</strong> Desde la navegación hasta la entrega, cuidamos cada detalle para que su experiencia de compra sea impecable.</li>
+    <li><strong>Atención real.</strong> Detrás de NöwHėrē hay un equipo que responde, escucha y resuelve. Sin bots, sin esperas innecesarias.</li>
+    <li><strong>Desde México, para México.</strong> Operamos desde Guadalajara, Jalisco, con envíos a toda la República Mexicana.</li>
+  </ul>
+
+  <h2>Nuestro compromiso</h2>
+  <p>Nos comprometemos a ofrecer productos que cumplan con las expectativas generadas en nuestra plataforma, un servicio de atención transparente y tiempos de entrega honestos. Cuando algo sale mal, lo resolvemos — así de simple.</p>
+
+  <h2>Contacto</h2>
+  <p>Nos encanta escuchar a nuestros clientes. Para cualquier consulta, sugerencia o propuesta comercial:</p>
+  <ul>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+    <li><strong>Correo electrónico:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+  </ul>
+</article>
+{% endblock %}

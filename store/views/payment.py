@@ -34,9 +34,6 @@ if not logger.handlers:
 
 # Configurar Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
-logger.debug("[INIT] stripe.api_key configurado: %s", "***" if stripe.api_key else "NONE")
-
-
 # ───────────────────────────────────────────────────────────────
 # Helpers
 # ───────────────────────────────────────────────────────────────

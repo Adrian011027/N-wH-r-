@@ -1632,7 +1632,7 @@ header.scrolled #Logo {
   position: relative;
 }
 
-/* T├¡tulo de la subcategor├¡a - Sobrepuesto arriba en negro */
+/* T├¡tulo de la subcategor├¡a - Sobrepuesto arriba en blanco */
 .lv-subcat-title {
   position: absolute;
   top: 20px;
@@ -1640,7 +1640,7 @@ header.scrolled #Logo {
   transform: translateX(-50%);
   font-size: 18px;
   font-weight: 600;
-  color: #000000;
+  color: #ffffff;
   letter-spacing: 2px;
   text-transform: uppercase;
   z-index: 10;
@@ -1649,6 +1649,7 @@ header.scrolled #Logo {
   width: 100%;
   padding: 0 20px;
   transition: transform 0.3s ease, font-size 0.3s ease;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 /* Hover sobre toda la subcategor├¡a agranda el t├¡tulo */

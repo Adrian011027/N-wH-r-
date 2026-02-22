@@ -69,7 +69,6 @@
     state.categoriaSeleccionada = null;
     state.subcategoriasSeleccionadas.clear();
 
-    console.log(`📍 Género seleccionado: ${genero}`);
 
     // Cargar nuevas categorías
     await cargarCategorias(genero);
@@ -147,7 +146,6 @@
     state.categoriaSeleccionada = categoriaId;
     state.subcategoriasSeleccionadas.clear();
 
-    console.log(`📂 Categoría seleccionada: ${categoriaNombre} (ID: ${categoriaId})`);
 
     // Actualizar estado visual (highlight)
     document.querySelectorAll('.categoria-btn').forEach(btn => {
@@ -260,7 +258,6 @@
       state.subcategoriasSeleccionadas.add(cb.value);
     });
 
-    console.log(`🏷️  Subcategorías seleccionadas:`, Array.from(state.subcategoriasSeleccionadas));
 
     // Cargar productos
     await cargarProductos();

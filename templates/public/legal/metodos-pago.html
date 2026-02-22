@@ -1,0 +1,68 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Métodos de Pago — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">Información</span>
+  <h1 class="legal-page__title">Métodos de Pago</h1>
+  <hr class="legal-page__divider">
+
+  <p>En <strong>NöwHėrē</strong> le ofrecemos opciones de pago seguras y confiables. Todos los pagos se procesan a través de <strong>Stripe</strong>, una plataforma líder en procesamiento de pagos certificada bajo los estándares de seguridad <strong>PCI-DSS</strong>.</p>
+
+  <h2>Tarjetas aceptadas</h2>
+  <div class="payment-methods">
+    <div class="payment-card">
+      <i class="fa-brands fa-cc-visa"></i>
+      <h3>Visa</h3>
+      <p>Crédito y Débito</p>
+    </div>
+    <div class="payment-card">
+      <i class="fa-brands fa-cc-mastercard"></i>
+      <h3>Mastercard</h3>
+      <p>Crédito y Débito</p>
+    </div>
+    <div class="payment-card">
+      <i class="fa-brands fa-cc-amex"></i>
+      <h3>American Express</h3>
+      <p>Crédito</p>
+    </div>
+  </div>
+
+  <h2>Seguridad en sus pagos</h2>
+  <ul>
+    <li><strong>NöwHėrē no almacena datos de tarjetas.</strong> Toda la información financiera es procesada directamente por Stripe.</li>
+    <li>Las transacciones están protegidas con <strong>cifrado SSL/TLS</strong> de extremo a extremo.</li>
+    <li>Stripe cumple con los estándares <strong>PCI-DSS Nivel 1</strong>, el nivel más alto de certificación en la industria de pagos.</li>
+    <li>Se aplican medidas de detección de fraude automáticas para proteger su cuenta.</li>
+  </ul>
+
+  <h2>Moneda</h2>
+  <p>Todos los precios están expresados en <strong>Pesos Mexicanos (MXN)</strong>. Si su tarjeta está denominada en otra moneda, su banco aplicará el tipo de cambio vigente al momento de la transacción.</p>
+
+  <h2>Facturación</h2>
+  <p>Si requiere factura fiscal (CFDI), puede solicitarla proporcionando sus datos fiscales (RFC, razón social y dirección fiscal) al momento de la compra o contactando a nuestro equipo después de realizar su pedido.</p>
+
+  <h2>Pagos por mayoreo</h2>
+  <p>Para compras al mayoreo (6 piezas o más), ofrecemos opciones de pago personalizadas. Contáctenos para recibir una cotización y coordinar la forma de pago más conveniente.</p>
+
+  <h2>¿Problemas con su pago?</h2>
+  <p>Si experimenta algún inconveniente al procesar su pago, verifique lo siguiente:</p>
+  <ul>
+    <li>Que su tarjeta esté habilitada para compras en línea.</li>
+    <li>Que cuente con fondos o crédito disponible suficiente.</li>
+    <li>Que los datos ingresados sean correctos (número, fecha de vencimiento, CVV).</li>
+    <li>Que su banco no esté bloqueando la transacción (algunos bancos requieren autorización previa para compras en línea).</li>
+  </ul>
+  <p>Si el problema persiste, contáctenos:</p>
+  <ul>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+    <li><strong>Correo:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+  </ul>
+</article>
+{% endblock %}
