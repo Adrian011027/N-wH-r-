@@ -16,10 +16,12 @@ timeout = 120
 # Keep-Alive (segundos)
 keepalive = 5
 
-# Logging
+
+# Logging - Modo DEBUG para ver todos los detalles
 accesslog = "/var/log/gunicorn/access.log"
 errorlog = "/var/log/gunicorn/error.log"
-loglevel = "info"
+loglevel = "debug"  # Cambiado de "info" a "debug" para ver más detalles
+
 
 # Max requests (reciclaje de workers para evitar memory leaks)
 max_requests = 1000
