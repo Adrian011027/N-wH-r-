@@ -54,7 +54,6 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
-    console.log('🎨 Inicializando sistema de filtros...');
     
     // Obtener elementos DOM
     dom.sidebar = document.getElementById('filtros-sidebar');
@@ -87,7 +86,6 @@
     // Event listeners
     setupEventListeners();
     
-    console.log('✅ Sistema de filtros inicializado');
   }
 
   function setupEventListeners() {
@@ -189,11 +187,9 @@
     state.filtros.categoria = activos.categoria || '';
     state.filtros.subcategoria = activos.subcategoria || '';
 
-    console.log('📋 Filtros activos cargados:', state.filtros);
   }
 
   async function cargarFiltrosDisponibles() {
-    console.log('🔄 Cargando opciones de filtros disponibles...');
     
     try {
       const params = new URLSearchParams();
@@ -210,7 +206,6 @@
       
       if (data.success) {
         state.filtrosDisponibles = data.filtros;
-        console.log('✅ Filtros disponibles:', state.filtrosDisponibles);
         
         // Renderizar opciones de filtros
         renderTallas();
@@ -471,7 +466,6 @@
   }
 
   function aplicarFiltros() {
-    console.log('🔄 Aplicando filtros...', state.filtros);
 
     // Construir parámetros
     const params = new URLSearchParams();

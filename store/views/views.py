@@ -51,9 +51,33 @@ def index(request):
         else:
             p.imagen = None
 
+    # ── Imágenes para tarjetas de categorías generales ──
+    def _get_hero_image(genero_list):
+        """Obtiene la URL de la imagen principal de un producto aleatorio del género dado."""
+        prod = (Producto.objects
+                .filter(genero__in=genero_list)
+                .prefetch_related("variantes__imagenes")
+                .order_by('?').first())
+        if prod:
+            vp = prod.variante_principal
+            if vp:
+                img = vp.imagenes.all().order_by('orden').first()
+                if img and img.imagen:
+                    return img.imagen.url
+        return None
+
+    cat_img_dama = _get_hero_image(["Mujer", "Unisex"])
+    cat_img_caballero = _get_hero_image(["Hombre", "Unisex"])
+    cat_img_ofertas = _get_hero_image(["Mujer", "Hombre", "Unisex"])
+    cat_img_accesorios = _get_hero_image(["Mujer", "Hombre", "Unisex"])
+
     return render(request, "public/home/index.html", {
         "cab_home": cab_home,
         "dama_home": dama_home,
+        "cat_img_dama": cat_img_dama,
+        "cat_img_caballero": cat_img_caballero,
+        "cat_img_ofertas": cat_img_ofertas,
+        "cat_img_accesorios": cat_img_accesorios,
     })
 
 
@@ -272,7 +296,7 @@ def genero_view(request, genero):
     
     # Renderizado HTML normal
     return render(request, "public/catalogo/productos_genero.html", {
-        "seccion": genero.lower(),
+        "seccion": get_seccion(genero_cod),
         "titulo": titulo,
         "genero_cod": genero_cod,
         "categorias": categorias,

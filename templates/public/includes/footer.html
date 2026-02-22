@@ -6,35 +6,35 @@
     <h4 class="accordion-toggle">AYUDA</h4>
     <div class="accordion-content">
       <p>¿Tienes dudas sobre tu pedido?</p>
-      <p>Contáctanos vía <a href="https://api.whatsapp.com/send/?phone=523322118360&text&type=phone_number&app_absent=0">WhatsApp</a> o envíanos un correo a <a href="mailto:jona.emir@hotmail.com">jona.emir@hotmail.com</a></p>
-      <p><a href="#">Preguntas Frecuentes</a></p>
-      <p><a href="#">Guía de Tallas</a></p>
+      <p>Contáctanos vía <a href="https://api.whatsapp.com/send/?phone=523322118360&text&type=phone_number&app_absent=0">WhatsApp</a> o envíanos un correo a <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></p>
+      <p><a href="{% url 'preguntas_frecuentes' %}">Preguntas Frecuentes</a></p>
+      <p><a href="{% url 'guia_tallas' %}">Guía de Tallas</a></p>
     </div>
   </div>
   <div class="info-col">
     <h4 class="accordion-toggle">SERVICIOS</h4>
     <div class="accordion-content">
-      <p><a href="#">Compra por Mayoreo</a></p>
-      <p><a href="#">Seguimiento de Envíos</a></p>
-      <p><a href="#">Política de Cambios</a></p>
-      <p><a href="#">Atención Personalizada</a></p>
+      <p><a href="https://api.whatsapp.com/send/?phone=523322118360&text=Hola%2C%20me%20interesa%20compra%20por%20mayoreo">Compra por Mayoreo</a></p>
+      <p><a href="https://api.whatsapp.com/send/?phone=523322118360&text=Hola%2C%20quiero%20rastrear%20mi%20pedido">Seguimiento de Envíos</a></p>
+      <p><a href="{% url 'politica_cambios' %}">Política de Cambios</a></p>
+      <p><a href="https://api.whatsapp.com/send/?phone=523322118360">Atención Personalizada</a></p>
     </div>
   </div>
   <div class="info-col">
-    <h4 class="accordion-toggle">INFORMACION</h4>
+    <h4 class="accordion-toggle">INFORMACIÓN</h4>
     <div class="accordion-content">
-      <p><a href="#">Sobre Nosotros</a></p>
-      <p><a href="#">Métodos de Pago</a></p>
-      <p><a href="#">Privacidad y Seguridad</a></p>
-      <p><a href="#">Términos y Condiciones</a></p>
+      <p><a href="{% url 'sobre_nosotros' %}">Sobre Nosotros</a></p>
+      <p><a href="{% url 'metodos_pago' %}">Métodos de Pago</a></p>
+      <p><a href="{% url 'aviso_privacidad' %}">Privacidad y Seguridad</a></p>
+      <p><a href="{% url 'terminos_condiciones' %}">Términos y Condiciones</a></p>
     </div>
   </div>
   <div class="info-col">
-    <h4 class="accordion-toggle">Mayoreo</h4>
+    <h4 class="accordion-toggle">MAYOREO</h4>
     <div class="accordion-content">
       <p>¿Eres revendedor o tienda?</p>
       <p>Mayoreo a partir de 6 pzs.</p>
-      <p><a href="#">Solicita Cotización</a></p>
+      <p><a href="https://api.whatsapp.com/send/?phone=523322118360&text=Hola%2C%20me%20interesa%20una%20cotizaci%C3%B3n%20de%20mayoreo">Solicita Cotización</a></p>
     </div>
   </div>
 </section>
@@ -43,12 +43,12 @@
 <footer class="site-footer fade-in-footer">
   <div class="footer-container">
     <div class="footer-links">
-      <a href="#">Avisos Legales</a>
+      <a href="{% url 'terminos_condiciones' %}">Avisos Legales</a>
     </div>
     <img src="{% static 'images/NowHere.svg' %}" id="Logo-footer" class="fade-in" alt="NöwHėrē">
     <div class="footer-social">
-      <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-      <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://www.instagram.com/nowheremx" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://www.facebook.com/nowheremx" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
       <a href="https://api.whatsapp.com/send/?phone=523322118360&text&type=phone_number&app_absent=0" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
     </div>
   </div>

@@ -84,7 +84,6 @@ async function fetchWithAuth(url, options = {}) {
 
     // Si el token expiró (401), intentar renovarlo
     if (response.status === 401 && token) {
-        console.log('Token expirado, renovando...');
         
         token = await refreshAccessToken();
         

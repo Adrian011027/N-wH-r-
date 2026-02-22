@@ -1,0 +1,94 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Términos y Condiciones — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">Legal</span>
+  <h1 class="legal-page__title">Términos y Condiciones</h1>
+  <hr class="legal-page__divider">
+  <span class="legal-page__updated">Última actualización: 1 de enero de 2026</span>
+
+  <p>Bienvenido a <strong>NöwHėrē</strong>. Al acceder y utilizar este sitio web (en adelante, "el Sitio"), usted acepta los presentes Términos y Condiciones en su totalidad. Si no está de acuerdo con alguno de estos términos, le sugerimos no utilizar el Sitio.</p>
+
+  <h2>1. Información general</h2>
+  <p><strong>NöwHėrē</strong> es una plataforma de comercio electrónico dedicada a la venta de calzado y accesorios de lujo, operada desde México. El uso del Sitio está sujeto a las leyes aplicables de los Estados Unidos Mexicanos, incluyendo la Ley Federal de Protección al Consumidor (LFPC) y el Código de Comercio.</p>
+
+  <h2>2. Uso del sitio</h2>
+  <ul>
+    <li>El usuario debe ser mayor de 18 años o contar con autorización de un tutor legal para realizar compras.</li>
+    <li>El usuario se compromete a proporcionar información veraz, completa y actualizada al registrarse y al realizar pedidos.</li>
+    <li>Queda prohibido el uso del Sitio para fines ilícitos, fraudulentos o que puedan causar daño a NöwHėrē o a terceros.</li>
+    <li>NöwHėrē se reserva el derecho de suspender o cancelar cuentas que incumplan estos términos.</li>
+  </ul>
+
+  <h2>3. Registro de cuenta</h2>
+  <p>Para realizar compras es posible registrar una cuenta proporcionando un nombre de usuario, correo electrónico y contraseña. El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso. Cualquier actividad realizada bajo su cuenta será responsabilidad del titular.</p>
+
+  <h2>4. Productos y precios</h2>
+  <ul>
+    <li>Los productos exhibidos en el Sitio están sujetos a disponibilidad.</li>
+    <li>Los precios se muestran en <strong>Pesos Mexicanos (MXN)</strong> e incluyen IVA cuando corresponda.</li>
+    <li>NöwHėrē se reserva el derecho de modificar precios, descripciones y disponibilidad de los productos sin previo aviso.</li>
+    <li>Las fotografías de los productos son de carácter ilustrativo. Pueden existir variaciones menores de color o textura respecto al producto físico.</li>
+    <li>En caso de error manifiesto en el precio de un producto, NöwHėrē podrá cancelar el pedido y proceder al reembolso correspondiente.</li>
+  </ul>
+
+  <h2>5. Proceso de compra</h2>
+  <ol>
+    <li>Agregue los productos deseados al carrito de compras.</li>
+    <li>Revise su pedido y proporcione la información de envío.</li>
+    <li>Seleccione su método de pago y complete la transacción.</li>
+    <li>Recibirá una confirmación de pedido por correo electrónico y/o WhatsApp.</li>
+  </ol>
+  <p>La confirmación de pedido no constituye aceptación definitiva. NöwHėrē se reserva el derecho de rechazar o cancelar pedidos por motivos de disponibilidad, detección de fraude u otros motivos justificados.</p>
+
+  <h2>6. Métodos de pago</h2>
+  <p>Los pagos se procesan a través de <strong>Stripe</strong>, una plataforma certificada en seguridad PCI-DSS. Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express). NöwHėrē no almacena datos de tarjetas de crédito en sus servidores.</p>
+
+  <h2>7. Envíos y entregas</h2>
+  <ul>
+    <li>Los envíos se realizan dentro de la República Mexicana.</li>
+    <li>Los tiempos de entrega estimados son de <strong>5 a 15 días hábiles</strong>, dependiendo de la ubicación y disponibilidad del producto.</li>
+    <li>Los costos de envío se calcularán y mostrarán antes de confirmar la compra.</li>
+    <li>NöwHėrē no se hace responsable por retrasos causados por servicios de paquetería, condiciones climáticas o causas de fuerza mayor.</li>
+    <li>El cliente recibirá un número de rastreo para dar seguimiento a su envío.</li>
+  </ul>
+
+  <h2>8. Cambios y devoluciones</h2>
+  <p>Consulte nuestra <a href="{% url 'politica_cambios' %}">Política de Cambios y Devoluciones</a> para conocer los términos completos. En general:</p>
+  <ul>
+    <li>Los cambios se aceptan dentro de los <strong>7 días naturales</strong> posteriores a la recepción del producto.</li>
+    <li>El producto debe estar en condiciones originales, sin uso, con etiquetas y empaque original.</li>
+    <li>No se aceptan devoluciones de productos en oferta o liquidación, salvo defectos de fábrica.</li>
+  </ul>
+
+  <h2>9. Propiedad intelectual</h2>
+  <p>Todo el contenido del Sitio (textos, imágenes, logotipos, diseño, código fuente, marcas) es propiedad de NöwHėrē o de sus respectivos titulares. Queda prohibida su reproducción, distribución o modificación sin autorización expresa por escrito.</p>
+
+  <h2>10. Limitación de responsabilidad</h2>
+  <ul>
+    <li>NöwHėrē no garantiza la disponibilidad ininterrumpida del Sitio.</li>
+    <li>No somos responsables por daños indirectos, incidentales o consecuentes derivados del uso del Sitio.</li>
+    <li>NöwHėrē no se responsabiliza por el contenido de sitios web de terceros enlazados desde el Sitio.</li>
+  </ul>
+
+  <h2>11. Ley aplicable y jurisdicción</h2>
+  <p>Los presentes Términos y Condiciones se rigen por las leyes de los Estados Unidos Mexicanos. Para la resolución de cualquier controversia, las partes se someten a la jurisdicción de los tribunales competentes de la ciudad de Guadalajara, Jalisco, México, renunciando a cualquier otro fuero que pudiera corresponderles.</p>
+
+  <h2>12. Modificaciones</h2>
+  <p>NöwHėrē se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Las modificaciones entrarán en vigor a partir de su publicación en el Sitio. El uso continuado del Sitio constituye aceptación de los términos modificados.</p>
+
+  <h2>13. Contacto</h2>
+  <p>Para cualquier consulta relacionada con estos Términos y Condiciones:</p>
+  <ul>
+    <li><strong>Correo electrónico:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+  </ul>
+</article>
+{% endblock %}

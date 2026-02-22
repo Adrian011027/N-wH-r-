@@ -40,35 +40,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // AGREGAR IMÁGENES DE VARIANTES AL FORMDATA
     if (window.variantGalleries) {
-      console.log('[FORM] Procesando imágenes de variantes...');
-      console.log('[FORM] window.variantGalleries:', window.variantGalleries);
       
       for (const varianteId in window.variantGalleries) {
         const gallery = window.variantGalleries[varianteId];
-        console.log(`[FORM] Variante ${varianteId}:`, gallery);
         
         // Agregar imágenes nuevas de esta variante
         if (gallery.newImages && gallery.newImages.length > 0) {
-          console.log(`[FORM] Variante ${varianteId}: agregando ${gallery.newImages.length} imagen(es)`);
           gallery.newImages.forEach((imgData, idx) => {
             const fieldName = `variante_imagen_${varianteId}_${idx}`;
             formData.append(fieldName, imgData.file);
-            console.log(`[FORM] Campo agregado: ${fieldName}`);
           });
         }
         
         // Agregar IDs de imágenes a eliminar de esta variante
         if (gallery.imagesToDelete && gallery.imagesToDelete.size > 0) {
           const deleteIds = Array.from(gallery.imagesToDelete);
-          console.log(`[FORM] Variante ${varianteId}: marcando ${deleteIds.length} imagen(es) para eliminar`);
-          console.log(`[FORM] IDs a eliminar:`, deleteIds);
           formData.append(`variante_imagenes_a_eliminar_${varianteId}`, JSON.stringify(deleteIds));
         } else {
-          console.log(`[FORM] Variante ${varianteId}: sin imágenes para eliminar`);
         }
       }
     } else {
-      console.log('[FORM] window.variantGalleries no existe');
     }
 
     try {
@@ -114,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (window.variantGalleries && window.variantGalleries[vId]) {
             const gallery = window.variantGalleries[vId];
             if (gallery.newImages && gallery.newImages.length > 0) {
-              console.log(`[CREATE] Agregando ${gallery.newImages.length} imagen(es) para nueva variante ${vId}`);
               gallery.newImages.forEach((imgData, idx) => {
                 createFormData.append(`imagenes_${idx}`, imgData.file);
               });
@@ -132,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error(`Error al crear variante: ${errorData.error || 'Error desconocido'}`);
           } else {
             const createData = await createRes.json();
-            console.log(`[SUCCESS] Variante creada con ID ${createData.id}`);
           }
 
         } else {
@@ -154,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const errorData = await varRes.json();
             console.error(`[ERROR] Error actualizando variante ${vId}:`, errorData);
           } else {
-            console.log(`[SUCCESS] Variante ${vId} actualizada correctamente`);
           }
         }
       }

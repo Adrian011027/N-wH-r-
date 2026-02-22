@@ -72,11 +72,18 @@ def get_genero_filter(param):
 
 def get_seccion(genero_cod):
     """
-    Retorna el nombre de sección para templates ('dama' o 'caballero').
+    Retorna el nombre de sección para templates ('dama', 'caballero' o 'todo').
     
     >>> get_seccion('Mujer')
     'dama'
     >>> get_seccion('Hombre')
     'caballero'
+    >>> get_seccion('Todo')
+    'todo'
     """
-    return 'dama' if genero_cod == 'Mujer' else 'caballero'
+    if genero_cod == 'Mujer':
+        return 'dama'
+    elif genero_cod == 'Todo':
+        return 'todo'
+    else:
+        return 'caballero'

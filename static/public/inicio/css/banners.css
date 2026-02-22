@@ -34,48 +34,64 @@
 
 .banner-text {
   position: absolute;
-  bottom: 50%;
+  bottom: 60%;
   text-align: center;
   color: #1D1D1D;
   z-index: 10;
   width: 100%;
   padding: 0 20px;
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 6s ease 2s, transform 6s ease 2s;
-   box-sizing:border-box;   /* opcional, hace que padding no sume ancho */
+  transform: translateY(16px);
+  transition: opacity 1.2s ease 1.5s, transform 1.2s ease 1.5s;
+  box-sizing: border-box;
 }
 
-
-
-.banner-text.fade-in{
+.banner-text.fade-in {
   opacity: 1;
   transform: translateY(0);
-
 }
 
-.banner-text .linea-1 {
-  font-size: 26px;
+.banner-tag {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 11px;
   font-weight: 400;
-  margin-bottom: 0.5em;
-  margin-right: 1em;
-  letter-spacing: 1px;
-   font-family: 'InstrumentSerif', serif;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 1em;
+  color: rgba(29, 29, 29, 0.7);
 }
 
-.banner-text .linea-2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.3em;
-  letter-spacing: 2px;
+.banner-title {
   font-family: 'InstrumentSerif', serif;
+  font-size: 2.8rem;
+  font-weight: 400;
+  letter-spacing: 1px;
+  margin-bottom: 1.2em;
+  color: #1D1D1D;
+  line-height: 1.15;
 }
 
-.banner-text .linea-3 {
-  font-size: 2.3rem;
-  font-weight: 300;
-  letter-spacing: 1px;
-  font-family: 'InstrumentSerif', serif;
+.banner-links {
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+}
+
+.banner-link {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #1D1D1D;
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(29, 29, 29, 0.5);
+  transition: border-color 0.3s ease;
+}
+
+.banner-link:hover {
+  border-color: #1D1D1D;
 }
 
 
@@ -131,20 +147,25 @@
     max-height: none;
   }
   .banner-text {
-    bottom: 55%;
-    padding: 0 10px;
-  }
-  .banner-text .linea-1 {
-    font-family: 'InstrumentSerif', serif;
-    font-size: 20px; 
+    bottom: 60%;
+    padding: 0 16px;
   }
 
-  .banner-text .linea-2 { 
-    font-size: 1.8rem; 
+  .banner-tag {
+    font-size: 10px;
+    letter-spacing: 2px;
   }
 
-  .banner-text .linea-3 { 
-    font-size: 1rem; 
+  .banner-title {
+    font-size: 1.6rem;
+  }
+
+  .banner-links {
+    gap: 24px;
+  }
+
+  .banner-link {
+    font-size: 10px;
   }
 
   .banner2-section { height: calc(var(--app-h, 100vh) * 0.5); }

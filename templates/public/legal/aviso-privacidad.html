@@ -1,0 +1,102 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Aviso de Privacidad — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">Legal</span>
+  <h1 class="legal-page__title">Aviso de Privacidad</h1>
+  <hr class="legal-page__divider">
+  <span class="legal-page__updated">Última actualización: 1 de enero de 2026</span>
+
+  <p>En cumplimiento con la <strong>Ley Federal de Protección de Datos Personales en Posesión de los Particulares</strong> (LFPDPPP) y su Reglamento, <strong>NöwHėrē</strong>, con domicilio en México, pone a su disposición el presente Aviso de Privacidad.</p>
+
+  <h2>1. Responsable del tratamiento</h2>
+  <p><strong>NöwHėrē</strong> es responsable de la recopilación, uso, almacenamiento, tratamiento y protección de sus datos personales. Puede contactarnos a través de nuestro correo electrónico: <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a> o vía WhatsApp al <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a>.</p>
+
+  <h2>2. Datos personales que recopilamos</h2>
+  <p>Para las finalidades indicadas en el presente aviso, podemos recabar las siguientes categorías de datos personales:</p>
+  <ul>
+    <li><strong>Datos de identificación:</strong> nombre completo, nombre de usuario.</li>
+    <li><strong>Datos de contacto:</strong> correo electrónico, número de teléfono, teléfono alternativo.</li>
+    <li><strong>Datos de envío:</strong> calle, colonia, código postal, ciudad, estado, referencias de entrega.</li>
+    <li><strong>Datos fiscales</strong> (solo cuando usted los proporcione voluntariamente para facturación): RFC, razón social, dirección fiscal.</li>
+    <li><strong>Datos de navegación:</strong> dirección IP, tipo de navegador, páginas visitadas, cookies y tecnologías similares.</li>
+    <li><strong>Datos de transacción:</strong> historial de compras, productos seleccionados, montos, estado de la orden.</li>
+  </ul>
+  <p><strong>No recopilamos datos financieros sensibles.</strong> Los pagos se procesan a través de <strong>Stripe</strong>, quien opera como procesador independiente bajo sus propias políticas de privacidad y seguridad (PCI-DSS).</p>
+
+  <h2>3. Finalidades del tratamiento</h2>
+  <h3>Finalidades primarias (necesarias)</h3>
+  <ul>
+    <li>Procesar y gestionar sus pedidos de compra.</li>
+    <li>Gestionar su cuenta de usuario en la plataforma.</li>
+    <li>Enviar confirmaciones de pedido, actualizaciones de envío y tickets de compra.</li>
+    <li>Gestionar cambios, devoluciones y reclamaciones.</li>
+    <li>Atender solicitudes de contacto, soporte y servicio al cliente.</li>
+    <li>Emitir comprobantes fiscales cuando así lo solicite.</li>
+    <li>Cumplir con obligaciones legales y regulatorias.</li>
+  </ul>
+  <h3>Finalidades secundarias (opcionales)</h3>
+  <ul>
+    <li>Enviar comunicaciones promocionales, ofertas y novedades sobre nuestros productos.</li>
+    <li>Realizar análisis estadísticos y estudios de mercado internos.</li>
+    <li>Personalizar su experiencia de navegación y las recomendaciones de productos.</li>
+  </ul>
+  <p>Si usted no desea que sus datos sean tratados para las finalidades secundarias, puede manifestarlo enviando un correo a <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a> con el asunto "Finalidades secundarias".</p>
+
+  <h2>4. Transferencia de datos</h2>
+  <p>Sus datos personales podrán ser compartidos con los siguientes terceros, sin requerir su consentimiento, de acuerdo con el artículo 37 de la LFPDPPP:</p>
+  <ul>
+    <li><strong>Stripe, Inc.</strong> — Procesamiento de pagos en línea.</li>
+    <li><strong>Servicios de paquetería</strong> — Para la entrega de sus pedidos.</li>
+    <li><strong>Amazon Web Services (AWS)</strong> — Almacenamiento seguro de datos en la nube.</li>
+    <li><strong>Autoridades competentes</strong> — Cuando sea requerido por ley o resolución judicial.</li>
+  </ul>
+
+  <h2>5. Cookies y tecnologías de rastreo</h2>
+  <p>Nuestro sitio web utiliza cookies propias y de terceros para:</p>
+  <ul>
+    <li>Mantener su sesión activa y el carrito de compras.</li>
+    <li>Recordar sus preferencias de navegación.</li>
+    <li>Generar estadísticas de uso del sitio.</li>
+  </ul>
+  <p>Usted puede desactivar las cookies no esenciales desde la configuración de su navegador. Tenga en cuenta que desactivar ciertas cookies puede afectar la funcionalidad del sitio.</p>
+
+  <h2>6. Derechos ARCO</h2>
+  <p>Usted tiene derecho a <strong>Acceder, Rectificar, Cancelar u Oponerse</strong> (derechos ARCO) al tratamiento de sus datos personales. Para ejercer cualquiera de estos derechos, envíe una solicitud a <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a> con la siguiente información:</p>
+  <ul>
+    <li>Nombre completo y datos de contacto.</li>
+    <li>Descripción clara del derecho que desea ejercer.</li>
+    <li>Cualquier documento que acredite su identidad.</li>
+  </ul>
+  <p>Responderemos su solicitud en un plazo máximo de <strong>20 días hábiles</strong>, conforme a lo establecido por la LFPDPPP.</p>
+
+  <h2>7. Medidas de seguridad</h2>
+  <p>NöwHėrē implementa medidas de seguridad técnicas, administrativas y físicas para proteger sus datos personales contra daño, pérdida, alteración, destrucción o uso no autorizado, incluyendo:</p>
+  <ul>
+    <li>Cifrado SSL/TLS en todas las comunicaciones.</li>
+    <li>Almacenamiento seguro con acceso restringido.</li>
+    <li>Autenticación mediante tokens JWT con expiración.</li>
+    <li>Procesamiento de pagos delegado a plataformas certificadas PCI-DSS.</li>
+  </ul>
+
+  <h2>8. Modificaciones al aviso</h2>
+  <p>NöwHėrē se reserva el derecho de modificar el presente Aviso de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página con la fecha de actualización correspondiente. Le recomendamos revisar periódicamente este aviso.</p>
+
+  <h2>9. Consentimiento</h2>
+  <p>Al proporcionar sus datos personales a través de nuestro sitio web, formas de registro o proceso de compra, usted otorga su consentimiento expreso para el tratamiento de sus datos conforme a los términos del presente Aviso de Privacidad.</p>
+
+  <h2>10. Contacto</h2>
+  <p>Para cualquier duda, aclaración o solicitud relacionada con la protección de sus datos personales, puede contactarnos en:</p>
+  <ul>
+    <li><strong>Correo electrónico:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+  </ul>
+</article>
+{% endblock %}

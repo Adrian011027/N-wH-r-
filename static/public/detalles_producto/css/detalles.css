@@ -2,6 +2,25 @@
    DETALLE PRODUCTO – CSS unificado
    =========================================================== */
 
+/* ========== Header override para página de detalle ========== */
+/* El header global es transparente con iconos oscuros;
+   aquí los forzamos a blanco para que se vean sobre la imagen */
+body:has(.detalle-section) header .burger span {
+  background: #fff !important;
+}
+body:has(.detalle-section) header .menu-label {
+  color: #fff !important;
+}
+body:has(.detalle-section) header .user-icon svg {
+  stroke: #fff !important;
+}
+body:has(.detalle-section) header .btn-contacto {
+  color: #fff !important;
+}
+body:has(.detalle-section) header #Logo {
+  filter: brightness(0) invert(1);
+}
+
 /* ========== 1. Layout general ========== */
 
 /* Contenedor principal: divide imagen e info en columnas */

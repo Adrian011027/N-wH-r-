@@ -10,7 +10,6 @@ window.galleryManager = {
       newImages: this.newImages,
       imagesToDelete: Array.from(this.imagesToDelete)
     };
-    console.log('Gallery state updated:', window.galleryDataToSubmit);
   },
   
   addImage(file) {
@@ -45,12 +44,10 @@ window.galleryManager = {
   },
   
   deleteImage(imageId) {
-    console.log('deleteImage() llamado con ID:', imageId);
     if (imageId.startsWith('new_')) {
       this.newImages = this.newImages.filter(img => img.id !== imageId);
     } else {
       const parsedId = parseInt(imageId);
-      console.log('Agregando a imagesToDelete:', parsedId);
       this.imagesToDelete.add(parsedId);
     }
 
@@ -95,10 +92,8 @@ window.galleryManager = {
   },
   
   attachDeleteListeners() {
-    console.log('attachDeleteListeners() inicializando...');
     // Remover listeners anteriores clonando los botones para limpiar eventos
     const buttons = document.querySelectorAll('.btn-delete-existing');
-    console.log('Botones encontrados:', buttons.length);
     
     buttons.forEach(btn => {
       const newBtn = btn.cloneNode(true);
@@ -107,15 +102,12 @@ window.galleryManager = {
     
     // Agregar listeners nuevos a los botones actualizados
     const buttonsToAttach = document.querySelectorAll('.btn-delete-existing');
-    console.log('Botones para asignar listeners:', buttonsToAttach.length);
     
     buttonsToAttach.forEach((btn, index) => {
-      console.log('Asignando listener al botón', index, 'con ID:', btn.dataset.imageId);
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const imageId = btn.dataset.imageId;
-        console.log('Click detectado! Eliminando imagen:', imageId);
         window.galleryManager.deleteImage(imageId);
       });
     });
@@ -133,7 +125,6 @@ window.galleryManager = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOMContentLoaded disparado en gallery-edit.js');
   
   // SIEMPRE inicializar los listeners de eliminación (existentes)
   window.galleryManager.updateGlobalState();
@@ -145,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Si no hay elementos para carga, salir
   if (!galeriaInput || !uploadAreaEdit) {
-    console.log('galeriaInput o uploadAreaEdit no encontrados, abortando inicialización de carga');
     return;
   }
 

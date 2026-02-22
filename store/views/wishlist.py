@@ -69,12 +69,11 @@ def wishlist_detail(request, id_cliente):
                     token_user_id = payload.get('user_id')
                     token_user_role = payload.get('role', 'cliente')
         except jwt.ExpiredSignatureError:
-            logger.debug("Token expirado")
+            pass
         except jwt.InvalidTokenError:
-            logger.debug("Token inválido")
-        except Exception as e:
-            logger.debug(f"Error al decodificar token: {e}")
-    
+            pass
+        except Exception:
+            pass
     # También verificar sesión (para usuarios logueados por web)
     session_cliente_id = request.session.get('cliente_id')
     
@@ -179,12 +178,11 @@ def wishlist_all(request, id_cliente):
                     token_user_id = payload.get('user_id')
                     token_user_role = payload.get('role', 'cliente')
         except jwt.ExpiredSignatureError:
-            logger.debug("Token expirado")
+            pass
         except jwt.InvalidTokenError:
-            logger.debug("Token inválido")
-        except Exception as e:
-            logger.debug(f"Error al decodificar token: {e}")
-    
+            pass
+        except Exception:
+            pass
     # También verificar sesión (para usuarios logueados por web)
     session_cliente_id = request.session.get('cliente_id')
     

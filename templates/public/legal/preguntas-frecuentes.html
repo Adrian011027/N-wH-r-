@@ -1,0 +1,160 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block title %}Preguntas Frecuentes — NöwHėrē{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public/css/legal.css' %}">
+{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <span class="legal-page__tag">Ayuda</span>
+  <h1 class="legal-page__title">Preguntas Frecuentes</h1>
+  <hr class="legal-page__divider">
+
+  <h2>Pedidos y Compras</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cómo realizo un pedido?</div>
+    <div class="faq-answer">
+      <p>Explore nuestro catálogo, seleccione el producto y talla deseada, agréguelo al carrito y complete el proceso de pago. Recibirá una confirmación de pedido por correo electrónico.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Necesito una cuenta para comprar?</div>
+    <div class="faq-answer">
+      <p>Puede realizar compras como invitado o registrarse para acceder a beneficios como historial de pedidos, lista de deseos y seguimiento de envíos desde su perfil.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Qué métodos de pago aceptan?</div>
+    <div class="faq-answer">
+      <p>Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express) a través de Stripe, una plataforma de pago segura certificada PCI-DSS. Para más detalles, visite nuestra página de <a href="{% url 'metodos_pago' %}">Métodos de Pago</a>.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Puedo modificar o cancelar mi pedido?</div>
+    <div class="faq-answer">
+      <p>Puede cancelar su pedido sin costo antes de que haya sido enviado. Contáctenos lo antes posible vía WhatsApp o correo electrónico. Una vez enviado, aplican las condiciones de nuestra Política de Cambios y Devoluciones.</p>
+    </div>
+  </div>
+
+  <h2>Envíos</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cuánto tarda mi envío?</div>
+    <div class="faq-answer">
+      <p>Los tiempos de entrega estimados son de <strong>5 a 15 días hábiles</strong> dependiendo de su ubicación dentro de la República Mexicana y la disponibilidad del producto.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Hacen envíos internacionales?</div>
+    <div class="faq-answer">
+      <p>Actualmente los envíos se realizan exclusivamente dentro de la República Mexicana. Estamos trabajando para expandir nuestro alcance.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cómo puedo rastrear mi pedido?</div>
+    <div class="faq-answer">
+      <p>Una vez que su pedido haya sido enviado, recibirá un número de rastreo por correo electrónico o WhatsApp. También puede consultar el estado de sus pedidos desde la sección "Mis Pedidos" en su perfil.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cuánto cuesta el envío?</div>
+    <div class="faq-answer">
+      <p>Los costos de envío se calculan según su ubicación y se muestran antes de confirmar la compra. Ocasionalmente ofrecemos promociones de envío gratuito.</p>
+    </div>
+  </div>
+
+  <h2>Cambios y Devoluciones</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Puedo cambiar la talla de mi producto?</div>
+    <div class="faq-answer">
+      <p>Sí, aceaptamos cambios de talla dentro de los 7 días naturales posteriores a la recepción, siempre que el producto esté sin uso, con etiquetas y empaque original. El cliente cubre el costo de envío de devolución. Consulte nuestra <a href="{% url 'politica_cambios' %}">Política de Cambios</a> para más detalles.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cómo solicito una devolución?</div>
+    <div class="faq-answer">
+      <p>Contáctenos vía WhatsApp o correo indicando su número de orden, el motivo y evidencia fotográfica. Evaluaremos su solicitud en un plazo máximo de 3 días hábiles.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cuánto tarda mi reembolso?</div>
+    <div class="faq-answer">
+      <p>Una vez recibido y verificado el producto devuelto, el reembolso se procesará en un plazo de 5 a 10 días hábiles al mismo método de pago utilizado en la compra.</p>
+    </div>
+  </div>
+
+  <h2>Productos</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Son originales los productos?</div>
+    <div class="faq-answer">
+      <p>Todos los productos ofrecidos en NöwHėrē son cuidadosamente seleccionados. Las marcas mencionadas se utilizan únicamente como referencia de estilo y/o diseño.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cómo elijo la talla correcta?</div>
+    <div class="faq-answer">
+      <p>Consulte nuestra <a href="{% url 'guia_tallas' %}">Guía de Tallas</a> donde encontrará tablas de equivalencia y recomendaciones de medición para asegurar el ajuste perfecto.</p>
+    </div>
+  </div>
+
+  <h2>Cuenta y Seguridad</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Cómo recupero mi contraseña?</div>
+    <div class="faq-answer">
+      <p>En la página de inicio de sesión, seleccione "¿Olvidaste tu contraseña?" e ingrese su correo electrónico registrado. Recibirá un enlace para crear una nueva contraseña.</p>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Mis datos están seguros?</div>
+    <div class="faq-answer">
+      <p>Sí, utilizamos cifrado SSL/TLS en todas las comunicaciones y los pagos se procesan a través de Stripe (PCI-DSS). No almacenamos datos de tarjetas de crédito. Consulte nuestro <a href="{% url 'aviso_privacidad' %}">Aviso de Privacidad</a> para más información.</p>
+    </div>
+  </div>
+
+  <h2>Mayoreo</h2>
+
+  <div class="faq-item">
+    <div class="faq-question">¿Venden al mayoreo?</div>
+    <div class="faq-answer">
+      <p>Sí, ofrecemos precios especiales para compras al mayoreo a partir de 6 piezas. Contáctenos vía WhatsApp para recibir una cotización personalizada.</p>
+    </div>
+  </div>
+
+  <h2>¿Más preguntas?</h2>
+  <p>Estamos para ayudarle. Contáctenos por cualquiera de estos medios:</p>
+  <ul>
+    <li><strong>WhatsApp:</strong> <a href="https://api.whatsapp.com/send/?phone=523322118360">+52 332 211 8360</a></li>
+    <li><strong>Correo:</strong> <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a></li>
+  </ul>
+</article>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.faq-question').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.closest('.faq-item');
+    const wasActive = item.classList.contains('active');
+    document.querySelectorAll('.faq-item.active').forEach(i => i.classList.remove('active'));
+    if (!wasActive) item.classList.add('active');
+  });
+});
+</script>
+{% endblock %}

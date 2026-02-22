@@ -673,7 +673,6 @@ def finalizar_compra(request, carrito_id):
         "total_amount": float(round(total_amount, 2)),
         "items"       : items,
     }
-    logger.debug("Payload finalizar_compra: %s", json.dumps(payload, indent=2, ensure_ascii=False))
 
     # ───── Evitar duplicación de órdenes ───────────────────────────
     orden = Orden.objects.filter(carrito=carrito).first()
