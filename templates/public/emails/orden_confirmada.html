@@ -1,371 +1,97 @@
 <!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Pedido Confirmado – NöwHėrē</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
+  <title>Pedido Confirmado</title>
   <style>
-    /* ══════════════════════════════════════════════════
-       NöwHėrē – Order Confirmation Email v2
-       Premium monochrome with subtle warm accents
-       ══════════════════════════════════════════════════ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      line-height: 1.7;
+      line-height: 1.6;
       color: #1a1a1a;
-      background-color: #f0f0f0;
-      padding: 0;
-      margin: 0;
+      background-color: #f5f5f5;
       -webkit-font-smoothing: antialiased;
       -webkit-text-size-adjust: 100%;
     }
+    .wrapper { width: 100%; background-color: #f5f5f5; padding: 40px 16px; }
+    .container { background-color: #fff; max-width: 580px; margin: 0 auto; border: 1px solid #e8e8e8; }
 
-    .wrapper {
-      width: 100%;
-      background-color: #f0f0f0;
-      padding: 32px 16px;
-    }
+    /* Header */
+    .header { background-color: #0d0d0d; padding: 48px 40px; text-align: center; }
+    .brand { font-size: 24px; font-weight: 300; letter-spacing: 10px; color: #fff; text-transform: uppercase; }
+    .hline { width: 32px; height: 1px; background: rgba(255,255,255,0.2); margin: 18px auto; border: none; }
+    .hsub { font-size: 9px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.45); }
 
-    .container {
-      background-color: #ffffff;
-      max-width: 600px;
-      margin: 0 auto;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #e5e5e5;
-    }
+    /* Status */
+    .status { padding: 32px 40px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+    .sicon { display: inline-block; width: 44px; height: 44px; border: 1.5px solid #1a1a1a; border-radius: 50%; line-height: 44px; text-align: center; margin-bottom: 14px; }
+    .sicon span { color: #1a1a1a; font-size: 18px; }
+    .stitle { font-size: 14px; font-weight: 400; color: #1a1a1a; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+    .sorder { font-size: 11px; color: #999; letter-spacing: 1.5px; }
 
-    /* ── Header ── */
-    .header {
-      background-color: #0d0d0d;
-      padding: 44px 40px 40px;
-      text-align: center;
-    }
+    /* Greeting */
+    .greeting { padding: 32px 40px 0; font-size: 13px; color: #666; line-height: 1.8; }
+    .greeting strong { color: #1a1a1a; font-weight: 500; }
 
-    .brand {
-      font-size: 28px;
-      font-weight: 300;
-      letter-spacing: 8px;
-      color: #ffffff;
-      text-transform: uppercase;
-      margin: 0;
-    }
+    /* Content */
+    .content { padding: 28px 40px 36px; }
+    .slabel { font-size: 8px; text-transform: uppercase; letter-spacing: 3px; color: #b0b0b0; font-weight: 600; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
 
-    .header-rule {
-      width: 36px;
-      height: 1px;
-      background-color: rgba(255,255,255,0.25);
-      margin: 20px auto;
-      border: none;
-    }
+    /* Details */
+    .dblock { margin-bottom: 28px; }
+    .dtable { width: 100%; border-collapse: collapse; }
+    .dtable td { padding: 6px 0; vertical-align: top; }
+    .dlabel { font-size: 10px; color: #b0b0b0; font-weight: 500; width: 100px; text-transform: uppercase; letter-spacing: 1px; }
+    .dvalue { font-size: 13px; color: #1a1a1a; font-weight: 400; }
 
-    .header-subtitle {
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-    }
+    /* Products */
+    .pblock { margin-bottom: 28px; }
+    .prow { padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
+    .prow:last-child { border-bottom: none; }
+    .ptable { width: 100%; border-collapse: collapse; }
+    .ptable td { vertical-align: top; }
+    .pname { font-size: 13px; font-weight: 500; color: #1a1a1a; margin-bottom: 2px; letter-spacing: 0.3px; }
+    .pmeta { font-size: 10px; color: #b0b0b0; line-height: 1.6; letter-spacing: 0.3px; }
+    .psep { color: #ddd; padding: 0 3px; }
+    .pprice { text-align: right; white-space: nowrap; padding-left: 12px; }
+    .punit { font-size: 9px; color: #ccc; margin-bottom: 2px; letter-spacing: 0.5px; }
+    .psub { font-size: 14px; font-weight: 500; color: #1a1a1a; }
 
-    /* ── Status strip ── */
-    .status-strip {
-      background-color: #fafafa;
-      padding: 28px 40px;
-      text-align: center;
-      border-bottom: 1px solid #ebebeb;
-    }
+    /* Totals */
+    .tblock { border-top: 1.5px solid #1a1a1a; padding-top: 16px; }
+    .ttable { width: 100%; border-collapse: collapse; }
+    .ttable td { padding: 4px 0; }
+    .tlabel { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1.5px; }
+    .tvalue { font-size: 12px; color: #1a1a1a; font-weight: 400; text-align: right; }
+    .tdiv td { padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    .tglabel { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: #1a1a1a; }
+    .tgamount { font-size: 22px; font-weight: 300; color: #1a1a1a; text-align: right; }
 
-    .status-check {
-      display: inline-block;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background-color: #1a1a1a;
-      line-height: 48px;
-      text-align: center;
-      margin-bottom: 14px;
-    }
+    /* CTA */
+    .cta { text-align: center; padding: 4px 40px 12px; }
+    .cta a { display: inline-block; background: #0d0d0d; color: #fff !important; text-decoration: none; padding: 14px 40px; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }
 
-    .status-check span {
-      color: #ffffff;
-      font-size: 20px;
-      font-weight: 300;
-    }
+    /* Footer */
+    .footer { padding: 28px 40px 32px; text-align: center; border-top: 1px solid #f0f0f0; }
+    .fmsg { font-size: 12px; color: #999; line-height: 1.8; margin-bottom: 16px; }
+    .fline { width: 24px; height: 1px; background: #e0e0e0; margin: 16px auto; border: none; }
+    .flegal { font-size: 9px; color: #ccc; line-height: 1.7; letter-spacing: 0.3px; }
+    .flegal a { color: #999; text-decoration: underline; }
+    .fbrand { margin-top: 16px; font-size: 9px; font-weight: 300; letter-spacing: 5px; color: #d5d5d5; text-transform: uppercase; }
 
-    .status-title {
-      font-size: 18px;
-      font-weight: 300;
-      color: #1a1a1a;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .status-order {
-      font-size: 12px;
-      color: #999;
-      letter-spacing: 1px;
-    }
-
-    /* ── Greeting ── */
-    .greeting {
-      padding: 36px 40px 0;
-      font-size: 15px;
-      color: #444;
-      line-height: 1.7;
-    }
-
-    .greeting strong {
-      color: #1a1a1a;
-    }
-
-    /* ── Content ── */
-    .content {
-      padding: 32px 40px 40px;
-    }
-
-    .section-label {
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      color: #b0b0b0;
-      font-weight: 600;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    /* ── Order details grid ── */
-    .details-block {
-      margin-bottom: 32px;
-    }
-
-    .details-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .details-table td {
-      padding: 8px 0;
-      vertical-align: top;
-      border-bottom: 1px solid #f8f8f8;
-    }
-
-    .details-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .dt-label {
-      font-size: 11px;
-      color: #aaa;
-      font-weight: 500;
-      width: 110px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .dt-value {
-      font-size: 14px;
-      color: #1a1a1a;
-      font-weight: 500;
-    }
-
-    /* ── Product list ── */
-    .products-block {
-      margin-bottom: 32px;
-    }
-
-    .prod-row {
-      padding: 18px 0;
-      border-bottom: 1px solid #f5f5f5;
-    }
-
-    .prod-row:last-child {
-      border-bottom: none;
-    }
-
-    .prod-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .prod-table td {
-      vertical-align: top;
-    }
-
-    .prod-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 3px;
-      letter-spacing: 0.2px;
-    }
-
-    .prod-meta {
-      font-size: 11px;
-      color: #aaa;
-      line-height: 1.6;
-    }
-
-    .prod-meta-sep {
-      color: #ddd;
-      padding: 0 4px;
-    }
-
-    .prod-price-col {
-      text-align: right;
-      white-space: nowrap;
-      padding-left: 12px;
-    }
-
-    .prod-unit {
-      font-size: 10px;
-      color: #ccc;
-      margin-bottom: 3px;
-    }
-
-    .prod-sub {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1a1a1a;
-    }
-
-    /* ── Totals ── */
-    .totals-block {
-      border-top: 2px solid #1a1a1a;
-      padding-top: 20px;
-    }
-
-    .totals-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .totals-table td {
-      padding: 5px 0;
-    }
-
-    .tot-label {
-      font-size: 11px;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .tot-value {
-      font-size: 13px;
-      color: #1a1a1a;
-      font-weight: 500;
-      text-align: right;
-    }
-
-    .tot-divider td {
-      padding-top: 14px;
-      border-top: 1px solid #f0f0f0;
-    }
-
-    .tot-grand-label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #1a1a1a;
-    }
-
-    .tot-grand-amount {
-      font-size: 24px;
-      font-weight: 300;
-      color: #1a1a1a;
-      text-align: right;
-      letter-spacing: 0.5px;
-    }
-
-    /* ── CTA ── */
-    .cta-block {
-      text-align: center;
-      padding: 0 40px 8px;
-    }
-
-    .cta-btn {
-      display: inline-block;
-      background-color: #0d0d0d;
-      color: #ffffff !important;
-      text-decoration: none;
-      padding: 15px 44px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-weight: 600;
-      border-radius: 3px;
-      mso-padding-alt: 15px 44px;
-    }
-
-    /* ── Footer ── */
-    .footer {
-      background-color: #f7f7f7;
-      padding: 32px 40px 36px;
-      text-align: center;
-      border-top: 1px solid #ebebeb;
-    }
-
-    .footer-thanks {
-      font-size: 14px;
-      color: #666;
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .footer-divider {
-      width: 30px;
-      height: 1px;
-      background-color: #ddd;
-      margin: 20px auto;
-      border: none;
-    }
-
-    .footer-legal {
-      font-size: 10px;
-      color: #ccc;
-      line-height: 1.7;
-      letter-spacing: 0.3px;
-    }
-
-    .footer-brand {
-      margin-top: 20px;
-      font-size: 11px;
-      font-weight: 300;
-      letter-spacing: 5px;
-      color: #d0d0d0;
-      text-transform: uppercase;
-    }
-
-    /* ── Responsive ── */
     @media only screen and (max-width: 600px) {
       .wrapper { padding: 12px 6px; }
-      .header { padding: 32px 20px 28px; }
-      .brand { font-size: 22px; letter-spacing: 5px; }
-      .status-strip { padding: 22px 20px; }
-      .status-check { width: 40px; height: 40px; line-height: 40px; }
-      .status-check span { font-size: 18px; }
-      .greeting { padding: 24px 20px 0; font-size: 14px; }
-      .content { padding: 24px 20px 28px; }
-      .prod-name { font-size: 13px; }
-      .prod-sub { font-size: 14px; }
-      .tot-grand-amount { font-size: 20px; }
-      .cta-block { padding: 0 20px 8px; }
-      .cta-btn { padding: 13px 32px; font-size: 9px; }
-      .footer { padding: 24px 20px 28px; }
+      .header { padding: 36px 24px; }
+      .brand { font-size: 20px; letter-spacing: 7px; }
+      .status { padding: 24px; }
+      .greeting { padding: 24px 24px 0; }
+      .content { padding: 20px 24px 28px; }
+      .cta { padding: 4px 24px 12px; }
+      .cta a { padding: 12px 28px; }
+      .footer { padding: 24px 24px 28px; }
+      .tgamount { font-size: 18px; }
     }
   </style>
 </head>
@@ -373,84 +99,60 @@
   <div class="wrapper">
     <div class="container">
 
-      <!-- ═══ Header ═══ -->
       <div class="header">
-        <div class="brand">NöwHėrē</div>
-        <div class="header-rule"></div>
-        <div class="header-subtitle">Confirmación de Pedido</div>
+        <div class="brand">N&ouml;wH&#x117;r&#x113;</div>
+        <div class="hline"></div>
+        <div class="hsub">Confirmaci&oacute;n de Pedido</div>
       </div>
 
-      <!-- ═══ Status ═══ -->
-      <div class="status-strip">
-        <div class="status-check">
-          <span>✓</span>
-        </div>
-        <div class="status-title">Pago Confirmado</div>
-        <div class="status-order">PEDIDO #{{ orden.id }}</div>
+      <div class="status">
+        <div class="sicon"><span>&#10003;</span></div>
+        <div class="stitle">Pago Confirmado</div>
+        <div class="sorder">PEDIDO #{{ orden.id }}</div>
       </div>
 
-      <!-- ═══ Greeting ═══ -->
       <div class="greeting">
         Hola <strong>{{ cliente.nombre }}</strong>,<br>
-        Tu pedido ha sido procesado exitosamente. Aquí tienes el resumen de tu compra.
+        Tu pedido ha sido procesado exitosamente. Aqu&iacute; tienes el resumen de tu compra.
       </div>
 
-      <!-- ═══ Content ═══ -->
       <div class="content">
-
-        <!-- Order Details -->
-        <div class="details-block">
-          <div class="section-label">Detalles</div>
-          <table class="details-table" cellpadding="0" cellspacing="0">
-            <tr>
-              <td class="dt-label">Pedido</td>
-              <td class="dt-value">#{{ orden.id }}</td>
-            </tr>
-            <tr>
-              <td class="dt-label">Email</td>
-              <td class="dt-value">{{ cliente.correo }}</td>
-            </tr>
+        <div class="dblock">
+          <div class="slabel">Detalles del pedido</div>
+          <table class="dtable" cellpadding="0" cellspacing="0">
+            <tr><td class="dlabel">Pedido</td><td class="dvalue">#{{ orden.id }}</td></tr>
+            <tr><td class="dlabel">Email</td><td class="dvalue">{{ cliente.correo }}</td></tr>
             {% if cliente.telefono %}
-            <tr>
-              <td class="dt-label">Teléfono</td>
-              <td class="dt-value">{{ cliente.telefono }}</td>
-            </tr>
+            <tr><td class="dlabel">Tel&eacute;fono</td><td class="dvalue">{{ cliente.telefono }}</td></tr>
             {% endif %}
-            <tr>
-              <td class="dt-label">Método</td>
-              <td class="dt-value">{{ orden.payment_method|title }}</td>
-            </tr>
-            <tr>
-              <td class="dt-label">Fecha</td>
-              <td class="dt-value">{{ orden.created_at|date:"d/m/Y · H:i" }} hrs</td>
-            </tr>
+            <tr><td class="dlabel">M&eacute;todo</td><td class="dvalue">{{ orden.payment_method|title }}</td></tr>
+            <tr><td class="dlabel">Fecha</td><td class="dvalue">{{ orden.created_at|date:"d/m/Y &middot; H:i" }} hrs</td></tr>
           </table>
         </div>
 
-        <!-- Products -->
-        <div class="products-block">
-          <div class="section-label">Productos</div>
+        <div class="pblock">
+          <div class="slabel">Productos</div>
           {% for item in items %}
-          <div class="prod-row">
-            <table class="prod-table" cellpadding="0" cellspacing="0">
+          <div class="prow">
+            <table class="ptable" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
-                  <div class="prod-name">{{ item.producto }}</div>
-                  <div class="prod-meta">
+                  <div class="pname">{{ item.producto }}</div>
+                  <div class="pmeta">
                     <span>{{ item.categoria }}</span>
-                    <span class="prod-meta-sep">·</span>
+                    <span class="psep">&middot;</span>
                     <span>Talla {{ item.talla }}</span>
                     {% if item.color and item.color != 'NA' and item.color != 'N/A' %}
-                    <span class="prod-meta-sep">·</span>
+                    <span class="psep">&middot;</span>
                     <span>{{ item.color }}</span>
                     {% endif %}
-                    <span class="prod-meta-sep">·</span>
-                    <span>×{{ item.cantidad }}</span>
+                    <span class="psep">&middot;</span>
+                    <span>&times;{{ item.cantidad }}</span>
                   </div>
                 </td>
-                <td class="prod-price-col">
-                  <div class="prod-unit">${{ item.precio_unitario|floatformat:2 }} c/u</div>
-                  <div class="prod-sub">${{ item.subtotal|floatformat:2 }}</div>
+                <td class="pprice">
+                  <div class="punit">${{ item.precio_unitario|floatformat:2 }} c/u</div>
+                  <div class="psub">${{ item.subtotal|floatformat:2 }}</div>
                 </td>
               </tr>
             </table>
@@ -458,47 +160,37 @@
           {% endfor %}
         </div>
 
-        <!-- Totals -->
-        <div class="totals-block">
-          <table class="totals-table" cellpadding="0" cellspacing="0">
-            <tr>
-              <td class="tot-label">Piezas</td>
-              <td class="tot-value">{{ total_piezas }}</td>
-            </tr>
+        <div class="tblock">
+          <table class="ttable" cellpadding="0" cellspacing="0">
+            <tr><td class="tlabel">Piezas</td><td class="tvalue">{{ total_piezas }}</td></tr>
             {% if es_mayoreo %}
-            <tr>
-              <td class="tot-label">Precio</td>
-              <td class="tot-value">Mayoreo aplicado</td>
-            </tr>
+            <tr><td class="tlabel">Precio</td><td class="tvalue">Mayoreo aplicado</td></tr>
             {% endif %}
-            <tr class="tot-divider">
-              <td class="tot-grand-label">Total</td>
-              <td class="tot-grand-amount">${{ total|floatformat:2 }} MXN</td>
+            <tr class="tdiv">
+              <td class="tglabel">Total</td>
+              <td class="tgamount">${{ total|floatformat:2 }} MXN</td>
             </tr>
           </table>
         </div>
-
       </div>
 
-      <!-- ═══ CTA ═══ -->
       {% if link_pedidos %}
-      <div class="cta-block">
-        <a href="{{ link_pedidos }}" class="cta-btn">Ver Mis Pedidos</a>
+      <div class="cta">
+        <a href="{{ link_pedidos }}">Ver Mis Pedidos</a>
       </div>
       {% endif %}
 
-      <!-- ═══ Footer ═══ -->
       <div class="footer">
-        <div class="footer-thanks">
+        <div class="fmsg">
           Gracias por tu compra. Estamos preparando tu pedido<br>
-          y te notificaremos cuando esté en camino.
+          y te notificaremos cuando est&eacute; en camino.
         </div>
-        <div class="footer-divider"></div>
-        <div class="footer-legal">
-          Este es un correo automático, por favor no responder.<br>
-          Para cualquier consulta, contacta a nuestro equipo de soporte.
+        <div class="fline"></div>
+        <div class="flegal">
+          Este es un correo autom&aacute;tico, por favor no responder.<br>
+          &iquest;Dudas? <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a>
         </div>
-        <div class="footer-brand">NöwHėrē</div>
+        <div class="fbrand">N&ouml;wH&#x117;r&#x113;</div>
       </div>
 
     </div>

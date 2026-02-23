@@ -89,3 +89,6 @@ Traceback (most recent call last):
 django.db.utils.OperationalError: connection to server at "nowhere-db.ctcywc28slty.us-east-2.rds.amazonaws.com" (3.134.235.184), port 5432 failed: Connection timed out (0x0000274C/10060)
 	Is the server running on that host and accepting TCP/IP connections?
 
+ERROR 2026-02-23 15:08:02 payment 16580 4212 Stripe Error: Request req_LA3rYH4rxJckXS: The Checkout Session's total amount due must add up to at least $10.00 mxn
+ERROR 2026-02-23 17:22:16 payment 14240 12424 [EMAIL] Error preparando email para orden #31: 'Variante' object has no attribute 'talla'
+ERROR 2026-02-23 17:22:16 payment 14240 12424 [EMAIL] Error preparando email para orden #31: 'Variante' object has no attribute 'talla'

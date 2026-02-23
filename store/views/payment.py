@@ -68,7 +68,7 @@ def _enviar_email_confirmacion(orden, request=None):
             items.append({
                 'producto': producto.nombre,
                 'categoria': producto.categoria.nombre if producto.categoria else 'Sin categoría',
-                'talla': variante.talla or 'Única',
+                'talla': detalle.talla or 'Única',
                 'color': variante.color or 'N/A',
                 'cantidad': detalle.cantidad,
                 'precio_unitario': float(detalle.precio_unitario),
@@ -132,7 +132,8 @@ def _enviar_email_confirmacion(orden, request=None):
                 logger.error(f"[EMAIL] Orden #{orden.id}: error enviando email: {e}")
 
         # Enviar en hilo separado para no bloquear
-        thread = threading.Thread(target=_send, daemon=True)
+        # daemon=False para que el proceso espere a que termine el envío
+        thread = threading.Thread(target=_send, daemon=False)
         thread.start()
 
     except Exception as e:
@@ -278,6 +279,16 @@ def crear_checkout_stripe(request):
 
         logger.info(f"Items: {len(line_items)} | Total: {total_centavos / 100} MXN | Mayoreo: {mayoreo}")
 
+        # Stripe requiere un monto mínimo de $10.00 MXN
+        STRIPE_MIN_CENTAVOS_MXN = 1000  # $10.00 MXN en centavos
+        if total_centavos < STRIPE_MIN_CENTAVOS_MXN:
+            total_mxn = total_centavos / 100
+            logger.warning(f"Monto ${total_mxn} MXN es menor al mínimo de Stripe ($10.00 MXN)")
+            return JsonResponse({
+                'success': False,
+                'error': f'El monto total del carrito (${total_mxn:.2f} MXN) es menor al mínimo permitido por Stripe ($10.00 MXN). Agrega más productos para continuar.'
+            }, status=400)
+
         # Verificar que stripe.api_key esté configurado
         if not stripe.api_key:
             logger.error("❌ stripe.api_key está VACÍO")
@@ -334,9 +345,15 @@ def crear_checkout_stripe(request):
 
     except stripe.error.StripeError as e:
         logger.error(f"Stripe Error: {e}")
+        # Proporcionar mensaje descriptivo al frontend
+        error_msg = str(e)
+        if 'at least' in error_msg.lower():
+            user_msg = 'El monto del carrito es menor al mínimo permitido por Stripe ($10.00 MXN). Agrega más productos.'
+        else:
+            user_msg = f'Error al procesar el pago: {e.user_message or "Intenta de nuevo más tarde"}'
         return JsonResponse({
             'success': False,
-            'error': 'Error al procesar el pago'
+            'error': user_msg
         }, status=400)
 
     except json.JSONDecodeError:
@@ -444,10 +461,18 @@ def webhook_stripe(request):
     sig_header = request.headers.get('Stripe-Signature', '')
 
     # Verificar firma del webhook
+    webhook_secret = settings.STRIPE_WEBHOOK_SECRET
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
+        if webhook_secret:
+            # Verificar firma con el secret configurado
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        else:
+            # Sin webhook secret: parsear el evento sin verificar firma
+            # SOLO para desarrollo local, en producción SIEMPRE configurar STRIPE_WEBHOOK_SECRET
+            logger.warning("⚠️ STRIPE_WEBHOOK_SECRET no configurado, procesando webhook sin verificar firma")
+            event = json.loads(payload)
     except ValueError:
         logger.error("Payload inválido")
         return JsonResponse({'error': 'Payload inválido'}, status=400)
@@ -498,6 +523,8 @@ def webhook_stripe(request):
             orden.status = 'pagado'
             orden.save()
             logger.info(f"Orden #{orden.id} → pagado")
+            # Enviar email de confirmación
+            _enviar_email_confirmacion(orden, request=request)
         except Orden.DoesNotExist:
             logger.warning(f"Orden no encontrada para PI: {pi_id}")
 

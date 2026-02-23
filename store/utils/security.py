@@ -225,67 +225,99 @@ def send_verification_email(cliente, request=None):
     }
     
     # HTML del email
-    html_message = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 600px; margin: 0 auto; padding: 40px 20px; }}
-            .header {{ text-align: center; margin-bottom: 40px; }}
-            .logo {{ font-size: 28px; font-weight: 800; color: #1a1a2e; letter-spacing: -1px; }}
-            .content {{ background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }}
-            h1 {{ font-size: 24px; color: #1a1a2e; margin: 0 0 20px 0; }}
-            p {{ margin: 0 0 16px 0; color: #4b5563; }}
-            .btn {{ display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff !important; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; margin: 20px 0; }}
-            .footer {{ text-align: center; margin-top: 40px; color: #9ca3af; font-size: 14px; }}
-            .expiry {{ background: #fef3c7; border-radius: 8px; padding: 12px 16px; color: #92400e; font-size: 14px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <div class="logo">NOWHERE</div>
-            </div>
-            <div class="content">
-                <h1>¡Hola, {context['nombre']}!</h1>
-                <p>Gracias por registrarte. Para activar tu cuenta y comenzar a comprar, necesitas verificar tu correo electrónico.</p>
-                <p style="text-align: center;">
-                    <a href="{verification_url}" class="btn">Verificar mi correo</a>
-                </p>
-                <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
-                <p style="word-break: break-all; color: #667eea; font-size: 14px;">{verification_url}</p>
-                <div class="expiry">
-                    ⏰ Este enlace expira en {context['expiry_hours']} horas.
-                </div>
-            </div>
-            <div class="footer">
-                <p>Si no creaste esta cuenta, ignora este correo.</p>
-                <p>&copy; 2026 NOWHERE. Todos los derechos reservados.</p>
-            </div>
+    nombre = context['nombre']
+    expiry = context['expiry_hours']
+    html_message = f"""<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifica tu correo</title>
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; background-color: #f5f5f5; -webkit-font-smoothing: antialiased; }}
+    .wrapper {{ width: 100%; background-color: #f5f5f5; padding: 40px 16px; }}
+    .container {{ background-color: #fff; max-width: 580px; margin: 0 auto; border: 1px solid #e8e8e8; }}
+    .header {{ background-color: #0d0d0d; padding: 48px 40px; text-align: center; }}
+    .brand {{ font-size: 24px; font-weight: 300; letter-spacing: 10px; color: #fff; text-transform: uppercase; }}
+    .hline {{ width: 32px; height: 1px; background: rgba(255,255,255,0.2); margin: 18px auto; border: none; }}
+    .hsub {{ font-size: 9px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,0.45); }}
+    .body-content {{ padding: 40px; }}
+    .greeting {{ font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 24px; }}
+    .greeting strong {{ color: #1a1a1a; font-weight: 500; }}
+    .msg {{ font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 28px; }}
+    .cta {{ text-align: center; margin-bottom: 28px; }}
+    .cta a {{ display: inline-block; background: #0d0d0d; color: #fff !important; text-decoration: none; padding: 14px 40px; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; font-weight: 500; }}
+    .link-fallback {{ font-size: 11px; color: #b0b0b0; word-break: break-all; line-height: 1.6; margin-bottom: 28px; padding: 14px; background: #fafafa; border: 1px solid #f0f0f0; }}
+    .link-fallback a {{ color: #999; text-decoration: underline; }}
+    .notice {{ font-size: 11px; color: #b0b0b0; line-height: 1.7; padding: 14px 16px; border-left: 2px solid #e8e8e8; }}
+    .footer {{ padding: 28px 40px 32px; text-align: center; border-top: 1px solid #f0f0f0; }}
+    .flegal {{ font-size: 9px; color: #ccc; line-height: 1.7; letter-spacing: 0.3px; }}
+    .flegal a {{ color: #999; text-decoration: underline; }}
+    .fbrand {{ margin-top: 16px; font-size: 9px; font-weight: 300; letter-spacing: 5px; color: #d5d5d5; text-transform: uppercase; }}
+    @media only screen and (max-width: 600px) {{
+      .wrapper {{ padding: 12px 6px; }}
+      .header {{ padding: 36px 24px; }}
+      .brand {{ font-size: 20px; letter-spacing: 7px; }}
+      .body-content {{ padding: 28px 24px; }}
+      .cta a {{ padding: 12px 28px; }}
+      .footer {{ padding: 24px 24px 28px; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="brand">N&ouml;wH&#x117;r&#x113;</div>
+        <div class="hline"></div>
+        <div class="hsub">Verificar Correo</div>
+      </div>
+      <div class="body-content">
+        <div class="greeting">Hola <strong>{nombre}</strong>,</div>
+        <div class="msg">
+          Gracias por registrarte. Para activar tu cuenta y comenzar a comprar,
+          necesitas verificar tu correo electr&oacute;nico.
         </div>
-    </body>
-    </html>
-    """
+        <div class="cta">
+          <a href="{verification_url}">Verificar Mi Correo</a>
+        </div>
+        <div class="link-fallback">
+          Si el bot&oacute;n no funciona, copia y pega este enlace:<br>
+          <a href="{verification_url}">{verification_url}</a>
+        </div>
+        <div class="notice">
+          Este enlace expira en {expiry} horas.<br>
+          Si no creaste esta cuenta, puedes ignorar este correo.
+        </div>
+      </div>
+      <div class="footer">
+        <div class="flegal">
+          Este es un correo autom&aacute;tico, por favor no responder.<br>
+          &iquest;Dudas? <a href="mailto:contacto@nowheremx.com">contacto@nowheremx.com</a>
+        </div>
+        <div class="fbrand">N&ouml;wH&#x117;r&#x113;</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>"""
     
     plain_message = f"""
-    ¡Hola, {context['nombre']}!
+Hola, {nombre}!
     
-    Gracias por registrarte en NOWHERE. Para activar tu cuenta, visita el siguiente enlace:
+Gracias por registrarte en NowHere. Para activar tu cuenta, visita el siguiente enlace:
     
-    {verification_url}
+{verification_url}
     
-    Este enlace expira en {context['expiry_hours']} horas.
+Este enlace expira en {expiry} horas.
     
-    Si no creaste esta cuenta, ignora este correo.
-    
-    © 2026 NOWHERE
-    """
+Si no creaste esta cuenta, ignora este correo.
+"""
     
     try:
         send_mail(
-            subject='Verifica tu correo - NOWHERE',
+            subject='Verifica tu correo \u2013 N\u00f6wH\u0117r\u0113',
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[cliente.correo],
