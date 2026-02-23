@@ -57,3 +57,36 @@
 [DEBUG] 2026-02-22 00:27:37 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
 [DEBUG] 2026-02-22 00:27:58 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
 [DEBUG] 2026-02-22 00:37:27 - stripe_payments - <module>:37 - [INIT] stripe.api_key configurado: ***
+[INFO] 2026-02-23 15:08:00 - stripe_payments - crear_checkout_stripe:235 - ================================================================================
+[INFO] 2026-02-23 15:08:00 - stripe_payments - crear_checkout_stripe:236 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-23 15:08:01 - stripe_payments - crear_checkout_stripe:268 - Carrito #54 | Cliente: zem1r (jona.emir@hotmail.com)
+[INFO] 2026-02-23 15:08:01 - stripe_payments - crear_checkout_stripe:279 - Items: 1 | Total: 1.0 MXN | Mayoreo: False
+[ERROR] 2026-02-23 15:08:02 - stripe_payments - crear_checkout_stripe:336 - Stripe Error: Request req_LA3rYH4rxJckXS: The Checkout Session's total amount due must add up to at least $10.00 mxn
+[INFO] 2026-02-23 17:19:10 - stripe_payments - crear_checkout_stripe:236 - ================================================================================
+[INFO] 2026-02-23 17:19:10 - stripe_payments - crear_checkout_stripe:237 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-23 17:19:11 - stripe_payments - crear_checkout_stripe:269 - Carrito #56 | Cliente: zem1r (jona.emir@hotmail.com)
+[INFO] 2026-02-23 17:19:11 - stripe_payments - crear_checkout_stripe:280 - Items: 1 | Total: 55.0 MXN | Mayoreo: False
+[INFO] 2026-02-23 17:19:13 - stripe_payments - crear_checkout_stripe:323 - Stripe Session creada: cs_test_a1CoTa7DjNyGrDShfQfNtjumMKevrEJcKkW4ZPYuPELAjdeANsjMQB17zS
+[INFO] 2026-02-23 17:19:13 - stripe_payments - crear_checkout_stripe:324 - Client Secret: cs_test_a1CoTa7DjNyGrDShfQfNtj...
+[INFO] 2026-02-23 17:19:13 - stripe_payments - crear_checkout_stripe:332 - Orden local #30 creada (pendiente_pago)
+[INFO] 2026-02-23 17:19:13 - stripe_payments - crear_checkout_stripe:338 - Carrito #56 vaciado
+[INFO] 2026-02-23 17:21:30 - stripe_payments - crear_checkout_stripe:236 - ================================================================================
+[INFO] 2026-02-23 17:21:30 - stripe_payments - crear_checkout_stripe:237 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-23 17:21:31 - stripe_payments - crear_checkout_stripe:269 - Carrito #57 | Cliente: zem1r (jona.emir@hotmail.com)
+[INFO] 2026-02-23 17:21:31 - stripe_payments - crear_checkout_stripe:280 - Items: 1 | Total: 55.0 MXN | Mayoreo: False
+[INFO] 2026-02-23 17:21:32 - stripe_payments - crear_checkout_stripe:323 - Stripe Session creada: cs_test_a1b04RwgyDerPFK0I6aL2ffrxuBWxmOeMqBMDJiwub6uDc6FhbyBn2ha7K
+[INFO] 2026-02-23 17:21:32 - stripe_payments - crear_checkout_stripe:324 - Client Secret: cs_test_a1b04RwgyDerPFK0I6aL2f...
+[INFO] 2026-02-23 17:21:32 - stripe_payments - crear_checkout_stripe:332 - Orden local #31 creada (pendiente_pago)
+[INFO] 2026-02-23 17:21:33 - stripe_payments - crear_checkout_stripe:338 - Carrito #57 vaciado
+[ERROR] 2026-02-23 17:22:16 - stripe_payments - _enviar_email_confirmacion:140 - [EMAIL] Error preparando email para orden #31: 'Variante' object has no attribute 'talla'
+[ERROR] 2026-02-23 17:22:16 - stripe_payments - _enviar_email_confirmacion:140 - [EMAIL] Error preparando email para orden #31: 'Variante' object has no attribute 'talla'
+[INFO] 2026-02-23 17:31:26 - stripe_payments - crear_checkout_stripe:236 - ================================================================================
+[INFO] 2026-02-23 17:31:26 - stripe_payments - crear_checkout_stripe:237 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-23 17:31:28 - stripe_payments - crear_checkout_stripe:269 - Carrito #58 | Cliente: zem1r (jona.emir@hotmail.com)
+[INFO] 2026-02-23 17:31:28 - stripe_payments - crear_checkout_stripe:280 - Items: 1 | Total: 11.0 MXN | Mayoreo: False
+[INFO] 2026-02-23 17:31:29 - stripe_payments - crear_checkout_stripe:323 - Stripe Session creada: cs_test_a1OP6cwmKp7uATvVa66r1d65NN7j8j7BLfYLkGKeG2DvsYvCn6e835phF6
+[INFO] 2026-02-23 17:31:29 - stripe_payments - crear_checkout_stripe:324 - Client Secret: cs_test_a1OP6cwmKp7uATvVa66r1d...
+[INFO] 2026-02-23 17:31:30 - stripe_payments - crear_checkout_stripe:332 - Orden local #32 creada (pendiente_pago)
+[INFO] 2026-02-23 17:31:30 - stripe_payments - crear_checkout_stripe:338 - Carrito #58 vaciado
+[INFO] 2026-02-23 17:31:47 - stripe_payments - _send:130 - [EMAIL] Orden #32: email de confirmación enviado a jona.emir@hotmail.com
+[INFO] 2026-02-23 17:31:47 - stripe_payments - _send:130 - [EMAIL] Orden #32: email de confirmación enviado a jona.emir@hotmail.com

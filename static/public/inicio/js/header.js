@@ -1,4 +1,4 @@
-// header.js
+﻿// header.js
 function decodeJWT(token) {
   try {
     const payload = token.split(".")[1];
@@ -886,12 +886,15 @@ export function setupHeaderPanels() {
         
         // Badge de verificación
         const badge = document.getElementById('email-verified-badge');
+        const resendWrap = document.getElementById('resend-verify-wrap');
         if (cliente.email_verified) {
           badge.textContent = 'Verificado';
           badge.className = 'perfil-badge verified';
+          if (resendWrap) resendWrap.style.display = 'none';
         } else {
           badge.textContent = 'Pendiente';
           badge.className = 'perfil-badge unverified';
+          if (resendWrap) resendWrap.style.display = 'block';
         }
 
         // Dirección
@@ -1195,3 +1198,63 @@ export function setupHeaderPanels() {
 }
 
 
+
+
+// ========== REENVIAR VERIFICACION (PANEL) ==========
+async function resendVerificationPanel(btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const correo = document.getElementById('perfil-correo')?.value || '';
+  if (!correo) {
+    btn.textContent = 'Sin correo';
+    setTimeout(() => { btn.disabled = false; btn.textContent = originalText; }, 2000);
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth/reenviar-verificacion/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''
+      },
+      credentials: 'include',
+      body: JSON.stringify({ correo: correo })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      btn.textContent = 'Enviado';
+      btn.style.borderColor = '#2e7d32';
+      btn.style.color = '#2e7d32';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        btn.style.borderColor = '#b8860b';
+        btn.style.color = '#b8860b';
+      }, 60000);
+    } else {
+      btn.textContent = 'Error, intenta de nuevo';
+      btn.style.borderColor = '#c62828';
+      btn.style.color = '#c62828';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        btn.style.borderColor = '#b8860b';
+        btn.style.color = '#b8860b';
+      }, 3000);
+    }
+  } catch (err) {
+    console.error('Error reenviar verificacion:', err);
+    btn.textContent = 'Error de red';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }, 3000);
+  }
+}
+
+window.resendVerificationPanel = resendVerificationPanel;

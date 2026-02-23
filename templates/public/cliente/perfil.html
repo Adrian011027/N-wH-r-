@@ -248,6 +248,28 @@ select {
 }
 .btn-resend:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.btn-resend-inline {
+  padding: 0.6rem 1.2rem;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: transparent;
+  color: #8b7355;
+  border: 1px solid #8b7355;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0;
+}
+.btn-resend-inline:hover {
+  background: #8b7355;
+  color: #fff;
+}
+.btn-resend-inline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ========== BUTTONS ========== */
 .btn-primary {
   background: #1a1a1a;
@@ -585,10 +607,16 @@ textarea:disabled {
               <span class="email-badge verified">Verificado</span>
               {% else %}
               <span class="email-badge unverified">Pendiente</span>
-              <button type="button" onclick="resendVerification(this)" style="background:none; border:none; color:#1a1a1a; text-decoration:underline; cursor:pointer; font-size:10px; margin-left:8px; padding:0; letter-spacing:0.5px;">Reenviar verificación</button>
               {% endif %}
             </label>
             <input type="email" id="correo" name="correo" value="{{ cliente.correo }}" required disabled>
+            {% if not email_verified %}
+            <div style="margin-top: 12px;">
+              <button type="button" class="btn-resend-inline" onclick="resendVerification(this)">
+                ↻ Reenviar correo de verificación
+              </button>
+            </div>
+            {% endif %}
           </div>
 
           <div class="form-group">
