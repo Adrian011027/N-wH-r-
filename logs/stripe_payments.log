@@ -90,3 +90,13 @@
 [INFO] 2026-02-23 17:31:30 - stripe_payments - crear_checkout_stripe:338 - Carrito #58 vaciado
 [INFO] 2026-02-23 17:31:47 - stripe_payments - _send:130 - [EMAIL] Orden #32: email de confirmación enviado a jona.emir@hotmail.com
 [INFO] 2026-02-23 17:31:47 - stripe_payments - _send:130 - [EMAIL] Orden #32: email de confirmación enviado a jona.emir@hotmail.com
+[INFO] 2026-02-23 19:09:16 - stripe_payments - crear_checkout_stripe:236 - ================================================================================
+[INFO] 2026-02-23 19:09:16 - stripe_payments - crear_checkout_stripe:237 - [CREAR_CHECKOUT_STRIPE] INICIANDO
+[INFO] 2026-02-23 19:09:16 - stripe_payments - crear_checkout_stripe:269 - Carrito #41 | Cliente: angel10000sv (angel10000sv@gmail.com)
+[INFO] 2026-02-23 19:09:17 - stripe_payments - crear_checkout_stripe:280 - Items: 1 | Total: 11.0 MXN | Mayoreo: False
+[INFO] 2026-02-23 19:09:23 - stripe_payments - crear_checkout_stripe:323 - Stripe Session creada: cs_test_a1fTPRIMjUT9wfMEmcW0Tj5JmHBqdJeBEeM6WQHvFIQ3xHlcN9V95beoOp
+[INFO] 2026-02-23 19:09:23 - stripe_payments - crear_checkout_stripe:324 - Client Secret: cs_test_a1fTPRIMjUT9wfMEmcW0Tj...
+[INFO] 2026-02-23 19:09:24 - stripe_payments - crear_checkout_stripe:332 - Orden local #33 creada (pendiente_pago)
+[INFO] 2026-02-23 19:09:24 - stripe_payments - crear_checkout_stripe:338 - Carrito #41 vaciado
+[INFO] 2026-02-23 19:10:32 - stripe_payments - _send:130 - [EMAIL] Orden #33: email de confirmación enviado a angel10000sv@gmail.com
+[INFO] 2026-02-23 19:10:32 - stripe_payments - _send:130 - [EMAIL] Orden #33: email de confirmación enviado a angel10000sv@gmail.com
