@@ -497,6 +497,8 @@ def webhook_stripe(request):
 
             if payment_status == 'paid':
                 orden.status = 'procesando'
+                # 🔥 REDUCIR STOCK cuando el pago es confirmado
+                orden.reducir_stock_orden()
             else:
                 orden.status = 'pendiente_pago'
 
@@ -521,6 +523,8 @@ def webhook_stripe(request):
         try:
             orden = Orden.objects.get(stripe_payment_intent=pi_id)
             orden.status = 'pagado'
+            # 🔥 REDUCIR STOCK cuando el pago es confirmado
+            orden.reducir_stock_orden()
             orden.save()
             logger.info(f"Orden #{orden.id} → pagado")
             # Enviar email de confirmación
@@ -719,6 +723,8 @@ def pago_exitoso(request):
                         if session.payment_status == 'paid':
                             orden.status = 'procesando'
                             orden.stripe_payment_intent = session.payment_intent or ''
+                            # 🔥 REDUCIR STOCK cuando se confirma el pago
+                            orden.reducir_stock_orden()
                             orden.save()
                             logger.info(f"[PAGO_EXITOSO] Orden #{orden.id} sincronizada → procesando")
                             # Enviar email de confirmación

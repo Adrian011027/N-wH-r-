@@ -138,6 +138,13 @@ def cambiar_estado_orden(request, id):
         orden = get_object_or_404(Orden, id=id)
         estado_anterior = orden.status
         orden.status = nuevo_estado
+        
+        # 🔥 REDUCIR STOCK cuando admin cambia a procesando o pagado
+        if nuevo_estado in ['procesando', 'pagado', 'enviado', 'entregado']:
+            stock_reducido = orden.reducir_stock_orden()
+            if stock_reducido:
+                logger.info(f"[ADMIN] Orden #{id}: Stock reducido al cambiar a '{nuevo_estado}'")
+        
         orden.save(update_fields=['status'])
         
         return JsonResponse({
@@ -145,7 +152,8 @@ def cambiar_estado_orden(request, id):
             'mensaje': f'Orden #{id} actualizada a "{nuevo_estado}"',
             'orden_id': id,
             'estado_anterior': estado_anterior,
-            'estado_nuevo': nuevo_estado
+            'estado_nuevo': nuevo_estado,
+            'stock_reducido': orden.stock_reducido
         })
         
     except json.JSONDecodeError:

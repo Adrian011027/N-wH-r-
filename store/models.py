@@ -527,10 +527,54 @@ class Orden(models.Model):
     conekta_charge_id   = models.CharField(max_length=100, blank=True, null=True)
     stripe_session_id   = models.CharField(max_length=255, blank=True, null=True)
     stripe_payment_intent = models.CharField(max_length=255, blank=True, null=True)
+    stock_reducido      = models.BooleanField(default=False, help_text='Indica si ya se redujo el stock del inventario')
     created_at          = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Orden #{self.id} - {self.cliente.username}"
+    
+    def reducir_stock_orden(self):
+        """
+        Reduce el stock de todas las variantes en esta orden.
+        Retorna True si se redujo exitosamente, False si ya estaba reducido o hubo error.
+        """
+        if self.stock_reducido:
+            return False
+        
+        from django.db import transaction
+        import logging
+        logger = logging.getLogger('stripe_payments')
+        
+        with transaction.atomic():
+            for detalle in self.detalles.select_related('variante').all():
+                variante = detalle.variante
+                talla = detalle.talla
+                cantidad = detalle.cantidad
+                
+                stock_actual = variante.stock_de_talla(talla)
+                if stock_actual < cantidad:
+                    logger.warning(
+                        f"⚠️ Orden #{self.id}: Stock insuficiente para {variante.producto.nombre} "
+                        f"(Talla: {talla}). Disponible: {stock_actual}, Pedido: {cantidad}"
+                    )
+                    # Continuamos reduciendo lo que se pueda
+                
+                exito = variante.reducir_stock(talla, cantidad)
+                if exito:
+                    logger.info(
+                        f"✅ Orden #{self.id}: Reducido stock de {variante.producto.nombre} "
+                        f"(Talla: {talla}, Cantidad: {cantidad}, Stock restante: {variante.stock_de_talla(talla)})"
+                    )
+                else:
+                    logger.error(
+                        f"❌ Orden #{self.id}: No se pudo reducir stock de {variante.producto.nombre} "
+                        f"(Talla: {talla}, Cantidad: {cantidad})"
+                    )
+            
+            self.stock_reducido = True
+            self.save(update_fields=['stock_reducido'])
+            logger.info(f"✅ Orden #{self.id}: Stock reducido completamente")
+            return True
 
 class OrdenDetalle(models.Model):
     order          = models.ForeignKey(Orden, on_delete=models.CASCADE, related_name="detalles")
