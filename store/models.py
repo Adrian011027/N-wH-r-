@@ -205,6 +205,7 @@ class Producto(models.Model):
     precio_mayorista = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     en_oferta   = models.BooleanField(default=False)
     marca       = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="Marca del producto para filtros")
+    bodega      = models.BooleanField(default=True, db_index=True, help_text="Si es True, el producto NO se muestra en la vista pública (solo visible desde inventario/dashboard)")
     created_at  = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

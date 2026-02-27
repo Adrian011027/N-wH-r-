@@ -113,6 +113,7 @@ def get_all_products(request):
             'categoria_id': p.categoria.id,
             'genero': p.genero,
             'en_oferta': p.en_oferta,
+            'bodega': p.bodega,  # Campo para verificar visibilidad
             'imagen': imagen_principal,
             'imagenes': galeria,
             'created_at': p.created_at.isoformat(),
@@ -123,7 +124,7 @@ def get_all_products(request):
     return JsonResponse(data, safe=False)
 
 @csrf_exempt
-@admin_required()
+@inventory_manager_required()
 @require_http_methods(["POST"])
 def create_product(request):
 
@@ -141,13 +142,17 @@ def create_product(request):
         categoria_id= data.get("categoria_id")
         genero      = data.get("genero")
         en_oferta   = data.get("en_oferta", False)
+        bodega      = data.get("bodega", True)  # Default True para inventario
         imagen      = None  # No hay archivos en JSON
 
         tallas = data.get("tallas", [])
         stocks = data.get("stocks", [])
         subcategorias_ids = data.get("subcategorias", [])
 
-    else:  # multipart/form-data (con imagen)
+    else:  # multipart/form-data (con imagen desde dashboard)
+        logger.info(f"[CREATE_PRODUCT] FormData recibido - Content-Type: {request.content_type}")
+        logger.info(f"[CREATE_PRODUCT] POST data: {dict(request.POST)}")
+        
         nombre      = request.POST.get("nombre")
         descripcion = request.POST.get("descripcion")
         precio      = request.POST.get("precio")
@@ -155,6 +160,13 @@ def create_product(request):
         categoria_id= request.POST.get("categoria_id")
         genero      = request.POST.get("genero")
         en_oferta   = request.POST.get("en_oferta") == "on"
+        
+        # Verificar campo bodega
+        bodega_value = request.POST.get("bodega")
+        logger.info(f"[CREATE_PRODUCT] Campo bodega recibido: '{bodega_value}' (type: {type(bodega_value)})")
+        bodega = bodega_value == "on"
+        logger.info(f"[CREATE_PRODUCT] bodega final: {bodega}")
+        
         imagen      = request.FILES.get("imagen")
 
         tallas = request.POST.getlist("tallas")
@@ -180,6 +192,7 @@ def create_product(request):
         return JsonResponse({"error": "precio y precio_mayorista deben ser numéricos"}, status=400)
 
     # Crear producto
+    # bodega: viene del request (True desde inventario, variable desde dashboard)
     producto = Producto.objects.create(
         nombre=nombre,
         descripcion=descripcion,
@@ -188,6 +201,7 @@ def create_product(request):
         categoria=categoria,
         genero=genero,
         en_oferta=en_oferta,
+        bodega=bodega,
     )
 
     # Sistema nuevo: 1 variante = 1 color, con tallas_stock JSONField
@@ -343,6 +357,10 @@ def update_productos(request, id):
 
         if 'en_oferta' in request.POST:
             producto.en_oferta = request.POST.get('en_oferta') == 'on'
+        
+        # Campo bodega (solo editable desde dashboard)
+        if 'bodega' in request.POST:
+            producto.bodega = request.POST.get('bodega') == 'on'
 
         if 'categoria_id' in request.POST:
             try:
@@ -479,7 +497,7 @@ def update_productos(request, id):
         )
 
 @csrf_exempt
-@admin_required()
+@inventory_manager_required()
 @require_http_methods(["POST"])
 def create_variant(request):
     """

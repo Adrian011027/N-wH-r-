@@ -249,19 +249,19 @@ def get_filter_options(request):
     # Categorías
     categorias = list(Categoria.objects.all().values('id', 'nombre'))
     
-    # Filtrar por categoría si se especifica
+    # Filtrar por categoría si se especifica (sin productos en bodega)
     categoria_id = request.GET.get('categoria_id', '').strip()
     if categoria_id:
         try:
             categoria_id = int(categoria_id)
             subcategorias_qs = Subcategoria.objects.filter(categoria_id=categoria_id, activa=True)
-            productos_qs = Producto.objects.filter(categoria_id=categoria_id)
+            productos_qs = Producto.objects.filter(categoria_id=categoria_id, bodega=False)
         except ValueError:
             subcategorias_qs = Subcategoria.objects.filter(activa=True)
-            productos_qs = Producto.objects.all()
+            productos_qs = Producto.objects.filter(bodega=False)
     else:
         subcategorias_qs = Subcategoria.objects.filter(activa=True)
-        productos_qs = Producto.objects.all()
+        productos_qs = Producto.objects.filter(bodega=False)
     
     # Subcategorías
     subcategorias = list(subcategorias_qs.values('id', 'nombre', 'categoria_id'))

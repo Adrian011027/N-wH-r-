@@ -109,7 +109,7 @@ def wishlist_detail(request, id_cliente):
             return JsonResponse({'productos': ids})
 
         productos = []
-        for p in Producto.objects.filter(id__in=ids).prefetch_related('variantes__imagenes'):
+        for p in Producto.objects.filter(id__in=ids, bodega=False).prefetch_related('variantes__imagenes'):
             # Galerías de imágenes de la variante principal
             variante_principal = p.variante_principal
             galeria = []
@@ -221,7 +221,7 @@ def producto_tallas(request, id_producto):
     GET /api/productos/<id_producto>/
     Devuelve {"tallas": ["24","25",...]} o ["Única"] si no hay atributo "Talla".
     """
-    producto = Producto.objects.filter(pk=id_producto).first()
+    producto = Producto.objects.filter(pk=id_producto, bodega=False).first()
     if not producto:
         raise Http404("Producto no encontrado")
 
@@ -254,7 +254,7 @@ def productos_por_ids(request):
         return JsonResponse({'error': 'IDs inválidos'}, status=400)
 
     productos = []
-    for p in Producto.objects.filter(id__in=id_list).prefetch_related('variantes__imagenes'):
+    for p in Producto.objects.filter(id__in=id_list, bodega=False).prefetch_related('variantes__imagenes'):
         # Galería de imágenes de la variante principal
         variante_principal = p.variante_principal
         galeria = []

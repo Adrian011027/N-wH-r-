@@ -243,7 +243,11 @@ def inventory_manager_required():
     def decorator(view_func):
         @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
+            logger.info(f"[INVENTORY_AUTH] ========== INICIO ==========")
+            logger.info(f"[INVENTORY_AUTH] Petición: {request.method} {request.path}")
+            
             auth_header = request.headers.get('Authorization')
+            logger.info(f"[INVENTORY_AUTH] Authorization header: {auth_header[:60] if auth_header else 'NO PRESENTE'}")
             
             # Intento 1: JWT
             if auth_header:
@@ -253,13 +257,19 @@ def inventory_manager_required():
                         token = parts[1]
                         payload = jwt.decode(token, _get_jwt_secret(), algorithms=['HS256'])
                         
+                        logger.info(f"[INVENTORY_AUTH] Token decodificado - payload: {payload}")
+                        
                         if payload.get('type') != 'access':
+                            logger.warning(f"[INVENTORY_AUTH] Token type inválido: {payload.get('type')}")
                             return JsonResponse({'error': 'Tipo de token inválido'}, status=401)
                         
                         user_role = payload.get('role', 'cliente')
+                        logger.info(f"[INVENTORY_AUTH] Rol del usuario: {user_role}")
+                        
                         # Permitir 'admin' o 'inventario'
                         if user_role not in ['admin', 'inventario']:
-                            return JsonResponse({'error': 'Se requiere rol de administrador o inventario'}, status=403)
+                            logger.warning(f"[INVENTORY_AUTH] Rol rechazado: {user_role}, se requiere admin o inventario")
+                            return JsonResponse({'error': 'Se requiere rol de administrador o inventario', 'your_role': user_role}, status=403)
                         
                         user_id = payload['user_id']
                         try:
