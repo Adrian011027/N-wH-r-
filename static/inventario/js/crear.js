@@ -82,6 +82,7 @@ async function crearProducto() {
     formData.append('sku', document.getElementById('var_sku').value.trim());
     formData.append('tallas_stock', JSON.stringify(tallasStock));
     formData.append('subcategorias', JSON.stringify(subcategorias));
+    formData.append('bodega', 'on');  // Productos de inventario ocultos por defecto
 
     // Imágenes
     const fileInput = document.getElementById('var_imagenes');

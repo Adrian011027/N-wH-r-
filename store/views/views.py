@@ -24,18 +24,18 @@ logger = logging.getLogger(__name__)
 # Home pública
 # ───────────────────────────────────────────────
 def index(request):
-    # Productos Hombre (incluye Unisex) — solo 4 aleatorios
+    # Productos Hombre (incluye Unisex) — solo 4 aleatorios — sin productos en bodega
     cab_home = list(
-        Producto.objects.filter(genero__in=["Hombre", "Unisex"])
+        Producto.objects.filter(genero__in=["Hombre", "Unisex"], bodega=False)
         .distinct()
         .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
         .order_by('?')[:4]
     )
     
-    # Productos Mujer (incluye Unisex) — solo 4 aleatorios
+    # Productos Mujer (incluye Unisex) — solo 4 aleatorios — sin productos en bodega
     dama_home = list(
-        Producto.objects.filter(genero__in=["Mujer", "Unisex"])
+        Producto.objects.filter(genero__in=["Mujer", "Unisex"], bodega=False)
         .distinct()
         .prefetch_related(Prefetch("variantes", Variante.objects.all()))
         .prefetch_related("variantes__imagenes")
@@ -136,11 +136,11 @@ def genero_view(request, genero):
     orden = request.GET.get('orden', 'nuevo')
     pagina = request.GET.get('pagina', 1)
 
-    # Base query: cuando genero_cod es 'Todo' se muestran todos los productos
+    # Base query: cuando genero_cod es 'Todo' se muestran todos los productos (excepto bodega)
     if genero_cod == 'Todo':
-        qs = Producto.objects.all()
+        qs = Producto.objects.filter(bodega=False)
     else:
-        qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"])
+        qs = Producto.objects.filter(genero__in=[genero_cod, "Unisex"], bodega=False)
     qs = qs.select_related("categoria").prefetch_related("subcategorias", "variantes__imagenes", "variantes")
     
     # Filtrar por categoría
@@ -631,16 +631,18 @@ def producto_aleatorio_subcategoria(request):
         from random import randint
         from django.db.models import Count
         
-        # Obtener productos según el parámetro proporcionado
+        # Obtener productos según el parámetro proporcionado (sin productos en bodega)
         if subcategoria_id:
             # Productos de subcategoría específica
             productos = Producto.objects.filter(
-                subcategorias__id=subcategoria_id
+                subcategorias__id=subcategoria_id,
+                bodega=False
             ).distinct().prefetch_related('variantes__imagenes')
         else:
             # Productos de toda la categoría
             productos = Producto.objects.filter(
-                categoria_id=categoria_id
+                categoria_id=categoria_id,
+                bodega=False
             ).distinct().prefetch_related('variantes__imagenes')
         
         if not productos.exists():

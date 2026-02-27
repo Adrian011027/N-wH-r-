@@ -32,7 +32,7 @@ def get_filtros_disponibles(request):
     genero_filtro = genero_map.get(genero.upper() if genero else '', None)
     
     # Query base de productos
-    productos_qs = Producto.objects.all()
+    productos_qs = Producto.objects.filter(bodega=False)
     
     if genero_filtro:
         productos_qs = productos_qs.filter(genero__in=[genero_filtro, 'Unisex'])
